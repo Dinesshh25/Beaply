@@ -2,7 +2,8 @@
 main.py
 Beaply — Aplikasi Desktop Manajemen Profil & Beasiswa
 GUI: CustomTkinter
-Fitur: Autentikasi, Profil, Beasiswa, Settings
+Fitur: Autentikasi, Profil, Beasiswa, Settings,
+       Tracker & Pengingat, Eksplorasi & Navigasi, Notifikasi Terpusat
 """
 
 import customtkinter as ctk
@@ -33,6 +34,62 @@ from Autentikasi_dan_Keamanan import (
     is_authenticated,
     get_password_strength_level,
     validate_email_format,
+)
+
+# ── Modul Tracker & Pengingat ──
+from Tracker_dan_Pengingat import (
+    tampilan_kalender,
+    tambah_penanda_manual,
+    ubah_status,
+    ubah_tracker,
+    toggle_bookmark,
+    hitung_statistik,
+    buat_pengingat_otomatis,
+    cek_pengingat,
+    ambil_semua_tracker,
+    ambil_tracker_by_id,
+    hapus_tracker,
+    format_status,
+    warna_status,
+    format_deadline_display,
+    hitung_selisih_hari,
+    STATUS_LIST,
+)
+
+# ── Modul Eksplorasi & Navigasi ──
+from Eksplorasi_dan_Navigasi import (
+    tampilan_eksplorasi,
+    auto_complete,
+    proses_pencarian,
+    terapkan_filter,
+    urutkan_data,
+    toggle_bookmark_beasiswa,
+    ambil_bookmark_user,
+    cek_bookmark,
+    ambil_semua_beasiswa,
+    format_kategori,
+    warna_kategori,
+    format_deadline_beasiswa,
+    format_syarat_singkat,
+)
+
+# ── Modul Notifikasi Terpusat ──
+from Notifikasi_Terpusat import (
+    tampilan_laci_notif,
+    ambil_riwayat,
+    tandai_dibaca,
+    tandai_semua_dibaca,
+    tampilan_kontrol_notif,
+    ubah_preferensi_notif,
+    simpan_semua_preferensi,
+    buat_notifikasi_deadline,
+    buat_notifikasi_status,
+    hitung_belum_dibaca,
+    hapus_notifikasi,
+    hapus_semua,
+    format_waktu_relatif,
+    ikon_tipe,
+    warna_tipe,
 )
 
 init_db()
@@ -155,6 +212,70 @@ TEKS = {
         "btn_reset":        "Simpan Kata Sandi Baru",
         "reset_ok":         "Kata sandi berhasil diperbarui!\nSilakan login kembali.",
         "dev_otp_info":     "[DEV MODE] Kode OTP Anda:",
+        # ── Sidebar ──
+        "nav_dashboard":    "🏠 Dashboard",
+        "nav_eksplorasi":   "🔍 Eksplorasi",
+        "nav_tracker":      "📋 Tracker",
+        "nav_kalender":     "📅 Kalender",
+        "nav_notifikasi":   "🔔 Notifikasi",
+        "nav_profil":       "👤 Profil",
+        "nav_settings":     "⚙ Pengaturan",
+        # ── Tracker ──
+        "t_judul":          "📋 Tracker Pendaftaran",
+        "t_tambah":         "+ Tambah Tracker",
+        "t_nama":           "Nama Beasiswa *",
+        "t_deadline":       "Deadline (YYYY-MM-DD)",
+        "t_catatan":        "Catatan",
+        "t_status":         "Status",
+        "t_simpan":         "Simpan Tracker",
+        "t_ok":             "Tracker berhasil ditambahkan!",
+        "t_hapus":          "Hapus",
+        "t_edit":           "Edit",
+        "t_bookmark":       "⭐",
+        "t_statistik":      "📊 Statistik",
+        "t_aktif":          "Aktif",
+        "t_proses":         "Proses",
+        "t_terkirim":       "Terkirim",
+        "t_diterima":       "Diterima",
+        "t_ditolak":        "Ditolak",
+        # ── Kalender ──
+        "k_judul":          "📅 Kalender Deadline",
+        "k_prev":           "◀",
+        "k_next":           "▶",
+        "k_detail":         "Detail Deadline",
+        # ── Eksplorasi ──
+        "e_judul":          "🔍 Eksplorasi Beasiswa",
+        "e_cari":           "Cari beasiswa...",
+        "e_filter":         "Filter",
+        "e_sort":           "Urutkan",
+        "e_kategori":       "Kategori",
+        "e_jenjang":        "Jenjang",
+        "e_ipk_min":        "IPK Min",
+        "e_semua":          "Semua",
+        "e_bookmark":       "⭐ Bookmark",
+        "e_unbookmark":     "☆ Hapus Bookmark",
+        "e_hasil":          "hasil ditemukan",
+        "e_sort_nama":      "Nama A-Z",
+        "e_sort_nama_d":    "Nama Z-A",
+        "e_sort_dl":        "Deadline Terdekat",
+        "e_sort_dl_d":      "Deadline Terjauh",
+        "e_sort_ipk":       "IPK Terendah",
+        "e_sort_ipk_d":     "IPK Tertinggi",
+        # ── Notifikasi ──
+        "n_judul":          "🔔 Notifikasi",
+        "n_semua":          "Semua",
+        "n_belum":          "Belum Dibaca",
+        "n_sudah":          "Sudah Dibaca",
+        "n_tandai_semua":   "✓ Tandai Semua Dibaca",
+        "n_hapus_semua":    "🗑 Hapus Semua",
+        "n_kosong":         "Tidak ada notifikasi.",
+        "n_pengaturan":     "⚙ Pengaturan Notifikasi",
+        "n_push":           "Push Notification",
+        "n_email":          "Email Notification",
+        "n_deadline":       "Notifikasi Deadline",
+        "n_status":         "Notifikasi Status",
+        "n_sistem":         "Notifikasi Sistem",
+        "n_simpan":         "Simpan Pengaturan",
     },
     "en": {
         "tagline":          "Scholarship Insight for Students",
@@ -265,6 +386,70 @@ TEKS = {
         "btn_reset":        "Save New Password",
         "reset_ok":         "Password updated successfully!\nPlease login again.",
         "dev_otp_info":     "[DEV MODE] Your OTP code:",
+        # ── Sidebar ──
+        "nav_dashboard":    "🏠 Dashboard",
+        "nav_eksplorasi":   "🔍 Explore",
+        "nav_tracker":      "📋 Tracker",
+        "nav_kalender":     "📅 Calendar",
+        "nav_notifikasi":   "🔔 Notifications",
+        "nav_profil":       "👤 Profile",
+        "nav_settings":     "⚙ Settings",
+        # ── Tracker ──
+        "t_judul":          "📋 Application Tracker",
+        "t_tambah":         "+ Add Tracker",
+        "t_nama":           "Scholarship Name *",
+        "t_deadline":       "Deadline (YYYY-MM-DD)",
+        "t_catatan":        "Notes",
+        "t_status":         "Status",
+        "t_simpan":         "Save Tracker",
+        "t_ok":             "Tracker added successfully!",
+        "t_hapus":          "Delete",
+        "t_edit":           "Edit",
+        "t_bookmark":       "⭐",
+        "t_statistik":      "📊 Statistics",
+        "t_aktif":          "Active",
+        "t_proses":         "In Progress",
+        "t_terkirim":       "Submitted",
+        "t_diterima":       "Accepted",
+        "t_ditolak":        "Rejected",
+        # ── Calendar ──
+        "k_judul":          "📅 Deadline Calendar",
+        "k_prev":           "◀",
+        "k_next":           "▶",
+        "k_detail":         "Deadline Details",
+        # ── Explore ──
+        "e_judul":          "🔍 Explore Scholarships",
+        "e_cari":           "Search scholarships...",
+        "e_filter":         "Filter",
+        "e_sort":           "Sort",
+        "e_kategori":       "Category",
+        "e_jenjang":        "Degree",
+        "e_ipk_min":        "Min GPA",
+        "e_semua":          "All",
+        "e_bookmark":       "⭐ Bookmark",
+        "e_unbookmark":     "☆ Remove",
+        "e_hasil":          "results found",
+        "e_sort_nama":      "Name A-Z",
+        "e_sort_nama_d":    "Name Z-A",
+        "e_sort_dl":        "Nearest Deadline",
+        "e_sort_dl_d":      "Farthest Deadline",
+        "e_sort_ipk":       "Lowest GPA",
+        "e_sort_ipk_d":     "Highest GPA",
+        # ── Notifications ──
+        "n_judul":          "🔔 Notifications",
+        "n_semua":          "All",
+        "n_belum":          "Unread",
+        "n_sudah":          "Read",
+        "n_tandai_semua":   "✓ Mark All Read",
+        "n_hapus_semua":    "🗑 Delete All",
+        "n_kosong":         "No notifications.",
+        "n_pengaturan":     "⚙ Notification Settings",
+        "n_push":           "Push Notification",
+        "n_email":          "Email Notification",
+        "n_deadline":       "Deadline Notifications",
+        "n_status":         "Status Notifications",
+        "n_sistem":         "System Notifications",
+        "n_simpan":         "Save Settings",
     },
 }
 
@@ -440,8 +625,6 @@ class HalamanAuth(ctk.CTkFrame):
             text=f"{t('kekuatan_pwd', self._bhs)} {label}",
             text_color=color)
         self.strength_bar.set(level / 4)
-        # CTkProgressBar tidak mendukung warna dinamis langsung,
-        # tapi kita set teks warnanya
         try:
             self.strength_bar.configure(progress_color=color)
         except Exception:
@@ -472,7 +655,6 @@ class HalamanAuth(ctk.CTkFrame):
         result = registrasi_pengguna(email, pwd, confirm, nama)
         if result["success"]:
             messagebox.showinfo(t("berhasil", self._bhs), result["message"])
-            # Pindah ke tab login
             self.tabview.set(t("tab_login", self._bhs))
             self.login_email.delete(0, "end")
             self.login_email.insert(0, email)
@@ -482,17 +664,14 @@ class HalamanAuth(ctk.CTkFrame):
             self.reg_error.configure(text=result["message"])
 
     def _sso_google(self):
-        """Handle SSO Google (stub)."""
         result = sso_google()
         messagebox.showinfo("Google SSO", result["message"])
 
     def _sso_apple(self):
-        """Handle SSO Apple (stub)."""
         result = sso_apple()
         messagebox.showinfo("Apple SSO", result["message"])
 
     def _go_lupa_sandi(self):
-        """Navigasi ke halaman lupa sandi."""
         self.lupa_sandi_cb()
 
 
@@ -501,12 +680,7 @@ class HalamanAuth(ctk.CTkFrame):
 # ════════════════════════════════════════════════════════════
 
 class HalamanLupaSandi(ctk.CTkFrame):
-    """
-    Alur pemulihan kata sandi:
-      Step 1: Input email → kirim OTP
-      Step 2: Input OTP → verifikasi
-      Step 3: Reset password
-    """
+    """Alur pemulihan kata sandi: Email → OTP → Reset."""
     def __init__(self, master, kembali_callback, reset_selesai_callback):
         super().__init__(master, fg_color="transparent")
         self.kembali_cb = kembali_callback
@@ -529,7 +703,6 @@ class HalamanLupaSandi(ctk.CTkFrame):
             except Exception:
                 pass
 
-    # ── Step 1: Input Email ───────────────────────────────────
     def _build_step1(self):
         self._clear()
         self._step = 1
@@ -562,24 +735,18 @@ class HalamanLupaSandi(ctk.CTkFrame):
         ).pack(pady=8)
 
     def _kirim_otp(self):
-        """Kirim OTP ke email."""
         email = self.lupa_email.get().strip()
         if not email or not validate_email_format(email):
             self.lupa_error.configure(text="Masukkan email yang valid.")
             return
-
         self._email = email
         result = lupa_sandi(email)
-
         if not result["success"]:
             self.lupa_error.configure(text=result["message"])
             return
-
-        # Simpan OTP untuk DEV mode display
         self._otp_dev = result.get("otp_dev", "")
         self._build_step2()
 
-    # ── Step 2: Input OTP ─────────────────────────────────────
     def _build_step2(self):
         self._clear()
         self._step = 2
@@ -596,7 +763,6 @@ class HalamanLupaSandi(ctk.CTkFrame):
                      font=ctk.CTkFont(size=13),
                      text_color="gray50", justify="center").pack(pady=(0, 10))
 
-        # DEV mode: tampilkan OTP
         if self._otp_dev:
             dev_frame = ctk.CTkFrame(self, fg_color=("#FFF3CD", "#665200"),
                                      corner_radius=8)
@@ -606,7 +772,6 @@ class HalamanLupaSandi(ctk.CTkFrame):
                          font=ctk.CTkFont(size=13, weight="bold"),
                          text_color=("#856404", "#FFD700")).pack(padx=12, pady=8)
 
-        # OTP Input (6 digit)
         self.otp_entry = ctk.CTkEntry(
             self, placeholder_text="000000", width=200, height=50,
             font=ctk.CTkFont(size=24, weight="bold"),
@@ -624,7 +789,6 @@ class HalamanLupaSandi(ctk.CTkFrame):
             command=self._verif_otp,
         ).pack(pady=6)
 
-        # Tombol kirim ulang + countdown
         self.resend_btn = ctk.CTkButton(
             self, text=t("btn_kirim_ulang", bhs), width=200,
             fg_color="transparent", text_color=("gray40", "gray70"),
@@ -632,13 +796,10 @@ class HalamanLupaSandi(ctk.CTkFrame):
             font=ctk.CTkFont(size=12),
             command=self._resend_otp, state="disabled")
         self.resend_btn.pack(pady=4)
-
-        # Mulai countdown 60 detik
         self._resend_countdown = 60
         self._tick_countdown()
 
     def _tick_countdown(self):
-        """Countdown timer untuk resend OTP."""
         if self._resend_countdown > 0:
             self.resend_btn.configure(
                 text=f"{t('btn_kirim_ulang', self._bhs)} ({self._resend_countdown}s)",
@@ -651,21 +812,18 @@ class HalamanLupaSandi(ctk.CTkFrame):
                 state="normal")
 
     def _resend_otp(self):
-        """Kirim ulang OTP."""
         result = lupa_sandi(self._email)
         if result["success"]:
             self._otp_dev = result.get("otp_dev", "")
-            self._build_step2()  # rebuild dengan OTP baru
+            self._build_step2()
         else:
             self.otp_error.configure(text=result["message"])
 
     def _verif_otp(self):
-        """Verifikasi kode OTP."""
         otp = self.otp_entry.get().strip()
         if not otp or len(otp) != 6 or not otp.isdigit():
             self.otp_error.configure(text="Masukkan 6 digit kode OTP.")
             return
-
         result = verifikasi_otp(self._email, otp)
         if result["valid"]:
             self._reset_token = result["reset_token"]
@@ -673,7 +831,6 @@ class HalamanLupaSandi(ctk.CTkFrame):
         else:
             self.otp_error.configure(text=result["message"])
 
-    # ── Step 3: Reset Password ────────────────────────────────
     def _build_step3(self):
         self._clear()
         self._step = 3
@@ -682,7 +839,6 @@ class HalamanLupaSandi(ctk.CTkFrame):
         ctk.CTkFrame(self, height=40, fg_color="transparent").pack()
         ctk.CTkLabel(self, text=t("reset_judul", bhs),
                      font=ctk.CTkFont(size=24, weight="bold")).pack(pady=(0, 4))
-
         ctk.CTkFrame(self, height=10, fg_color="transparent").pack()
 
         self.reset_pwd = ctk.CTkEntry(
@@ -731,20 +887,18 @@ class HalamanLupaSandi(ctk.CTkFrame):
             pass
 
     def _do_reset(self):
-        """Simpan password baru."""
         pwd = self.reset_pwd.get()
         confirm = self.reset_confirm.get()
-
         result = reset_password(self._email, pwd, confirm)
         if result["success"]:
             messagebox.showinfo(t("berhasil", self._bhs), result["message"])
-            self.reset_cb()  # kembali ke halaman login
+            self.reset_cb()
         else:
             self.reset_error.configure(text=result["message"])
 
 
 # ════════════════════════════════════════════════════════════
-# HALAMAN: Home (setelah login)
+# HALAMAN: Home (setelah login, pilih/buat profil)
 # ════════════════════════════════════════════════════════════
 
 class HalamanHome(ctk.CTkFrame):
@@ -911,8 +1065,6 @@ class HalamanBuatProfil(ctk.CTkFrame):
             self._g(self.e_sat), self._g(self.e_act), self._g(self.e_gre),
             self._g(self.e_gmat), self._g(self.e_hsk), self.dd_jlpt.get(),
         )
-        # Tambah user_id ke data
-        merged = {**dw, **ds, "user_id": self.user_id}
         ok, msg, pid = simpan_profil(dw, ds, user_id=self.user_id)
         if not ok:
             messagebox.showerror(t("gagal"), msg)
@@ -922,56 +1074,795 @@ class HalamanBuatProfil(ctk.CTkFrame):
 
 
 # ════════════════════════════════════════════════════════════
-# HALAMAN: Dashboard
+# HALAMAN: Dashboard (dengan sidebar)
 # ════════════════════════════════════════════════════════════
 
-class HalamanDashboard(ctk.CTkFrame):
-    def __init__(self, master, profil_id, buka_settings, logout_callback):
+class HalamanDashboardUtama(ctk.CTkFrame):
+    """Dashboard utama dengan statistik tracker dan info beasiswa."""
+    def __init__(self, master, profil_id, bhs="id"):
         super().__init__(master, fg_color="transparent")
-        self.profil_id     = profil_id
-        self.buka_settings = buka_settings
-        self.logout        = logout_callback
-        self._refresh()
+        self.profil_id = profil_id
+        self._bhs = bhs
+        self._build()
 
-    def _refresh(self):
-        for w in self.winfo_children():
-            w.destroy()
-
+    def _build(self):
+        bhs = self._bhs
         profil = tampil_profil(self.profil_id)
         if not profil:
             ctk.CTkLabel(self, text="Profil tidak ditemukan.").pack(pady=40)
             return
 
-        pref = ambil_preferensi(self.profil_id)
-        apply_pref(pref)
-        bhs = pref.get("bahasa", "id")
-        fs_j, fs_n, fs_s = ukuran_font(pref)
-
-        # ── top bar ──
-        bar = ctk.CTkFrame(self, fg_color="transparent")
-        bar.pack(fill="x", padx=24, pady=(16, 4))
-        nama_depan = profil["nama"].split()[0]
-        ctk.CTkLabel(bar, text=f"{t('sapa', bhs)}, {nama_depan}! 👋",
-                     font=ctk.CTkFont(size=fs_j, weight="bold")).pack(side="left")
-        ctk.CTkButton(bar, text=t("btn_logout", bhs), width=80,
-                      fg_color="transparent", border_width=1,
-                      command=self.logout).pack(side="right", padx=4)
-        ctk.CTkButton(bar, text=t("btn_settings", bhs), width=120,
-                      fg_color="transparent", border_width=1,
-                      command=lambda: self.buka_settings(self.profil_id, self._refresh)
-                      ).pack(side="right", padx=4)
-
-        # ── scroll ──
         scroll = ctk.CTkScrollableFrame(self)
-        scroll.pack(fill="both", expand=True, padx=24, pady=8)
-        self._card_profil(scroll, profil, bhs, fs_n, fs_s)
+        scroll.pack(fill="both", expand=True, padx=8, pady=8)
 
-    def _card_profil(self, parent, p, bhs, fs_n, fs_s):
-        card = ctk.CTkFrame(parent, corner_radius=12)
+        # ── Sapaan ──
+        nama_depan = profil["nama"].split()[0]
+        ctk.CTkLabel(scroll, text=f"{t('sapa', bhs)}, {nama_depan}! 👋",
+                     font=ctk.CTkFont(size=22, weight="bold")).pack(
+            anchor="w", padx=8, pady=(8, 4))
+        ctk.CTkLabel(scroll, text=t("tagline", bhs),
+                     font=ctk.CTkFont(size=12),
+                     text_color="gray50").pack(anchor="w", padx=8, pady=(0, 16))
+
+        # ── Statistik Cards ──
+        stats = hitung_statistik(self.profil_id)
+        cards_frame = ctk.CTkFrame(scroll, fg_color="transparent")
+        cards_frame.pack(fill="x", padx=4, pady=4)
+
+        stat_items = [
+            (str(stats.get("total", 0)), t("t_aktif", bhs), "#3B82F6"),
+            (str(stats.get("sedang_proses", 0)), t("t_proses", bhs), "#EAB308"),
+            (str(stats.get("terkirim", 0)), t("t_terkirim", bhs), "#10B981"),
+            (str(stats.get("diterima", 0)), t("t_diterima", bhs), "#22C55E"),
+        ]
+
+        for i, (val, lbl, clr) in enumerate(stat_items):
+            card = ctk.CTkFrame(cards_frame, corner_radius=10, width=130, height=80)
+            card.pack(side="left", padx=4, pady=4, expand=True, fill="x")
+            card.pack_propagate(False)
+            ctk.CTkLabel(card, text=val,
+                         font=ctk.CTkFont(size=24, weight="bold"),
+                         text_color=clr).pack(pady=(12, 0))
+            ctk.CTkLabel(card, text=lbl,
+                         font=ctk.CTkFont(size=10),
+                         text_color="gray50").pack()
+
+        # ── Deadline Terdekat ──
+        dl = stats.get("deadline_terdekat")
+        if dl:
+            dl_frame = ctk.CTkFrame(scroll, corner_radius=10)
+            dl_frame.pack(fill="x", padx=4, pady=8)
+            ctk.CTkLabel(dl_frame, text="⏰ Deadline Terdekat",
+                         font=ctk.CTkFont(size=13, weight="bold")).pack(
+                anchor="w", padx=12, pady=(10, 2))
+            ctk.CTkLabel(dl_frame, text=dl["nama_beasiswa"],
+                         font=ctk.CTkFont(size=14, weight="bold"),
+                         text_color="#3B82F6").pack(anchor="w", padx=12, pady=2)
+            ctk.CTkLabel(dl_frame, text=format_deadline_display(dl["deadline"]),
+                         font=ctk.CTkFont(size=11),
+                         text_color="gray50").pack(anchor="w", padx=12, pady=(0, 10))
+
+        # ── Profil Singkat ──
+        prof_card = ctk.CTkFrame(scroll, corner_radius=10)
+        prof_card.pack(fill="x", padx=4, pady=8)
+        ctk.CTkLabel(prof_card, text=t("judul_profil", bhs),
+                     font=ctk.CTkFont(size=13, weight="bold")).pack(
+            anchor="w", padx=12, pady=(10, 4))
+
+        info_items = [
+            (t("lb_nama", bhs), profil["nama"]),
+            (t("lb_kampus", bhs), profil["kampus"]),
+            (t("lb_jurusan", bhs), profil["jurusan"]),
+            (t("lb_jenjang", bhs), f"{profil['jenjang']} — Sem {profil['semester']}"),
+            (t("lb_ip", bhs), f"{profil['ip']:.2f}"),
+        ]
+        for k, v in info_items:
+            row = ctk.CTkFrame(prof_card, fg_color="transparent")
+            row.pack(fill="x", padx=12, pady=1)
+            ctk.CTkLabel(row, text=f"{k}:", width=100, anchor="w",
+                         font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
+            ctk.CTkLabel(row, text=str(v), anchor="w",
+                         font=ctk.CTkFont(size=11)).pack(side="left", padx=4)
+        ctk.CTkFrame(prof_card, height=8, fg_color="transparent").pack()
+
+
+# ════════════════════════════════════════════════════════════
+# HALAMAN: Tracker Pendaftaran
+# ════════════════════════════════════════════════════════════
+
+class HalamanTracker(ctk.CTkFrame):
+    def __init__(self, master, profil_id, bhs="id"):
+        super().__init__(master, fg_color="transparent")
+        self.profil_id = profil_id
+        self._bhs = bhs
+        self._build()
+
+    def _build(self):
+        self._refresh_list()
+
+    def _refresh_list(self):
+        for w in self.winfo_children():
+            w.destroy()
+        bhs = self._bhs
+
+        # Header
+        hdr = ctk.CTkFrame(self, fg_color="transparent")
+        hdr.pack(fill="x", padx=8, pady=(8, 4))
+        ctk.CTkLabel(hdr, text=t("t_judul", bhs),
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(side="left")
+        ctk.CTkButton(hdr, text=t("t_tambah", bhs), width=140, height=32,
+                      font=ctk.CTkFont(size=12, weight="bold"),
+                      command=self._form_tambah).pack(side="right")
+
+        # List tracker
+        trackers = ambil_semua_tracker(self.profil_id)
+        scroll = ctk.CTkScrollableFrame(self)
+        scroll.pack(fill="both", expand=True, padx=8, pady=4)
+
+        if not trackers:
+            ctk.CTkLabel(scroll, text="Belum ada tracker. Tambahkan yang pertama!",
+                         text_color="gray50",
+                         font=ctk.CTkFont(size=12)).pack(pady=40)
+            return
+
+        for tr in trackers:
+            self._card_tracker(scroll, tr)
+
+    def _card_tracker(self, parent, tr):
+        bhs = self._bhs
+        card = ctk.CTkFrame(parent, corner_radius=10)
+        card.pack(fill="x", pady=4)
+
+        # Header row
+        top = ctk.CTkFrame(card, fg_color="transparent")
+        top.pack(fill="x", padx=12, pady=(8, 2))
+        ctk.CTkLabel(top, text=tr["nama_beasiswa"],
+                     font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
+
+        # Bookmark star
+        bm_text = "⭐" if tr["dibookmark"] else "☆"
+        ctk.CTkButton(top, text=bm_text, width=30, height=26,
+                      fg_color="transparent",
+                      command=lambda tid=tr["id"]: self._toggle_bm(tid)).pack(side="right")
+
+        # Status badge
+        status_lbl = format_status(tr["status"], bhs)
+        status_clr = warna_status(tr["status"])
+        ctk.CTkLabel(top, text=f"  {status_lbl}  ",
+                     font=ctk.CTkFont(size=10),
+                     text_color="white",
+                     fg_color=status_clr,
+                     corner_radius=4).pack(side="right", padx=4)
+
+        # Info row
+        info = ctk.CTkFrame(card, fg_color="transparent")
+        info.pack(fill="x", padx=12, pady=2)
+        dl_text = format_deadline_display(tr["deadline"]) if tr["deadline"] else "Tidak ada deadline"
+        ctk.CTkLabel(info, text=f"📅 {dl_text}",
+                     font=ctk.CTkFont(size=10),
+                     text_color="gray50").pack(side="left")
+
+        if tr["catatan"]:
+            ctk.CTkLabel(info, text=f"📝 {tr['catatan'][:40]}",
+                         font=ctk.CTkFont(size=10),
+                         text_color="gray50").pack(side="left", padx=12)
+
+        # Action buttons
+        actions = ctk.CTkFrame(card, fg_color="transparent")
+        actions.pack(fill="x", padx=12, pady=(2, 8))
+
+        # Status dropdown
+        status_var = ctk.StringVar(value=tr["status"])
+        status_dd = ctk.CTkComboBox(
+            actions, values=STATUS_LIST, width=140, height=26,
+            variable=status_var,
+            font=ctk.CTkFont(size=10),
+            command=lambda val, tid=tr["id"]: self._ubah_status(tid, val))
+        status_dd.pack(side="left")
+
+        ctk.CTkButton(actions, text=t("t_hapus", bhs), width=60, height=26,
+                      fg_color="#EF4444", hover_color="#DC2626",
+                      font=ctk.CTkFont(size=10),
+                      command=lambda tid=tr["id"]: self._hapus(tid)).pack(side="right")
+
+    def _form_tambah(self):
+        for w in self.winfo_children():
+            w.destroy()
+        bhs = self._bhs
+
+        ctk.CTkButton(self, text=t("btn_kembali", bhs), width=100,
+                      fg_color="transparent", border_width=1,
+                      command=self._refresh_list).pack(anchor="w", padx=8, pady=(8, 4))
+
+        ctk.CTkLabel(self, text=t("t_tambah", bhs),
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(4, 12))
+
+        form = ctk.CTkFrame(self, corner_radius=10)
+        form.pack(fill="x", padx=8, pady=4)
+
+        self.e_nama_t = ctk.CTkEntry(form, placeholder_text=t("t_nama", bhs),
+                                     width=400, height=38)
+        self.e_nama_t.pack(padx=16, pady=(12, 6))
+        self.e_deadline_t = ctk.CTkEntry(form, placeholder_text=t("t_deadline", bhs),
+                                         width=400, height=38)
+        self.e_deadline_t.pack(padx=16, pady=6)
+        self.e_catatan_t = ctk.CTkEntry(form, placeholder_text=t("t_catatan", bhs),
+                                        width=400, height=38)
+        self.e_catatan_t.pack(padx=16, pady=6)
+
+        self.err_tracker = ctk.CTkLabel(form, text="", text_color="#FF3B30",
+                                        font=ctk.CTkFont(size=11))
+        self.err_tracker.pack(pady=4)
+
+        ctk.CTkButton(form, text=t("t_simpan", bhs), width=200, height=40,
+                      font=ctk.CTkFont(size=13, weight="bold"),
+                      command=self._simpan_tracker).pack(pady=(4, 16))
+
+    def _simpan_tracker(self):
+        nama = self.e_nama_t.get().strip()
+        dl = self.e_deadline_t.get().strip()
+        cat = self.e_catatan_t.get().strip()
+
+        ok, msg, tid = tambah_penanda_manual(self.profil_id, nama, dl, cat)
+        if not ok:
+            self.err_tracker.configure(text=msg)
+            return
+        # Buat pengingat otomatis jika ada deadline
+        if dl:
+            buat_pengingat_otomatis(tid)
+        messagebox.showinfo(t("berhasil", self._bhs), t("t_ok", self._bhs))
+        self._refresh_list()
+
+    def _ubah_status(self, tracker_id, status_baru):
+        ok, msg = ubah_status(tracker_id, status_baru)
+        if ok:
+            # Buat notifikasi perubahan status
+            tr = ambil_tracker_by_id(tracker_id)
+            if tr:
+                buat_notifikasi_status(self.profil_id, tr["nama_beasiswa"], status_baru)
+
+    def _toggle_bm(self, tracker_id):
+        toggle_bookmark(tracker_id)
+        self._refresh_list()
+
+    def _hapus(self, tracker_id):
+        if messagebox.askyesno("Konfirmasi", "Hapus tracker ini?"):
+            hapus_tracker(tracker_id)
+            self._refresh_list()
+
+
+# ════════════════════════════════════════════════════════════
+# HALAMAN: Kalender Deadline
+# ════════════════════════════════════════════════════════════
+
+class HalamanKalender(ctk.CTkFrame):
+    def __init__(self, master, profil_id, bhs="id"):
+        super().__init__(master, fg_color="transparent")
+        self.profil_id = profil_id
+        self._bhs = bhs
+        from datetime import datetime
+        now = datetime.now()
+        self._bulan = now.month
+        self._tahun = now.year
+        self._build()
+
+    def _build(self):
+        self._refresh_kalender()
+
+    def _refresh_kalender(self):
+        for w in self.winfo_children():
+            w.destroy()
+        bhs = self._bhs
+
+        data = tampilan_kalender(self.profil_id, self._bulan, self._tahun)
+
+        # Header navigasi bulan
+        nav = ctk.CTkFrame(self, fg_color="transparent")
+        nav.pack(fill="x", padx=8, pady=(8, 4))
+        ctk.CTkButton(nav, text=t("k_prev", bhs), width=40,
+                      command=self._prev_bulan).pack(side="left")
+        ctk.CTkLabel(nav, text=f"{data['nama_bulan']} {data['tahun']}",
+                     font=ctk.CTkFont(size=16, weight="bold")).pack(side="left", padx=16, expand=True)
+        ctk.CTkButton(nav, text=t("k_next", bhs), width=40,
+                      command=self._next_bulan).pack(side="right")
+
+        # Grid kalender
+        grid = ctk.CTkFrame(self, corner_radius=10)
+        grid.pack(fill="both", expand=True, padx=8, pady=4)
+
+        # Header hari
+        hari_labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]
+        if bhs == "en":
+            hari_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        for c, h in enumerate(hari_labels):
+            ctk.CTkLabel(grid, text=h, font=ctk.CTkFont(size=10, weight="bold"),
+                         text_color="gray50").grid(row=0, column=c, padx=2, pady=4)
+
+        # Tanggal
+        from datetime import datetime
+        today = datetime.now()
+        hari_pertama = data["hari_pertama"]
+        total_hari = data["total_hari"]
+        tgl_warna = data.get("tanggal_warna", {})
+        tgl_tracker = data.get("tanggal_tracker", {})
+
+        row = 1
+        col = hari_pertama
+        for day in range(1, total_hari + 1):
+            warna = tgl_warna.get(day, None)
+            is_today = (day == today.day and self._bulan == today.month
+                        and self._tahun == today.year)
+
+            fg = warna if warna else ("transparent" if not is_today else "#3B82F6")
+            txt_color = "white" if (warna or is_today) else None
+
+            btn = ctk.CTkButton(
+                grid, text=str(day), width=50, height=40,
+                fg_color=fg if fg != "transparent" else "transparent",
+                text_color=txt_color if txt_color else ("gray10", "gray90"),
+                hover_color=("#D1D5DB", "#4B5563"),
+                border_width=1 if is_today else 0,
+                border_color="#3B82F6" if is_today else None,
+                font=ctk.CTkFont(size=12, weight="bold" if warna else "normal"),
+                command=lambda d=day: self._klik_tanggal(d, tgl_tracker),
+            )
+            btn.grid(row=row, column=col, padx=2, pady=2, sticky="nsew")
+
+            col += 1
+            if col > 6:
+                col = 0
+                row += 1
+
+        # Expand grid columns
+        for c in range(7):
+            grid.grid_columnconfigure(c, weight=1)
+
+        # Legenda
+        leg = ctk.CTkFrame(self, fg_color="transparent")
+        leg.pack(fill="x", padx=8, pady=4)
+        legends = [("🟢 >30hr", "#22C55E"), ("🟡 <30hr", "#EAB308"),
+                   ("🔴 <15hr", "#EF4444"), ("⚫ Lewat", "#991B1B"),
+                   ("🔵 Bookmark", "#3B82F6")]
+        for txt, clr in legends:
+            ctk.CTkLabel(leg, text=txt, font=ctk.CTkFont(size=9),
+                         text_color=clr).pack(side="left", padx=6)
+
+    def _prev_bulan(self):
+        self._bulan -= 1
+        if self._bulan < 1:
+            self._bulan = 12
+            self._tahun -= 1
+        self._refresh_kalender()
+
+    def _next_bulan(self):
+        self._bulan += 1
+        if self._bulan > 12:
+            self._bulan = 1
+            self._tahun += 1
+        self._refresh_kalender()
+
+    def _klik_tanggal(self, day, tgl_tracker):
+        items = tgl_tracker.get(day, [])
+        if not items:
+            return
+        msg = "\n".join([f"• {it['nama_beasiswa']} — {format_status(it['status'], self._bhs)}"
+                         for it in items])
+        messagebox.showinfo(t("k_detail", self._bhs), msg)
+
+
+# ════════════════════════════════════════════════════════════
+# HALAMAN: Eksplorasi Beasiswa
+# ════════════════════════════════════════════════════════════
+
+class HalamanEksplorasi(ctk.CTkFrame):
+    def __init__(self, master, profil_id, bhs="id"):
+        super().__init__(master, fg_color="transparent")
+        self.profil_id = profil_id
+        self._bhs = bhs
+        self._hasil = []
+        self._build()
+
+    def _build(self):
+        bhs = self._bhs
+
+        # ── Search bar ──
+        search_frame = ctk.CTkFrame(self, fg_color="transparent")
+        search_frame.pack(fill="x", padx=8, pady=(8, 4))
+        ctk.CTkLabel(search_frame, text=t("e_judul", bhs),
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w")
+
+        bar = ctk.CTkFrame(self, fg_color="transparent")
+        bar.pack(fill="x", padx=8, pady=4)
+        self.e_cari = ctk.CTkEntry(bar, placeholder_text=t("e_cari", bhs),
+                                   width=300, height=36)
+        self.e_cari.pack(side="left", padx=(0, 8))
+        self.e_cari.bind("<KeyRelease>", self._on_search_key)
+
+        ctk.CTkButton(bar, text="🔍", width=40, height=36,
+                      command=self._do_search).pack(side="left")
+
+        # ── Autocomplete dropdown ──
+        self.autocomplete_frame = ctk.CTkFrame(self, corner_radius=8)
+        self.autocomplete_items = []
+
+        # ── Filter bar ──
+        filt = ctk.CTkFrame(self, fg_color="transparent")
+        filt.pack(fill="x", padx=8, pady=4)
+
+        ctk.CTkLabel(filt, text=t("e_kategori", bhs) + ":",
+                     font=ctk.CTkFont(size=10)).pack(side="left")
+        self.dd_kat = ctk.CTkComboBox(filt, values=["semua", "pemerintah", "swasta", "internasional"],
+                                      width=130, height=28, font=ctk.CTkFont(size=10))
+        self.dd_kat.set("semua")
+        self.dd_kat.pack(side="left", padx=4)
+
+        ctk.CTkLabel(filt, text=t("e_jenjang", bhs) + ":",
+                     font=ctk.CTkFont(size=10)).pack(side="left", padx=(8, 0))
+        self.dd_jenj = ctk.CTkComboBox(filt, values=["semua", "S1", "S2", "S3"],
+                                       width=80, height=28, font=ctk.CTkFont(size=10))
+        self.dd_jenj.set("semua")
+        self.dd_jenj.pack(side="left", padx=4)
+
+        ctk.CTkLabel(filt, text=t("e_sort", bhs) + ":",
+                     font=ctk.CTkFont(size=10)).pack(side="left", padx=(8, 0))
+        sort_values = [t("e_sort_dl", bhs), t("e_sort_nama", bhs),
+                       t("e_sort_nama_d", bhs), t("e_sort_ipk", bhs)]
+        self.dd_sort = ctk.CTkComboBox(filt, values=sort_values,
+                                       width=140, height=28, font=ctk.CTkFont(size=10))
+        self.dd_sort.set(sort_values[0])
+        self.dd_sort.pack(side="left", padx=4)
+
+        ctk.CTkButton(filt, text=t("e_filter", bhs), width=60, height=28,
+                      font=ctk.CTkFont(size=10),
+                      command=self._do_search).pack(side="left", padx=4)
+
+        # ── Hasil count ──
+        self.lbl_hasil = ctk.CTkLabel(self, text="",
+                                      font=ctk.CTkFont(size=11),
+                                      text_color="gray50")
+        self.lbl_hasil.pack(anchor="w", padx=12)
+
+        # ── Result area ──
+        self.scroll_hasil = ctk.CTkScrollableFrame(self)
+        self.scroll_hasil.pack(fill="both", expand=True, padx=8, pady=4)
+
+        # initial load
+        self._do_search()
+
+    def _on_search_key(self, event=None):
+        kw = self.e_cari.get().strip()
+        if len(kw) >= 2:
+            sugesti = auto_complete(kw)
+            self._show_autocomplete(sugesti)
+        else:
+            self._hide_autocomplete()
+
+    def _show_autocomplete(self, sugesti):
+        self._hide_autocomplete()
+        if not sugesti:
+            return
+        self.autocomplete_frame.pack(fill="x", padx=8, pady=(0, 2))
+        for s in sugesti[:6]:
+            btn = ctk.CTkButton(
+                self.autocomplete_frame, text=s, anchor="w",
+                fg_color="transparent", height=28,
+                font=ctk.CTkFont(size=11),
+                command=lambda txt=s: self._select_autocomplete(txt))
+            btn.pack(fill="x", padx=4, pady=1)
+
+    def _hide_autocomplete(self):
+        self.autocomplete_frame.pack_forget()
+        for w in self.autocomplete_frame.winfo_children():
+            w.destroy()
+
+    def _select_autocomplete(self, text):
+        self.e_cari.delete(0, "end")
+        self.e_cari.insert(0, text)
+        self._hide_autocomplete()
+        self._do_search()
+
+    def _get_sort_key(self):
+        bhs = self._bhs
+        val = self.dd_sort.get()
+        mapping = {
+            t("e_sort_nama", bhs): "nama_asc",
+            t("e_sort_nama_d", bhs): "nama_desc",
+            t("e_sort_dl", bhs): "deadline_asc",
+            t("e_sort_dl_d", bhs): "deadline_desc",
+            t("e_sort_ipk", bhs): "ipk_asc",
+            t("e_sort_ipk_d", bhs): "ipk_desc",
+        }
+        return mapping.get(val, "deadline_asc")
+
+    def _do_search(self):
+        self._hide_autocomplete()
+        kw = self.e_cari.get().strip()
+        bhs = self._bhs
+
+        # Pencarian
+        hasil = proses_pencarian(kw)
+
+        # Filter
+        kriteria = {
+            "kategori": self.dd_kat.get(),
+            "jenjang": self.dd_jenj.get(),
+        }
+        hasil = terapkan_filter(hasil, kriteria)
+
+        # Sort
+        hasil = urutkan_data(hasil, self._get_sort_key())
+
+        self._hasil = hasil
+        self.lbl_hasil.configure(text=f"{len(hasil)} {t('e_hasil', bhs)}")
+
+        # Render
+        for w in self.scroll_hasil.winfo_children():
+            w.destroy()
+
+        for b in hasil:
+            self._card_beasiswa(self.scroll_hasil, b)
+
+    def _card_beasiswa(self, parent, b):
+        bhs = self._bhs
+        card = ctk.CTkFrame(parent, corner_radius=10)
+        card.pack(fill="x", pady=4)
+
+        # Top row: nama + kategori
+        top = ctk.CTkFrame(card, fg_color="transparent")
+        top.pack(fill="x", padx=12, pady=(8, 2))
+        ctk.CTkLabel(top, text=b["nama"],
+                     font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
+
+        kat_label = format_kategori(b["kategori"], bhs)
+        kat_color = warna_kategori(b["kategori"])
+        ctk.CTkLabel(top, text=f" {kat_label} ",
+                     font=ctk.CTkFont(size=9),
+                     text_color="white", fg_color=kat_color,
+                     corner_radius=4).pack(side="right")
+
+        # Info row
+        info = ctk.CTkFrame(card, fg_color="transparent")
+        info.pack(fill="x", padx=12, pady=2)
+        ctk.CTkLabel(info, text=f"🏫 {b['penyelenggara']}  •  {b['jenjang']}",
+                     font=ctk.CTkFont(size=10),
+                     text_color="gray50").pack(side="left")
+        dl_text = format_deadline_beasiswa(b.get("deadline"))
+        ctk.CTkLabel(info, text=f"📅 {dl_text}",
+                     font=ctk.CTkFont(size=10),
+                     text_color="gray50").pack(side="right")
+
+        # Syarat
+        syarat = format_syarat_singkat(b)
+        ctk.CTkLabel(card, text=f"📋 {syarat}",
+                     font=ctk.CTkFont(size=10),
+                     text_color="gray50").pack(anchor="w", padx=12, pady=2)
+
+        # Deskripsi
+        if b.get("deskripsi"):
+            ctk.CTkLabel(card, text=b["deskripsi"][:120] + ("..." if len(b.get("deskripsi", "")) > 120 else ""),
+                         font=ctk.CTkFont(size=10),
+                         text_color="gray60",
+                         wraplength=500).pack(anchor="w", padx=12, pady=2)
+
+        # Bookmark button
+        is_bm = cek_bookmark(self.profil_id, b["id"])
+        bm_text = t("e_unbookmark", bhs) if is_bm else t("e_bookmark", bhs)
+        ctk.CTkButton(card, text=bm_text, width=120, height=26,
+                      fg_color="#EAB308" if is_bm else "transparent",
+                      border_width=1, font=ctk.CTkFont(size=10),
+                      command=lambda bid=b["id"]: self._toggle_bm(bid)).pack(
+            anchor="w", padx=12, pady=(2, 8))
+
+    def _toggle_bm(self, beasiswa_id):
+        toggle_bookmark_beasiswa(self.profil_id, beasiswa_id)
+        self._do_search()
+
+
+# ════════════════════════════════════════════════════════════
+# HALAMAN: Notifikasi
+# ════════════════════════════════════════════════════════════
+
+class HalamanNotifikasi(ctk.CTkFrame):
+    def __init__(self, master, profil_id, bhs="id"):
+        super().__init__(master, fg_color="transparent")
+        self.profil_id = profil_id
+        self._bhs = bhs
+        self._filter = None  # None=semua, 0=belum, 1=sudah
+        self._build()
+
+    def _build(self):
+        self._refresh_notif()
+
+    def _refresh_notif(self):
+        for w in self.winfo_children():
+            w.destroy()
+        bhs = self._bhs
+
+        belum = hitung_belum_dibaca(self.profil_id)
+
+        # Header
+        hdr = ctk.CTkFrame(self, fg_color="transparent")
+        hdr.pack(fill="x", padx=8, pady=(8, 4))
+        judul = t("n_judul", bhs)
+        if belum > 0:
+            judul += f" ({belum})"
+        ctk.CTkLabel(hdr, text=judul,
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(side="left")
+
+        ctk.CTkButton(hdr, text=t("n_pengaturan", bhs), width=140, height=28,
+                      fg_color="transparent", border_width=1,
+                      font=ctk.CTkFont(size=10),
+                      command=self._pengaturan_notif).pack(side="right")
+
+        # Tabs filter
+        tabs = ctk.CTkFrame(self, fg_color="transparent")
+        tabs.pack(fill="x", padx=8, pady=4)
+
+        for fval, fkey in [(None, "n_semua"), (0, "n_belum"), (1, "n_sudah")]:
+            is_active = self._filter == fval
+            ctk.CTkButton(
+                tabs, text=t(fkey, bhs), width=80, height=28,
+                fg_color="#3B82F6" if is_active else "transparent",
+                text_color="white" if is_active else None,
+                border_width=0 if is_active else 1,
+                font=ctk.CTkFont(size=10),
+                command=lambda f=fval: self._set_filter(f),
+            ).pack(side="left", padx=2)
+
+        # Action buttons
+        if belum > 0:
+            ctk.CTkButton(tabs, text=t("n_tandai_semua", bhs), width=140, height=28,
+                          fg_color="transparent", border_width=1,
+                          font=ctk.CTkFont(size=10),
+                          command=self._tandai_semua).pack(side="right", padx=2)
+
+        # Notifikasi list
+        data = tampilan_laci_notif(self.profil_id, bhs)
+
+        scroll = ctk.CTkScrollableFrame(self)
+        scroll.pack(fill="both", expand=True, padx=8, pady=4)
+
+        notif_list = ambil_riwayat(self.profil_id, self._filter)
+
+        if not notif_list:
+            ctk.CTkLabel(scroll, text=t("n_kosong", bhs),
+                         text_color="gray50",
+                         font=ctk.CTkFont(size=12)).pack(pady=40)
+            return
+
+        for n in notif_list:
+            self._card_notif(scroll, n)
+
+    def _card_notif(self, parent, n):
+        bhs = self._bhs
+        is_unread = not n["sudah_dibaca"]
+        card = ctk.CTkFrame(parent, corner_radius=8,
+                            border_width=2 if is_unread else 0,
+                            border_color="#3B82F6" if is_unread else None)
+        card.pack(fill="x", pady=3)
+
+        top = ctk.CTkFrame(card, fg_color="transparent")
+        top.pack(fill="x", padx=10, pady=(6, 2))
+
+        ikon = ikon_tipe(n.get("tipe", "info"))
+        ctk.CTkLabel(top, text=f"{ikon} {n['judul']}",
+                     font=ctk.CTkFont(size=12,
+                                      weight="bold" if is_unread else "normal")).pack(side="left")
+
+        waktu = format_waktu_relatif(n.get("dibuat_pada", ""), bhs)
+        ctk.CTkLabel(top, text=waktu,
+                     font=ctk.CTkFont(size=9),
+                     text_color="gray50").pack(side="right")
+
+        ctk.CTkLabel(card, text=n["pesan"],
+                     font=ctk.CTkFont(size=10),
+                     text_color="gray60" if not is_unread else None,
+                     wraplength=450).pack(anchor="w", padx=10, pady=(0, 2))
+
+        # Actions
+        act = ctk.CTkFrame(card, fg_color="transparent")
+        act.pack(fill="x", padx=10, pady=(0, 6))
+        if is_unread:
+            ctk.CTkButton(act, text="✓ Tandai Dibaca", width=100, height=22,
+                          fg_color="transparent", border_width=1,
+                          font=ctk.CTkFont(size=9),
+                          command=lambda nid=n["id"]: self._mark_read(nid)).pack(side="left")
+        ctk.CTkButton(act, text="🗑", width=30, height=22,
+                      fg_color="transparent", border_width=1,
+                      font=ctk.CTkFont(size=9),
+                      command=lambda nid=n["id"]: self._delete(nid)).pack(side="right")
+
+    def _set_filter(self, f):
+        self._filter = f
+        self._refresh_notif()
+
+    def _tandai_semua(self):
+        tandai_semua_dibaca(self.profil_id)
+        self._refresh_notif()
+
+    def _mark_read(self, nid):
+        tandai_dibaca(nid)
+        self._refresh_notif()
+
+    def _delete(self, nid):
+        hapus_notifikasi(nid)
+        self._refresh_notif()
+
+    def _pengaturan_notif(self):
+        for w in self.winfo_children():
+            w.destroy()
+        bhs = self._bhs
+
+        ctk.CTkButton(self, text=t("btn_kembali", bhs), width=100,
+                      fg_color="transparent", border_width=1,
+                      command=self._refresh_notif).pack(anchor="w", padx=8, pady=(8, 4))
+
+        ctk.CTkLabel(self, text=t("n_pengaturan", bhs),
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(4, 12))
+
+        prefs = tampilan_kontrol_notif(self.profil_id)
+        card = ctk.CTkFrame(self, corner_radius=10)
+        card.pack(fill="x", padx=8, pady=4)
+
+        self.toggle_vars = {}
+        toggles = [
+            ("push_notif", t("n_push", bhs)),
+            ("email_notif", t("n_email", bhs)),
+            ("notif_deadline", t("n_deadline", bhs)),
+            ("notif_status", t("n_status", bhs)),
+            ("notif_sistem", t("n_sistem", bhs)),
+        ]
+
+        for key, label in toggles:
+            row = ctk.CTkFrame(card, fg_color="transparent")
+            row.pack(fill="x", padx=16, pady=6)
+            ctk.CTkLabel(row, text=label, font=ctk.CTkFont(size=12)).pack(side="left")
+
+            var = ctk.BooleanVar(value=bool(prefs.get(key, 1)))
+            self.toggle_vars[key] = var
+            sw = ctk.CTkSwitch(row, text="", variable=var, width=40)
+            sw.pack(side="right")
+
+        ctk.CTkButton(card, text=t("n_simpan", bhs), width=200, height=36,
+                      font=ctk.CTkFont(size=12, weight="bold"),
+                      command=self._simpan_pref_notif).pack(pady=12)
+
+    def _simpan_pref_notif(self):
+        prefs = {k: v.get() for k, v in self.toggle_vars.items()}
+        ok, msg = simpan_semua_preferensi(self.profil_id, prefs)
+        if ok:
+            messagebox.showinfo(t("berhasil", self._bhs),
+                                "Pengaturan notifikasi tersimpan!")
+        self._refresh_notif()
+
+
+# ════════════════════════════════════════════════════════════
+# HALAMAN: Profil (tampilan profil lengkap)
+# ════════════════════════════════════════════════════════════
+
+class HalamanProfil(ctk.CTkFrame):
+    def __init__(self, master, profil_id, bhs="id"):
+        super().__init__(master, fg_color="transparent")
+        self.profil_id = profil_id
+        self._bhs = bhs
+        self._build()
+
+    def _build(self):
+        bhs = self._bhs
+        profil = tampil_profil(self.profil_id)
+        if not profil:
+            ctk.CTkLabel(self, text="Profil tidak ditemukan.").pack(pady=40)
+            return
+
+        scroll = ctk.CTkScrollableFrame(self)
+        scroll.pack(fill="both", expand=True, padx=8, pady=8)
+
+        # Card Profil
+        card = ctk.CTkFrame(scroll, corner_radius=12)
         card.pack(fill="x", pady=8)
 
         ctk.CTkLabel(card, text=t("judul_profil", bhs),
-                     font=ctk.CTkFont(size=fs_n+1, weight="bold")).pack(
+                     font=ctk.CTkFont(size=16, weight="bold")).pack(
             anchor="w", padx=16, pady=(12, 4))
 
         grid = ctk.CTkFrame(card, fg_color="transparent")
@@ -984,39 +1875,39 @@ class HalamanDashboard(ctk.CTkFrame):
         def baris(frm, key_lbl, val):
             r = ctk.CTkFrame(frm, fg_color="transparent"); r.pack(fill="x", pady=2)
             ctk.CTkLabel(r, text=f"{t(key_lbl, bhs)}:", width=110, anchor="w",
-                         font=ctk.CTkFont(size=fs_s, weight="bold")).pack(side="left")
+                         font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
             ctk.CTkLabel(r, text=str(val), anchor="w",
-                         font=ctk.CTkFont(size=fs_s)).pack(side="left", padx=4)
+                         font=ctk.CTkFont(size=11)).pack(side="left", padx=4)
 
-        baris(kiri,  "lb_nama",     p["nama"])
-        baris(kiri,  "lb_tgl",      format_tanggal(p["tanggal_lahir"]))
-        baris(kiri,  "lb_email",    p["email"])
-        baris(kiri,  "lb_jurusan",  p["jurusan"])
-        baris(kiri,  "lb_kampus",   p["kampus"])
-        baris(kanan, "lb_jenjang",  p["jenjang"])
-        baris(kanan, "lb_semester", p["semester"])
-        baris(kanan, "lb_ip",       f"{p['ip']:.2f}")
-        baris(kanan, "lb_jk",       p["jenis_kelamin"])
-        baris(kanan, "lb_kip",      t("v_ya", bhs) if p["status_kip"] else t("v_tidak", bhs))
+        baris(kiri,  "lb_nama",     profil["nama"])
+        baris(kiri,  "lb_tgl",      format_tanggal(profil["tanggal_lahir"]))
+        baris(kiri,  "lb_email",    profil["email"])
+        baris(kiri,  "lb_jurusan",  profil["jurusan"])
+        baris(kiri,  "lb_kampus",   profil["kampus"])
+        baris(kanan, "lb_jenjang",  profil["jenjang"])
+        baris(kanan, "lb_semester", profil["semester"])
+        baris(kanan, "lb_ip",       f"{profil['ip']:.2f}")
+        baris(kanan, "lb_jk",       profil["jenis_kelamin"])
+        baris(kanan, "lb_kip",      t("v_ya", bhs) if profil["status_kip"] else t("v_tidak", bhs))
 
-        # Skor tes (hanya yang diisi)
+        # Skor tes
         tes = {
-            "IELTS": p.get("skor_ielts"), "TOEFL": p.get("skor_toefl"),
-            "Duolingo": p.get("skor_duolingo"), "SAT": p.get("skor_sat"),
-            "ACT": p.get("skor_act"), "GRE": p.get("skor_gre"),
-            "GMAT": p.get("skor_gmat"), "HSK": p.get("skor_hsk"),
-            "JLPT": p.get("level_jlpt"),
+            "IELTS": profil.get("skor_ielts"), "TOEFL": profil.get("skor_toefl"),
+            "Duolingo": profil.get("skor_duolingo"), "SAT": profil.get("skor_sat"),
+            "ACT": profil.get("skor_act"), "GRE": profil.get("skor_gre"),
+            "GMAT": profil.get("skor_gmat"), "HSK": profil.get("skor_hsk"),
+            "JLPT": profil.get("level_jlpt"),
         }
         ada = {k: v for k, v in tes.items() if v is not None and str(v).strip() != ""}
         if ada:
             ctk.CTkLabel(card, text=t("judul_skor", bhs),
-                         font=ctk.CTkFont(size=fs_s, weight="bold")).pack(
+                         font=ctk.CTkFont(size=11, weight="bold")).pack(
                 anchor="w", padx=16, pady=(6, 2))
             baris_tes = ctk.CTkFrame(card, fg_color="transparent")
             baris_tes.pack(fill="x", padx=16, pady=(0, 10))
             for k, v in ada.items():
                 ctk.CTkLabel(baris_tes, text=f"{k}: {v}",
-                             font=ctk.CTkFont(size=fs_s)).pack(side="left", padx=8)
+                             font=ctk.CTkFont(size=11)).pack(side="left", padx=8)
 
         ctk.CTkFrame(card, height=10, fg_color="transparent").pack()
 
@@ -1050,7 +1941,6 @@ class SettingsWindow(ctk.CTkToplevel):
         self._tab_pref( tab.tab(t("tab_pref",  bhs)))
         self._tab_hapus(tab.tab(t("tab_hapus", bhs)))
 
-    # ── Tab Edit Profil ──────────────────────────────────
     def _tab_edit(self, parent):
         profil = tampil_profil(self.profil_id)
         if not profil:
@@ -1140,7 +2030,6 @@ class SettingsWindow(ctk.CTkToplevel):
         messagebox.showinfo(t("berhasil", bhs), t("ok_edit", bhs), parent=self)
         self.refresh()
 
-    # ── Tab Preferensi ───────────────────────────────────
     def _tab_pref(self, parent):
         pref = ambil_preferensi(self.profil_id)
         bhs  = self._bhs
@@ -1181,7 +2070,6 @@ class SettingsWindow(ctk.CTkToplevel):
         messagebox.showinfo(t("berhasil", bhs), t("ok_pref", bhs), parent=self)
         self.refresh()
 
-    # ── Tab Hapus Akun ───────────────────────────────────
     def _tab_hapus(self, parent):
         bhs = self._bhs
         ctk.CTkFrame(parent, height=40, fg_color="transparent").pack()
@@ -1209,6 +2097,144 @@ class SettingsWindow(ctk.CTkToplevel):
 
 
 # ════════════════════════════════════════════════════════════
+# LAYOUT: Sidebar + Content Area
+# ════════════════════════════════════════════════════════════
+
+class LayoutDenganSidebar(ctk.CTkFrame):
+    """Layout utama setelah login: Sidebar navigasi + Content area."""
+    def __init__(self, master, profil_id, logout_callback):
+        super().__init__(master, fg_color="transparent")
+        self.profil_id = profil_id
+        self.logout     = logout_callback
+        self._bhs       = get_bahasa(profil_id)
+        self._active_nav = "dashboard"
+        self._build()
+
+    def _build(self):
+        pref = ambil_preferensi(self.profil_id)
+        apply_pref(pref)
+        self._bhs = pref.get("bahasa", "id")
+
+        # ── Sidebar ──
+        self.sidebar = ctk.CTkFrame(self, width=180, corner_radius=0)
+        self.sidebar.pack(side="left", fill="y")
+        self.sidebar.pack_propagate(False)
+
+        # Logo
+        ctk.CTkLabel(self.sidebar, text="🎓 Beaply",
+                     font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(16, 20))
+
+        # Nav items
+        nav_items = [
+            ("dashboard",    "nav_dashboard"),
+            ("eksplorasi",   "nav_eksplorasi"),
+            ("tracker",      "nav_tracker"),
+            ("kalender",     "nav_kalender"),
+            ("notifikasi",   "nav_notifikasi"),
+            ("profil",       "nav_profil"),
+        ]
+
+        self.nav_buttons = {}
+        for nav_key, label_key in nav_items:
+            btn = ctk.CTkButton(
+                self.sidebar, text=t(label_key, self._bhs),
+                anchor="w", height=36,
+                fg_color="transparent",
+                font=ctk.CTkFont(size=12),
+                command=lambda k=nav_key: self._navigate(k),
+            )
+            btn.pack(fill="x", padx=8, pady=2)
+            self.nav_buttons[nav_key] = btn
+
+        # Notif badge
+        belum = hitung_belum_dibaca(self.profil_id)
+        if belum > 0:
+            self.nav_buttons["notifikasi"].configure(
+                text=f"{t('nav_notifikasi', self._bhs)} ({belum})")
+
+        # Bottom: Settings + Logout
+        ctk.CTkFrame(self.sidebar, height=1, fg_color="gray60").pack(
+            fill="x", padx=16, pady=8, side="bottom")
+
+        ctk.CTkButton(self.sidebar, text=t("btn_logout", self._bhs),
+                      fg_color="transparent", border_width=1,
+                      height=32, anchor="w",
+                      font=ctk.CTkFont(size=11),
+                      command=self.logout).pack(
+            fill="x", padx=8, pady=2, side="bottom")
+
+        ctk.CTkButton(self.sidebar, text=t("nav_settings", self._bhs),
+                      fg_color="transparent", border_width=1,
+                      height=32, anchor="w",
+                      font=ctk.CTkFont(size=11),
+                      command=self._open_settings).pack(
+            fill="x", padx=8, pady=2, side="bottom")
+
+        # ── Content area ──
+        self.content = ctk.CTkFrame(self, fg_color="transparent")
+        self.content.pack(side="left", fill="both", expand=True)
+
+        # Default: Dashboard
+        self._navigate("dashboard")
+
+    def _navigate(self, key):
+        self._active_nav = key
+        # Update button styles
+        for k, btn in self.nav_buttons.items():
+            if k == key:
+                btn.configure(fg_color=("#3B82F6", "#2563EB"),
+                              text_color="white")
+            else:
+                btn.configure(fg_color="transparent",
+                              text_color=("gray10", "gray90"))
+
+        # Clear content
+        for w in self.content.winfo_children():
+            w.destroy()
+
+        bhs = self._bhs
+
+        if key == "dashboard":
+            HalamanDashboardUtama(self.content, self.profil_id, bhs).pack(
+                fill="both", expand=True)
+        elif key == "eksplorasi":
+            HalamanEksplorasi(self.content, self.profil_id, bhs).pack(
+                fill="both", expand=True)
+        elif key == "tracker":
+            HalamanTracker(self.content, self.profil_id, bhs).pack(
+                fill="both", expand=True)
+        elif key == "kalender":
+            HalamanKalender(self.content, self.profil_id, bhs).pack(
+                fill="both", expand=True)
+        elif key == "notifikasi":
+            HalamanNotifikasi(self.content, self.profil_id, bhs).pack(
+                fill="both", expand=True)
+            # Update badge
+            belum = hitung_belum_dibaca(self.profil_id)
+            notif_text = t("nav_notifikasi", bhs)
+            if belum > 0:
+                notif_text += f" ({belum})"
+            self.nav_buttons["notifikasi"].configure(text=notif_text)
+        elif key == "profil":
+            HalamanProfil(self.content, self.profil_id, bhs).pack(
+                fill="both", expand=True)
+
+    def _open_settings(self):
+        win = SettingsWindow(self, self.profil_id, self._refresh_all)
+        win.grab_set()
+
+    def _refresh_all(self):
+        """Refresh setelah settings berubah."""
+        pref = ambil_preferensi(self.profil_id)
+        apply_pref(pref)
+        self._bhs = pref.get("bahasa", "id")
+        # Rebuild sidebar + content
+        for w in self.winfo_children():
+            w.destroy()
+        self._build()
+
+
+# ════════════════════════════════════════════════════════════
 # APP ROOT
 # ════════════════════════════════════════════════════════════
 
@@ -1216,11 +2242,11 @@ class BeaplyApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Beaply — Insight Beasiswa")
-        self.geometry("860x700")
-        self.minsize(760, 560)
+        self.geometry("960x720")
+        self.minsize(860, 600)
         ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
-        self._current_user = None  # dict user yang sedang login
+        self._current_user = None
         self._go_auth()
 
     def _clear(self):
@@ -1228,7 +2254,6 @@ class BeaplyApp(ctk.CTk):
 
     # ── Navigasi: Autentikasi ─────────────────────────────
     def _go_auth(self):
-        """Halaman login/register (entry point)."""
         self._clear()
         self._current_user = None
         HalamanAuth(self,
@@ -1237,12 +2262,10 @@ class BeaplyApp(ctk.CTk):
                     ).pack(fill="both", expand=True)
 
     def _on_login_success(self, user_profile: dict):
-        """Callback setelah login berhasil."""
         self._current_user = user_profile
         self._go_home_after_login()
 
     def _go_lupa_sandi(self):
-        """Halaman lupa kata sandi."""
         self._clear()
         HalamanLupaSandi(self,
                          kembali_callback=self._go_auth,
@@ -1251,7 +2274,6 @@ class BeaplyApp(ctk.CTk):
 
     # ── Navigasi: Utama (setelah auth) ────────────────────
     def _go_home_after_login(self):
-        """Halaman home (pilih/buat profil) — hanya setelah login."""
         self._clear()
         user_id = self._current_user["id"] if self._current_user else None
         HalamanHome(self,
@@ -1275,17 +2297,11 @@ class BeaplyApp(ctk.CTk):
         self._clear()
         pref = ambil_preferensi(PROFIL_AKTIF_ID)
         apply_pref(pref)
-        HalamanDashboard(self, PROFIL_AKTIF_ID,
-                         buka_settings=self._buka_settings,
-                         logout_callback=self._go_logout
-                         ).pack(fill="both", expand=True)
-
-    def _buka_settings(self, profil_id, refresh_cb):
-        win = SettingsWindow(self, profil_id, refresh_cb)
-        win.grab_set()
+        LayoutDenganSidebar(self, PROFIL_AKTIF_ID,
+                            logout_callback=self._go_logout
+                            ).pack(fill="both", expand=True)
 
     def _go_logout(self):
-        """Logout: invalidasi sesi → kembali ke halaman auth."""
         global PROFIL_AKTIF_ID
         PROFIL_AKTIF_ID = None
         logout_pengguna()
