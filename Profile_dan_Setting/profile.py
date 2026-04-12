@@ -24,7 +24,6 @@ from database import (
 # ─────────────────────────────────────────────────────────────
 
 def input_data_wajib(
-    password: str,
     nama: str,
     tanggal_lahir: str,
     email: str,
@@ -40,7 +39,6 @@ def input_data_wajib(
     Casting tipe dasar dilakukan di sini; validasi ada di validasi_data_wajib().
     """
     return {
-        "password":      password.strip(),
         "nama":          nama.strip(),
         "tanggal_lahir": tanggal_lahir.strip(),
         "email":         email.strip().lower(),
@@ -91,7 +89,7 @@ def input_data_spesifik(
 # simpan_profil()
 # ─────────────────────────────────────────────────────────────
 
-def simpan_profil(data_wajib: dict, data_spesifik: dict) -> tuple[bool, str, int]:
+def simpan_profil(data_wajib: dict, data_spesifik: dict, user_id: str = None) -> tuple[bool, str, int]:
     """
     Validasi keduanya, lalu simpan ke DB.
     Return: (sukses, pesan, id_profil)
@@ -105,6 +103,7 @@ def simpan_profil(data_wajib: dict, data_spesifik: dict) -> tuple[bool, str, int
         return False, msg, -1
 
     data_lengkap = {**data_wajib, **data_spesifik}
+    data_lengkap["user_id"] = user_id
     return simpan_profil_db(data_lengkap)
 
 

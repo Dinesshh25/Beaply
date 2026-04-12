@@ -33,7 +33,6 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS profil (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            password        TEXT    NOT NULL DEFAULT '123456',
             user_id         TEXT    DEFAULT NULL,
             nama            TEXT    NOT NULL,
             tanggal_lahir   TEXT    NOT NULL,
@@ -93,13 +92,13 @@ def simpan_profil_db(data: dict) -> tuple[bool, str, int]:
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO profil (
-                password, user_id, nama, tanggal_lahir, email, jurusan, kampus,
+                user_id, nama, tanggal_lahir, email, jurusan, kampus,
                 semester, ip, jenjang, jenis_kelamin,
                 status_kip, skor_ielts, skor_toefl, skor_duolingo,
                 skor_sat, skor_act, skor_gre, skor_gmat,
                 skor_hsk, level_jlpt
             ) VALUES (
-                :password, :user_id, :nama, :tanggal_lahir, :email, :jurusan, :kampus,
+                :user_id, :nama, :tanggal_lahir, :email, :jurusan, :kampus,
                 :semester, :ip, :jenjang, :jenis_kelamin,
                 :status_kip, :skor_ielts, :skor_toefl, :skor_duolingo,
                 :skor_sat, :skor_act, :skor_gre, :skor_gmat,
