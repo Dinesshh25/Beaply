@@ -25,6 +25,7 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS profil (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id         TEXT    DEFAULT NULL,
             nama            TEXT    NOT NULL,
             tanggal_lahir   TEXT    NOT NULL,
             email           TEXT    NOT NULL UNIQUE,
@@ -61,6 +62,12 @@ def init_db():
         )
     """)
 
+    # Migrasi: tambah kolom user_id jika belum ada (backward compatible)
+    try:
+        cur.execute("ALTER TABLE profil ADD COLUMN user_id TEXT DEFAULT NULL")
+    except sqlite3.OperationalError:
+        pass  # kolom sudah ada
+
     conn.commit()
     conn.close()
 
@@ -77,13 +84,13 @@ def simpan_profil_db(data: dict) -> tuple[bool, str, int]:
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO profil (
-                nama, tanggal_lahir, email, jurusan, kampus,
+                user_id, nama, tanggal_lahir, email, jurusan, kampus,
                 semester, ip, jenjang, jenis_kelamin,
                 status_kip, skor_ielts, skor_toefl, skor_duolingo,
                 skor_sat, skor_act, skor_gre, skor_gmat,
                 skor_hsk, level_jlpt
             ) VALUES (
-                :nama, :tanggal_lahir, :email, :jurusan, :kampus,
+                :user_id, :nama, :tanggal_lahir, :email, :jurusan, :kampus,
                 :semester, :ip, :jenjang, :jenis_kelamin,
                 :status_kip, :skor_ielts, :skor_toefl, :skor_duolingo,
                 :skor_sat, :skor_act, :skor_gre, :skor_gmat,
@@ -114,11 +121,14 @@ def ambil_profil_db(profil_id: int) -> dict | None:
     return dict(row) if row else None
 
 
-def ambil_semua_profil_db() -> list[dict]:
-    """Ambil semua profil."""
+def ambil_semua_profil_db(user_id: str = None) -> list[dict]:
+    """Ambil semua profil, opsional filter by user_id."""
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil ORDER BY dibuat_pada DESC")
+    if user_id:
+        cur.execute("SELECT * FROM profil WHERE user_id = ? ORDER BY dibuat_pada DESC", (user_id,))
+    else:
+        cur.execute("SELECT * FROM profil ORDER BY dibuat_pada DESC")
     rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]

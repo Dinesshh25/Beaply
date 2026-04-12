@@ -7,7 +7,7 @@ Modul: edit_profil, validasi_edit_profil, simpan_edit_profil,
 """
 
 from utils import validasi_edit_profil, parse_int_or_none, parse_float_or_none
-from Beaply.database import (
+from database import (
     update_profil_db,
     hapus_profil_db,
     ambil_preferensi_db,
