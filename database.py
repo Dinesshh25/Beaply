@@ -21,6 +21,14 @@ def init_db():
     conn = get_connection()
     cur = conn.cursor()
 
+    # Inisialisasi tabel modul fitur baru
+    from Tracker_dan_Pengingat import init_tracker_db
+    from Eksplorasi_dan_Navigasi import init_eksplorasi_db
+    from Notifikasi_Terpusat import init_notifikasi_db
+    init_tracker_db()
+    init_eksplorasi_db()
+    init_notifikasi_db()
+
     # ── Tabel profil mahasiswa ────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS profil (
