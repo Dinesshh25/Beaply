@@ -24,6 +24,7 @@ from database import (
 # ─────────────────────────────────────────────────────────────
 
 def input_data_wajib(
+    password: str,
     nama: str,
     tanggal_lahir: str,
     email: str,
@@ -39,6 +40,7 @@ def input_data_wajib(
     Casting tipe dasar dilakukan di sini; validasi ada di validasi_data_wajib().
     """
     return {
+        "password":      password.strip(),
         "nama":          nama.strip(),
         "tanggal_lahir": tanggal_lahir.strip(),
         "email":         email.strip().lower(),

@@ -152,3 +152,26 @@ def simpan_preferensi(
 
 def ambil_preferensi(id_profil: int) -> dict:
     return ambil_preferensi_db(id_profil)
+
+
+# ─────────────────────────────────────────────────────────────
+# ganti_password()
+# ─────────────────────────────────────────────────────────────
+
+from database import ganti_password_db, ambil_profil_db
+
+def ganti_password(id_profil: int, old_pass: str, new_pass: str, confirm_pass: str) -> tuple[bool, str]:
+    """Validasi dan ganti password."""
+    if new_pass != confirm_pass:
+        return False, "Password baru dan konfirmasi tidak cocok."
+    if len(new_pass) < 6:
+        return False, "Password baru minimal 6 karakter."
+        
+    profil = ambil_profil_db(id_profil)
+    if not profil:
+        return False, "Profil tidak ditemukan."
+        
+    if profil["password"] != old_pass:
+        return False, "Password lama salah."
+        
+    return ganti_password_db(id_profil, new_pass)

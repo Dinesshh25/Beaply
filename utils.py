@@ -22,6 +22,11 @@ def validasi_data_wajib(data: dict) -> tuple[bool, str]:
     Validasi semua field wajib mahasiswa.
     Return: (valid: bool, pesan_error: str)
     """
+    password = str(data.get("password", "")).strip()
+    if password is not None and len(password) > 0 and len(password) < 6:
+        return False, "Password minimal 6 karakter."
+
+
     nama = str(data.get("nama", "")).strip()
     if not nama:
         return False, "Nama tidak boleh kosong."
