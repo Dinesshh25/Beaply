@@ -12,7 +12,7 @@ from utils import (
     parse_int_or_none,
     parse_float_or_none,
 )
-from Beaply.database import (
+from database import (
     simpan_profil_db,
     ambil_profil_db,
     ambil_semua_profil_db,
@@ -89,7 +89,7 @@ def input_data_spesifik(
 # simpan_profil()
 # ─────────────────────────────────────────────────────────────
 
-def simpan_profil(data_wajib: dict, data_spesifik: dict) -> tuple[bool, str, int]:
+def simpan_profil(data_wajib: dict, data_spesifik: dict, user_id: str = None) -> tuple[bool, str, int]:
     """
     Validasi keduanya, lalu simpan ke DB.
     Return: (sukses, pesan, id_profil)
@@ -102,7 +102,7 @@ def simpan_profil(data_wajib: dict, data_spesifik: dict) -> tuple[bool, str, int
     if not ok:
         return False, msg, -1
 
-    data_lengkap = {**data_wajib, **data_spesifik}
+    data_lengkap = {**data_wajib, **data_spesifik, "user_id": user_id}
     return simpan_profil_db(data_lengkap)
 
 
