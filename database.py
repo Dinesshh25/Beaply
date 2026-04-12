@@ -215,3 +215,14 @@ def simpan_preferensi_db(profil_id: int, preferensi: dict) -> tuple[bool, str]:
         return True, "Preferensi tersimpan."
     except Exception as e:
         return False, str(e)
+
+def ganti_password_db(profil_id: int, password_baru: str) -> tuple[bool, str]:
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE profil SET password = ? WHERE id = ?', (password_baru, profil_id))
+        conn.commit()
+        conn.close()
+        return True, 'Password berhasil diubah.'
+    except Exception as e:
+        return False, str(e)

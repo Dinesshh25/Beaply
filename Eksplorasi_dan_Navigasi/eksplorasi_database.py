@@ -8,6 +8,7 @@ Tabel:
 """
 
 import sqlite3
+import json
 import os
 from datetime import datetime
 
@@ -69,136 +70,53 @@ def init_eksplorasi_db():
 
 
 def seed_beasiswa():
-    """Insert data beasiswa sample jika tabel masih kosong."""
+    """Load data beasiswa dari beasiswa.json jika tabel masih kosong."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) as cnt FROM beasiswa")
     row = cur.fetchone()
     if row and row["cnt"] > 0:
         conn.close()
-        return  # sudah ada data
+        return
 
-    data = [
-        ("Beasiswa KIP-Kuliah", "Kemendikbud", "S1",
-         "pemerintah", "2026-06-30",
-         "Bantuan biaya pendidikan bagi mahasiswa tidak mampu secara ekonomi. "
-         "Mencakup biaya kuliah, biaya hidup, dan biaya buku.",
-         0.0, 0, 0.0,
-         "https://kip-kuliah.kemdikbud.go.id"),
+    # Load dari beasiswa.json
+    json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "beasiswa.json")
+    if not os.path.exists(json_path):
+        conn.close()
+        return
 
-        ("Beasiswa LPDP", "Kementerian Keuangan", "S2",
-         "pemerintah", "2026-09-30",
-         "Beasiswa penuh untuk program magister dan doktoral di dalam "
-         "dan luar negeri. Termasuk biaya kuliah, hidup, dan riset.",
-         3.0, 0, 0.0,
-         "https://lpdp.kemenkeu.go.id"),
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-        ("Beasiswa LPDP Doktoral", "Kementerian Keuangan", "S3",
-         "pemerintah", "2026-09-30",
-         "Beasiswa LPDP khusus program doktoral dengan fokus pada "
-         "riset dan inovasi strategis nasional.",
-         3.25, 0, 0.0,
-         "https://lpdp.kemenkeu.go.id"),
+    for bea in data.get("beasiswa", []):
+        nama = bea.get("nama_beasiswa", "")
+        penyelenggara = bea.get("penyelenggara", "") or "Unknown"
+        jenjang_list = bea.get("jenjang", [])
+        jenjang = ", ".join(jenjang_list) if jenjang_list else "S1"
+        deadline = bea.get("deadline")
+        deskripsi = bea.get("cakupan_beasiswa", "") or ""
+        ipk_min = bea.get("ipk_minimal") or 0.0
+        url = bea.get("url_sumber", "")
+        # Map kategori to valid CHECK constraint values
+        region = bea.get("region", "")
+        tipe = bea.get("tipe_beasiswa", "")
+        if "Luar Negeri" in region:
+            kategori = "internasional"
+        elif penyelenggara and any(k in penyelenggara.lower() for k in ["pemerintah", "kementerian", "kemendikbud", "baznas"]):
+            kategori = "pemerintah"
+        else:
+            kategori = "swasta"
 
-        ("Beasiswa Djarum Plus", "Djarum Foundation", "S1",
-         "swasta", "2026-05-31",
-         "Beasiswa untuk mahasiswa S1 berprestasi semester 4+. "
-         "Termasuk soft-skills training dan networking.",
-         3.2, 0, 0.0,
-         "https://djarum.com/djarum-beasiswa-plus"),
-
-        ("Beasiswa Tanoto Foundation", "Tanoto Foundation", "S1",
-         "swasta", "2026-07-15",
-         "Beasiswa Leadership untuk pengembangan soft skill dan "
-         "program magang di perusahaan Tanoto Group.",
-         3.3, 0, 0.0,
-         "https://www.tanotofoundation.org"),
-
-        ("Chevening Scholarship", "UK Government", "S2",
-         "internasional", "2026-11-03",
-         "Beasiswa penuh pemerintah Inggris untuk program master "
-         "di universitas top UK. Fully funded.",
-         0.0, 0, 6.5,
-         "https://www.chevening.org"),
-
-        ("Fulbright Scholarship", "US Government", "S2",
-         "internasional", "2026-04-15",
-         "Program pertukaran pendidikan AS-Indonesia untuk studi S2 "
-         "di universitas terbaik Amerika Serikat.",
-         3.0, 80, 0.0,
-         "https://www.aminef.or.id"),
-
-        ("Australia Awards (AAS)", "Australian Government", "S2",
-         "internasional", "2026-04-30",
-         "Beasiswa pemerintah Australia untuk S2 dan S3. "
-         "Mencakup biaya kuliah, hidup, dan asuransi.",
-         2.9, 0, 6.5,
-         "https://www.australiaawardsindonesia.org"),
-
-        ("MEXT Scholarship", "Japan Government", "S2",
-         "internasional", "2026-05-20",
-         "Beasiswa pemerintah Jepang (Monbukagakusho) untuk studi S2/S3 "
-         "di universitas Jepang. Fully funded.",
-         3.0, 0, 0.0,
-         "https://www.studyinjapan.go.jp"),
-
-        ("Beasiswa BCA Finance", "BCA", "S1",
-         "swasta", "2026-08-31",
-         "Beasiswa prestasi untuk mahasiswa S1 jurusan ekonomi, "
-         "manajemen, akuntansi, dan teknik informatika.",
-         3.0, 0, 0.0,
-         "https://www.bca.co.id"),
-
-        ("Beasiswa Unggulan Kemendikbud", "Kemendikbud", "S1",
-         "pemerintah", "2026-07-31",
-         "Beasiswa bagi mahasiswa berprestasi di bidang akademik, "
-         "seni, olahraga, dan kebudayaan.",
-         3.5, 0, 0.0,
-         "https://beasiswaunggulan.kemdikbud.go.id"),
-
-        ("Beasiswa Baznas", "BAZNAS", "S1",
-         "pemerintah", "2026-06-30",
-         "Beasiswa dari Badan Amil Zakat Nasional untuk mahasiswa "
-         "kurang mampu yang berprestasi.",
-         3.0, 0, 0.0,
-         "https://baznas.go.id"),
-
-        ("Beasiswa Sampoerna Foundation", "Sampoerna Foundation", "S1",
-         "swasta", "2026-05-15",
-         "Beasiswa untuk mahasiswa S1 dari keluarga kurang mampu "
-         "dengan potensi kepemimpinan.",
-         3.0, 0, 0.0,
-         "https://www.sampoernafoundation.org"),
-
-        ("Erasmus Mundus", "European Commission", "S2",
-         "internasional", "2026-01-15",
-         "Beasiswa program master joint degree di beberapa universitas "
-         "Eropa. Fully funded termasuk travel grant.",
-         3.0, 0, 6.0,
-         "https://www.eacea.ec.europa.eu"),
-
-        ("GKS (Korean Government)", "Korean Government", "S2",
-         "internasional", "2026-03-15",
-         "Global Korea Scholarship untuk studi S2/S3 di Korea Selatan. "
-         "Termasuk kursus bahasa Korea 1 tahun.",
-         2.64, 0, 0.0,
-         "https://www.studyinkorea.go.kr"),
-
-        ("Beasiswa CIMB Niaga", "CIMB Niaga", "S1",
-         "swasta", "2026-08-15",
-         "Beasiswa bagi mahasiswa jurusan ekonomi, bisnis, dan "
-         "teknologi informasi yang berprestasi.",
-         3.25, 0, 0.0,
-         "https://www.cimbniaga.co.id"),
-    ]
-
-    for d in data:
-        cur.execute("""
-            INSERT INTO beasiswa
-                (nama, penyelenggara, jenjang, kategori, deadline,
-                 deskripsi, syarat_ipk, syarat_toefl, syarat_ielts, url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, d)
+        try:
+            cur.execute("""
+                INSERT INTO beasiswa
+                    (nama, penyelenggara, jenjang, kategori, deadline,
+                     deskripsi, syarat_ipk, syarat_toefl, syarat_ielts, url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0.0, ?)
+            """, (nama, penyelenggara, jenjang, kategori, deadline,
+                  deskripsi, ipk_min, url))
+        except Exception:
+            pass  # skip duplicates or invalid entries
 
     conn.commit()
     conn.close()
