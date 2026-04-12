@@ -9,13 +9,13 @@ Fitur: Autentikasi, Profil, Beasiswa, Settings,
 import customtkinter as ctk
 from tkinter import messagebox
 from database import init_db, ambil_semua_profil_db
-from profile import (
+from Profile_dan_Setting.profile import (
     input_data_wajib, input_data_spesifik,
     simpan_profil, tampil_profil,
 )
-from settings import (
+from Profile_dan_Setting.settings import (
     edit_profil, simpan_edit_profil,
-    hapus_akun, simpan_preferensi, ambil_preferensi,
+    hapus_akun, simpan_preferensi, ambil_preferensi, ganti_password
 )
 from utils import format_tanggal
 
@@ -96,6 +96,15 @@ init_db()
 init_auth()
 
 PROFIL_AKTIF_ID = None
+
+# Colors
+BG_COLOR = "#FDF6F0"
+CARD_COLOR = "#FFFFFF"
+SIDEBAR_COLOR = "#FDF6F0"
+BTN_GREEN = "#B3D4BB"
+BTN_PALE = "#E2EBE5"
+TEXT_DARK = "#202020"
+TEXT_LIGHT = "#FFFFFF"
 
 
 # ════════════════════════════════════════════════════════════
@@ -181,6 +190,30 @@ TEKS = {
         "berhasil":         "Berhasil",
         "akun_dihapus":     "Akun Dihapus",
         "dibatalkan":       "Dibatalkan",
+        "menu_dashboard":    "Dashboard",
+        "menu_scholarships":"Scholarships",
+        "menu_recom":       "Recommendations",
+        "menu_bookmarks":   "Bookmarks",
+        "menu_calendar":    "Calendar",
+        "menu_notif":       "Notifications",
+        "menu_profile":     "Profile",
+        "guest_name":       "Guest User",
+        "guest_email":      "guest@beaply.com",
+        "lbl_acc_sec":      "Account & Security",
+        "lbl_change_pw":    "Change Password",
+        "lbl_desc_pw":      "Change password to keep account secure",
+        "btn_change_pw":    "Ubah Password",
+        "lbl_display":      "Display",
+        "btn_edit_profile": "Edit Profile",
+        "desc_theme":       "Select application theme",
+        "desc_lang":        "Select interface language",
+        "desc_size":        "Select text size",
+        "lbl_old_pw":       "Password Lama",
+        "lbl_new_pw":       "Password Baru",
+        "lbl_conf_pw":      "Konfirmasi Password",
+        "lbl_password":     "Password",
+        "btn_login":        "Login",
+        "err_wrong_pw":     "Password salah!",
         # ── Autentikasi ──
         "auth_judul":       "🎓 Beaply",
         "auth_tagline":     "Insight Beasiswa untuk Mahasiswa",
@@ -355,6 +388,30 @@ TEKS = {
         "berhasil":         "Success",
         "akun_dihapus":     "Account Deleted",
         "dibatalkan":       "Cancelled",
+        "menu_dashboard":    "Dashboard",
+        "menu_scholarships":"Scholarships",
+        "menu_recom":       "Recommendations",
+        "menu_bookmarks":   "Bookmarks",
+        "menu_calendar":    "Calendar",
+        "menu_notif":       "Notifications",
+        "menu_profile":     "Profile",
+        "guest_name":       "Guest User",
+        "guest_email":      "guest@beaply.com",
+        "lbl_acc_sec":      "Account & Security",
+        "lbl_change_pw":    "Change Password",
+        "lbl_desc_pw":      "Change password to keep account secure",
+        "btn_change_pw":    "Change Password",
+        "lbl_display":      "Display",
+        "btn_edit_profile": "Edit Profile",
+        "desc_theme":       "Select application theme",
+        "desc_lang":        "Select interface language",
+        "desc_size":        "Select text size",
+        "lbl_old_pw":       "Old Password",
+        "lbl_new_pw":       "New Password",
+        "lbl_conf_pw":      "Confirm Password",
+        "lbl_password":     "Password",
+        "btn_login":        "Login",
+        "err_wrong_pw":     "Wrong password!",
         # ── Authentication ──
         "auth_judul":       "🎓 Beaply",
         "auth_tagline":     "Scholarship Insight for Students",
@@ -1851,250 +1908,200 @@ class HalamanProfil(ctk.CTkFrame):
         bhs = self._bhs
         profil = tampil_profil(self.profil_id)
         if not profil:
-            ctk.CTkLabel(self, text="Profil tidak ditemukan.").pack(pady=40)
             return
 
-        scroll = ctk.CTkScrollableFrame(self)
-        scroll.pack(fill="both", expand=True, padx=8, pady=8)
+        grid = ctk.CTkFrame(self, fg_color="transparent")
+        grid.pack(fill="both", expand=True)
 
-        # Card Profil
-        card = ctk.CTkFrame(scroll, corner_radius=12)
-        card.pack(fill="x", pady=8)
+        left = ctk.CTkFrame(grid, fg_color="transparent", width=250)
+        left.pack(side="left", fill="y", padx=(0, 10))
+        left.pack_propagate(False)
 
-        ctk.CTkLabel(card, text=t("judul_profil", bhs),
-                     font=ctk.CTkFont(size=16, weight="bold")).pack(
-            anchor="w", padx=16, pady=(12, 4))
+        card1 = ctk.CTkFrame(left, fg_color=CARD_COLOR, corner_radius=15, border_width=1, border_color="#E0E0E0")
+        card1.pack(fill="both", expand=True, pady=(0, 10))
+        ctk.CTkLabel(card1, text="Profile\\nCompleteness", font=ctk.CTkFont(size=18, weight="bold"), justify="left", text_color=TEXT_DARK).pack(pady=20, padx=20, anchor="w")
 
-        grid = ctk.CTkFrame(card, fg_color="transparent")
-        grid.pack(fill="x", padx=16, pady=(0, 4))
-        kiri  = ctk.CTkFrame(grid, fg_color="transparent")
-        kanan = ctk.CTkFrame(grid, fg_color="transparent")
-        kiri.pack(side="left", fill="both", expand=True)
-        kanan.pack(side="left", fill="both", expand=True)
+        circ = ctk.CTkFrame(card1, fg_color=BG_COLOR, width=120, height=120, corner_radius=60)
+        circ.pack(pady=10)
+        circ.pack_propagate(False)
+        ctk.CTkLabel(circ, text="100%", font=ctk.CTkFont(size=24, weight="bold"), text_color=TEXT_DARK).place(relx=0.5, rely=0.5, anchor="center")
 
-        def baris(frm, key_lbl, val):
-            r = ctk.CTkFrame(frm, fg_color="transparent"); r.pack(fill="x", pady=2)
-            ctk.CTkLabel(r, text=f"{t(key_lbl, bhs)}:", width=110, anchor="w",
-                         font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
-            ctk.CTkLabel(r, text=str(val), anchor="w",
-                         font=ctk.CTkFont(size=11)).pack(side="left", padx=4)
+        right = ctk.CTkFrame(grid, fg_color=CARD_COLOR, corner_radius=15, border_width=1, border_color="#E0E0E0")
+        right.pack(side="left", fill="both", expand=True)
 
-        baris(kiri,  "lb_nama",     profil["nama"])
-        baris(kiri,  "lb_tgl",      format_tanggal(profil["tanggal_lahir"]))
-        baris(kiri,  "lb_email",    profil["email"])
-        baris(kiri,  "lb_jurusan",  profil["jurusan"])
-        baris(kiri,  "lb_kampus",   profil["kampus"])
-        baris(kanan, "lb_jenjang",  profil["jenjang"])
-        baris(kanan, "lb_semester", profil["semester"])
-        baris(kanan, "lb_ip",       f"{profil['ip']:.2f}")
-        baris(kanan, "lb_jk",       profil["jenis_kelamin"])
-        baris(kanan, "lb_kip",      t("v_ya", bhs) if profil["status_kip"] else t("v_tidak", bhs))
+        header = ctk.CTkFrame(right, fg_color="transparent")
+        header.pack(fill="x", padx=20, pady=20)
+        ctk.CTkLabel(header, text="Personal Informations", font=ctk.CTkFont(size=18, weight="bold"), text_color=TEXT_DARK).pack(side="left")
+        ctk.CTkButton(header, text=t("btn_edit_profile", bhs), fg_color=BTN_GREEN, text_color=TEXT_DARK).pack(side="right")
 
-        # Skor tes
-        tes = {
-            "IELTS": profil.get("skor_ielts"), "TOEFL": profil.get("skor_toefl"),
-            "Duolingo": profil.get("skor_duolingo"), "SAT": profil.get("skor_sat"),
-            "ACT": profil.get("skor_act"), "GRE": profil.get("skor_gre"),
-            "GMAT": profil.get("skor_gmat"), "HSK": profil.get("skor_hsk"),
-            "JLPT": profil.get("level_jlpt"),
-        }
-        ada = {k: v for k, v in tes.items() if v is not None and str(v).strip() != ""}
-        if ada:
-            ctk.CTkLabel(card, text=t("judul_skor", bhs),
-                         font=ctk.CTkFont(size=11, weight="bold")).pack(
-                anchor="w", padx=16, pady=(6, 2))
-            baris_tes = ctk.CTkFrame(card, fg_color="transparent")
-            baris_tes.pack(fill="x", padx=16, pady=(0, 10))
-            for k, v in ada.items():
-                ctk.CTkLabel(baris_tes, text=f"{k}: {v}",
-                             font=ctk.CTkFont(size=11)).pack(side="left", padx=8)
+        scroll = ctk.CTkScrollableFrame(right, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
-        ctk.CTkFrame(card, height=10, fg_color="transparent").pack()
+        def baris(lbl, val):
+            r = ctk.CTkFrame(scroll, fg_color="transparent")
+            r.pack(fill="x", pady=5)
+            ctk.CTkLabel(r, text=f"{t(lbl, bhs)}:", width=150, anchor="w", font=ctk.CTkFont(weight="bold"), text_color=TEXT_DARK).pack(side="left")
+            ctk.CTkLabel(r, text=str(val), anchor="w", text_color=TEXT_DARK).pack(side="left", padx=10)
 
+        baris("lb_nama",     profil["nama"])
+        baris("lb_tgl",      format_tanggal(profil["tanggal_lahir"]))
+        baris("lb_email",    profil["email"])
+        baris("lb_jurusan",  profil["jurusan"])
+        baris("lb_kampus",   profil["kampus"])
+        baris("lb_jenjang",  profil["jenjang"])
+        baris("lb_semester", profil["semester"])
+        baris("lb_ip",       f"{profil['ip']:.2f}")
 
 # ════════════════════════════════════════════════════════════
 # WINDOW SETTINGS (Popup)
 # ════════════════════════════════════════════════════════════
 
 class SettingsWindow(ctk.CTkToplevel):
-    def __init__(self, master, profil_id, refresh_callback):
+    def __init__(self, master, profil_id, logout_callback, apply_pref_callback=None):
         super().__init__(master)
+        self.title("Settings")
+        self.geometry("600x700")
         self.profil_id = profil_id
-        self.refresh   = refresh_callback
-        self._bhs      = get_bahasa(profil_id)
-        self.title(t("judul_settings", self._bhs))
-        self.geometry("580x700")
-        self.resizable(False, False)
+        self.logout = logout_callback
+        self.apply_pref_callback = apply_pref_callback
+        self._bhs = get_bahasa(profil_id)
+        
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         self._build()
 
     def _build(self):
-        bhs = self._bhs
-        ctk.CTkLabel(self, text=t("judul_settings", bhs),
-                     font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(20, 4))
-
-        tab = ctk.CTkTabview(self)
-        tab.pack(fill="both", expand=True, padx=16, pady=8)
-        for key in ["tab_edit", "tab_pref", "tab_hapus"]:
-            tab.add(t(key, bhs))
-
-        self._tab_edit( tab.tab(t("tab_edit",  bhs)))
-        self._tab_pref( tab.tab(t("tab_pref",  bhs)))
-        self._tab_hapus(tab.tab(t("tab_hapus", bhs)))
-
-    def _tab_edit(self, parent):
-        profil = tampil_profil(self.profil_id)
-        if not profil:
-            ctk.CTkLabel(parent, text="Profil tidak ditemukan.").pack(pady=20)
-            return
+        self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         bhs = self._bhs
 
-        scroll = ctk.CTkScrollableFrame(parent, height=480)
-        scroll.pack(fill="both", expand=True, pady=4)
+        # TOP BAR
+        bar = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        bar.pack(fill="x", pady=(0, 20))
+        ctk.CTkLabel(bar, text=t("judul_settings", bhs), font=ctk.CTkFont(size=24, weight="bold"), text_color=TEXT_DARK).pack(side="left")
 
-        def row(lbl, default=""):
-            f = ctk.CTkFrame(scroll, fg_color="transparent"); f.pack(fill="x", pady=3)
-            ctk.CTkLabel(f, text=lbl, width=210, anchor="w").pack(side="left")
-            e = ctk.CTkEntry(f, width=240)
-            e.insert(0, str(default) if default is not None else "")
-            e.pack(side="left", padx=6); return e
+        scroll = ctk.CTkScrollableFrame(self.content_frame, fg_color="transparent")
+        scroll.pack(fill="both", expand=True)
 
-        self.edit_nama     = row(t("f_nama",     bhs), profil["nama"])
-        self.edit_tgl      = row(t("f_tgl",      bhs), profil["tanggal_lahir"])
-        self.edit_email    = row(t("f_email",    bhs), profil["email"])
-        self.edit_jurusan  = row(t("f_jurusan",  bhs), profil["jurusan"])
-        self.edit_kampus   = row(t("f_kampus",   bhs), profil["kampus"])
-
-        fj = ctk.CTkFrame(scroll, fg_color="transparent"); fj.pack(fill="x", pady=3)
-        ctk.CTkLabel(fj, text=t("f_jenjang", bhs), width=210, anchor="w").pack(side="left")
-        self.dd_edit_jenjang = ctk.CTkComboBox(fj, values=["S1","S2","S3"], width=180)
-        self.dd_edit_jenjang.set(profil["jenjang"]); self.dd_edit_jenjang.pack(side="left", padx=6)
-
-        self.edit_semester = row(t("f_semester", bhs), profil["semester"])
-        self.edit_ip       = row(t("f_ip",       bhs), profil["ip"])
-
-        fjk = ctk.CTkFrame(scroll, fg_color="transparent"); fjk.pack(fill="x", pady=3)
-        ctk.CTkLabel(fjk, text=t("f_jk", bhs), width=210, anchor="w").pack(side="left")
-        self.dd_edit_jk = ctk.CTkComboBox(fjk, values=["Laki-laki","Perempuan"], width=180)
-        self.dd_edit_jk.set(profil["jenis_kelamin"]); self.dd_edit_jk.pack(side="left", padx=6)
-
-        ctk.CTkLabel(scroll, text=t("sek_spesifik", bhs),
-                     font=ctk.CTkFont(size=12, weight="bold")).pack(anchor="w", pady=(10,2))
-
-        fkip = ctk.CTkFrame(scroll, fg_color="transparent"); fkip.pack(fill="x", pady=3)
-        ctk.CTkLabel(fkip, text=t("f_kip", bhs), width=210, anchor="w").pack(side="left")
-        self.edit_kip = ctk.BooleanVar(value=bool(profil.get("status_kip", 0)))
-        ctk.CTkCheckBox(fkip, text=t("f_kip_ya", bhs), variable=self.edit_kip).pack(side="left", padx=6)
-
-        def rowsp(lbl, key):
-            f = ctk.CTkFrame(scroll, fg_color="transparent"); f.pack(fill="x", pady=3)
-            ctk.CTkLabel(f, text=lbl, width=210, anchor="w").pack(side="left")
-            e = ctk.CTkEntry(f, width=180)
-            v = profil.get(key)
-            e.insert(0, str(v) if v is not None else ""); e.pack(side="left", padx=6); return e
-
-        self.edit_ielts    = rowsp(t("f_ielts",    bhs), "skor_ielts")
-        self.edit_toefl    = rowsp(t("f_toefl",    bhs), "skor_toefl")
-        self.edit_duolingo = rowsp(t("f_duolingo", bhs), "skor_duolingo")
-        self.edit_sat      = rowsp(t("f_sat",      bhs), "skor_sat")
-        self.edit_act      = rowsp(t("f_act",      bhs), "skor_act")
-        self.edit_gre      = rowsp(t("f_gre",      bhs), "skor_gre")
-        self.edit_gmat     = rowsp(t("f_gmat",     bhs), "skor_gmat")
-        self.edit_hsk      = rowsp(t("f_hsk",      bhs), "skor_hsk")
-
-        fjlpt = ctk.CTkFrame(scroll, fg_color="transparent"); fjlpt.pack(fill="x", pady=3)
-        ctk.CTkLabel(fjlpt, text=t("f_jlpt", bhs), width=210, anchor="w").pack(side="left")
-        self.dd_edit_jlpt = ctk.CTkComboBox(fjlpt, values=["","N1","N2","N3","N4","N5"], width=180)
-        self.dd_edit_jlpt.set(profil.get("level_jlpt") or ""); self.dd_edit_jlpt.pack(side="left", padx=6)
-
-        ctk.CTkButton(parent, text=t("btn_simpan_edit", bhs), height=40,
-                      font=ctk.CTkFont(size=13, weight="bold"),
-                      command=self._simpan_edit).pack(fill="x", padx=8, pady=10)
-
-    def _simpan_edit(self):
-        g = lambda e: e.get().strip()
-        bhs = self._bhs
-        data = edit_profil(
-            self.profil_id,
-            g(self.edit_nama), g(self.edit_tgl), g(self.edit_email),
-            g(self.edit_jurusan), g(self.edit_kampus),
-            g(self.edit_semester), g(self.edit_ip),
-            self.dd_edit_jenjang.get(), self.dd_edit_jk.get(),
-            self.edit_kip.get(),
-            g(self.edit_ielts), g(self.edit_toefl), g(self.edit_duolingo),
-            g(self.edit_sat), g(self.edit_act), g(self.edit_gre),
-            g(self.edit_gmat), g(self.edit_hsk), self.dd_edit_jlpt.get(),
-        )
-        ok, msg = simpan_edit_profil(data)
-        if not ok:
-            messagebox.showerror(t("gagal", bhs), msg, parent=self); return
-        messagebox.showinfo(t("berhasil", bhs), t("ok_edit", bhs), parent=self)
-        self.refresh()
-
-    def _tab_pref(self, parent):
+        # --- Account & Security ---
+        ctk.CTkLabel(scroll, text=t("lbl_acc_sec", bhs), font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT_DARK).pack(anchor="w", pady=(10, 5))
+        sec_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=15, border_width=1, border_color="#E0E0E0")
+        sec_card.pack(fill="x", pady=5)
+        
+        pw_r = ctk.CTkFrame(sec_card, fg_color="transparent")
+        pw_r.pack(fill="x", padx=15, pady=15)
+        
+        txt_box = ctk.CTkFrame(pw_r, fg_color="transparent")
+        txt_box.pack(side="left")
+        ctk.CTkLabel(txt_box, text=t("lbl_change_pw", bhs), font=ctk.CTkFont(weight="bold"), text_color=TEXT_DARK, anchor="w").pack(fill="x")
+        ctk.CTkLabel(txt_box, text=t("lbl_desc_pw", bhs), text_color="gray", anchor="w").pack(fill="x")
+        
+        ctk.CTkButton(pw_r, text=">", width=30, fg_color="transparent", text_color=TEXT_DARK, hover_color=BTN_PALE, command=self._popup_change_pw).pack(side="right")
+        
+        # --- Display ---
+        ctk.CTkLabel(scroll, text=t("lbl_display", bhs), font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT_DARK).pack(anchor="w", pady=(20, 5))
+        disp_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=15, border_width=1, border_color="#E0E0E0")
+        disp_card.pack(fill="x", pady=5)
+        
         pref = ambil_preferensi(self.profil_id)
-        bhs  = self._bhs
+            
+        def settings_row(parent, title, desc, widget):
+            r = ctk.CTkFrame(parent, fg_color="transparent")
+            r.pack(fill="x", padx=15, pady=15)
+            txt_bx = ctk.CTkFrame(r, fg_color="transparent")
+            txt_bx.pack(side="left")
+            ctk.CTkLabel(txt_bx, text=title, font=ctk.CTkFont(weight="bold"), text_color=TEXT_DARK, anchor="w").pack(fill="x")
+            ctk.CTkLabel(txt_bx, text=desc, text_color="gray", anchor="w").pack(fill="x")
+            widget.pack(side="right", in_=r)
+            
+        t_frame = ctk.CTkSegmentedButton(disp_card, values=[t("opt_light", bhs), t("opt_dark", bhs), t("opt_system", bhs)], command=self._change_theme)
+        val = t("opt_" + pref.get("tema", "system"), bhs)
+        try: t_frame.set(val) 
+        except: pass
+        settings_row(disp_card, t("lb_tema", bhs), t("desc_theme", bhs), t_frame)
+        
+        l_frame = ctk.CTkComboBox(disp_card, values=["Bahasa Indonesia", "English"], command=self._change_lang)
+        l_frame.set("Bahasa Indonesia" if pref.get("bahasa") == "id" else "English")
+        settings_row(disp_card, t("lb_bahasa", bhs), t("desc_lang", bhs), l_frame)
+        
+        s_frame = ctk.CTkSegmentedButton(disp_card, values=[t("opt_small", bhs), t("opt_medium", bhs), t("opt_large", bhs)])
+        val = t("opt_" + pref.get("ukuran_teks", "medium"), bhs)
+        try: s_frame.set(val)
+        except: pass
+        settings_row(disp_card, t("lb_ukuran", bhs), t("desc_size", bhs), s_frame)
+        
+        del_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=15, border_width=1, border_color="#E0E0E0")
+        del_card.pack(fill="x", pady=20)
+        ctk.CTkButton(del_card, text=t("btn_hapus", bhs), fg_color="transparent", text_color="red", hover_color="#fceae8", command=self._do_hapus).pack(pady=15)
 
-        ctk.CTkLabel(parent, text=t("lb_tema", bhs),
-                     font=ctk.CTkFont(size=13, weight="bold")).pack(anchor="w", padx=16, pady=(16,4))
-        self.var_tema = ctk.StringVar(value=pref.get("tema","light"))
-        for val, key in [("light","opt_light"), ("dark","opt_dark")]:
-            ctk.CTkRadioButton(parent, text=t(key, bhs),
-                               variable=self.var_tema, value=val).pack(anchor="w", padx=32, pady=2)
+    def _save_pref_partial(self, key, value):
+        pref = ambil_preferensi(self.profil_id)
+        pref[key] = value
+        simpan_preferensi(self.profil_id, pref["tema"], pref["ukuran_teks"], pref["bahasa"])
 
-        ctk.CTkLabel(parent, text=t("lb_ukuran", bhs),
-                     font=ctk.CTkFont(size=13, weight="bold")).pack(anchor="w", padx=16, pady=(16,4))
-        self.var_ukuran = ctk.StringVar(value=pref.get("ukuran_teks","medium"))
-        for val, key in [("small","opt_small"), ("medium","opt_medium"), ("large","opt_large")]:
-            ctk.CTkRadioButton(parent, text=t(key, bhs),
-                               variable=self.var_ukuran, value=val).pack(anchor="w", padx=32, pady=2)
-
-        ctk.CTkLabel(parent, text=t("lb_bahasa", bhs),
-                     font=ctk.CTkFont(size=13, weight="bold")).pack(anchor="w", padx=16, pady=(16,4))
-        self.var_bahasa = ctk.StringVar(value=pref.get("bahasa","id"))
-        for val, key in [("id","opt_id"), ("en","opt_en")]:
-            ctk.CTkRadioButton(parent, text=t(key, bhs),
-                               variable=self.var_bahasa, value=val).pack(anchor="w", padx=32, pady=2)
-
-        ctk.CTkButton(parent, text=t("btn_simpan_pref", bhs), height=40,
-                      font=ctk.CTkFont(size=13, weight="bold"),
-                      command=self._simpan_pref).pack(fill="x", padx=16, pady=24)
-
-    def _simpan_pref(self):
+    def _change_theme(self, choice):
         bhs = self._bhs
-        ok, msg = simpan_preferensi(
-            self.profil_id,
-            self.var_tema.get(), self.var_ukuran.get(), self.var_bahasa.get(),
-        )
-        if not ok:
-            messagebox.showerror(t("gagal", bhs), msg, parent=self); return
-        messagebox.showinfo(t("berhasil", bhs), t("ok_pref", bhs), parent=self)
-        self.refresh()
+        val_map = {t("opt_light", bhs): "light", t("opt_dark", bhs): "dark", t("opt_system", bhs): "system"}
+        act = val_map.get(choice, "system")
+        if act in ["light", "dark", "system"]:
+            ctk.set_appearance_mode(act)
+        self._save_pref_partial("tema", act)
 
-    def _tab_hapus(self, parent):
+    def _change_lang(self, choice):
+        act = "id" if choice == "Bahasa Indonesia" else "en"
+        self._save_pref_partial("bahasa", act)
+        self._bhs = act
+        for w in self.winfo_children(): w.destroy()
+        self._build()
+        if self.apply_pref_callback: self.apply_pref_callback()
+
+    def _do_hapus(self):
         bhs = self._bhs
-        ctk.CTkFrame(parent, height=40, fg_color="transparent").pack()
-        ctk.CTkLabel(parent, text=t("warn_hapus", bhs),
-                     font=ctk.CTkFont(size=16, weight="bold"),
-                     text_color="red").pack(pady=8)
-        ctk.CTkLabel(parent, text=t("teks_hapus", bhs),
-                     font=ctk.CTkFont(size=12), justify="center").pack(pady=8)
-        ctk.CTkButton(parent, text=t("btn_hapus", bhs),
-                      fg_color="red", hover_color="#cc0000", height=40,
-                      font=ctk.CTkFont(size=13, weight="bold"),
-                      command=self._hapus_akun).pack(padx=40, pady=20, fill="x")
+        if konfirm_yesno(self, t("konfirm_judul", bhs), t("konfirm_teks", bhs)):
+            ok, msg = hapus_akun(self.profil_id, True)
+            if ok:
+                show_info(self, t("akun_dihapus", bhs), t("ok_hapus", bhs))
+                self.destroy()
+                self.logout()
+            else:
+                show_error(self, t("gagal", bhs), msg)
 
-    def _hapus_akun(self):
+    def _popup_change_pw(self):
         bhs = self._bhs
-        konfirmasi = messagebox.askyesno(
-            t("konfirm_judul", bhs), t("konfirm_teks", bhs), parent=self,
-        )
-        ok, msg = hapus_akun(self.profil_id, konfirmasi)
-        if not ok:
-            messagebox.showinfo(t("dibatalkan", bhs), t("batal_hapus", bhs), parent=self); return
-        messagebox.showinfo(t("akun_dihapus", bhs), t("ok_hapus", bhs), parent=self)
-        self.destroy()
-        self.master._go_home_after_login()
-
+        top = ctk.CTkToplevel(self)
+        top.title(t("lbl_change_pw", bhs))
+        top.geometry("350x300")
+        top.transient(self)
+        top.grab_set()
+        
+        ctk.CTkLabel(top, text=t("lbl_change_pw", bhs), font=ctk.CTkFont(weight="bold", size=16)).pack(pady=10)
+        
+        e1 = ctk.CTkEntry(top, placeholder_text=t("lbl_old_pw", bhs), show="*")
+        e1.pack(pady=5, padx=20, fill="x")
+        e2 = ctk.CTkEntry(top, placeholder_text=t("lbl_new_pw", bhs), show="*")
+        e2.pack(pady=5, padx=20, fill="x")
+        e3 = ctk.CTkEntry(top, placeholder_text=t("lbl_conf_pw", bhs), show="*")
+        e3.pack(pady=5, padx=20, fill="x")
+        
+        def save_pw():
+            old = e1.get()
+            nw = e2.get()
+            cn = e3.get()
+            if not old or not nw or not cn:
+                return show_error(top, t("gagal", bhs), "All fields required!")
+            if nw != cn:
+                return show_error(top, t("gagal", bhs), "New passwords do not match!")
+            p = tampil_profil(self.profil_id)
+            if p["password"] != old:
+                return show_error(top, t("gagal", bhs), t("err_wrong_pw", bhs))
+            ok, msg = ganti_password(self.profil_id, nw)
+            if ok:
+                show_info(top, t("berhasil", bhs), msg)
+                top.destroy()
+            else:
+                show_error(top, t("gagal", bhs), msg)
+                
+        ctk.CTkButton(top, text=t("btn_change_pw", bhs), fg_color=BTN_GREEN, text_color=TEXT_DARK, command=save_pw).pack(pady=20)
 
 # ════════════════════════════════════════════════════════════
 # LAYOUT: Sidebar + Content Area
