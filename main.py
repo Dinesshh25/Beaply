@@ -749,10 +749,13 @@ class HalamanAuth(ctk.CTkFrame):
         result = registrasi_pengguna(email, pwd, confirm, nama)
         if result["success"]:
             messagebox.showinfo(t("berhasil", self._bhs), result["message"])
-            self.seg_btn.set("Log in")
-            self._switch_tab("Log in")
+            self.after(100, lambda: self.__change_to_login())
         else:
             self.reg_error.configure(text=result["message"])
+
+    def __change_to_login(self):
+        self.seg_btn.set("Log in")
+        self._switch_tab("Log in")
 
     def _go_lupa_sandi(self):
         self.lupa_sandi_cb()
@@ -3291,11 +3294,20 @@ class BeaplyApp(ctk.CTk):
         global PROFIL_AKTIF_ID
         if profil_id: PROFIL_AKTIF_ID = profil_id
         self._clear()
-        pref = ambil_preferensi(PROFIL_AKTIF_ID)
-        apply_pref(pref)
-        LayoutDenganSidebar(self, PROFIL_AKTIF_ID,
-                            logout_callback=self._go_logout
-                            ).pack(fill="both", expand=True)
+
+        def _apply_and_layout():
+            pref = ambil_preferensi(PROFIL_AKTIF_ID)
+            try:
+                apply_pref(pref)
+            except Exception as e:
+                import logging
+                logging.getLogger().error("Scaling error ignored: " + str(e))
+                
+            LayoutDenganSidebar(self, PROFIL_AKTIF_ID,
+                                logout_callback=self._go_logout
+                                ).pack(fill="both", expand=True)
+
+        self.after(10, _apply_and_layout)
 
     def _go_logout(self):
         global PROFIL_AKTIF_ID
