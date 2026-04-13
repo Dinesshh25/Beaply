@@ -121,10 +121,8 @@ class HalamanDashboardUtama(ctk.CTkFrame):
         all_bea = ambil_semua_beasiswa()[:3]
         for i, bea in enumerate(all_bea):
             bg = PASTEL_COLORS[i % len(PASTEL_COLORS)]
-            tc = ctk.CTkFrame(trend_grid, fg_color=bg, corner_radius=14,
-                              height=140, border_width=0)
+            tc = ctk.CTkFrame(trend_grid, fg_color=bg, corner_radius=14, border_width=0)
             tc.pack(side="left", padx=4, expand=True, fill="both")
-            tc.pack_propagate(False)
             ctk.CTkLabel(tc, text=bea.get("nama", "Beasiswa"),
                          font=ctk.CTkFont(size=11, weight="bold"),
                          text_color=TEXT_DARK, wraplength=120,
@@ -146,9 +144,8 @@ class HalamanDashboardUtama(ctk.CTkFrame):
             anchor="w", padx=20, pady=(0, 16))
 
         # RIGHT COLUMN (sidebar info)
-        right = ctk.CTkFrame(main_frame, fg_color="transparent", width=280)
+        right = ctk.CTkScrollableFrame(main_frame, fg_color="transparent", width=280)
         right.pack(side="right", fill="y", padx=(0, 0))
-        right.pack_propagate(False)
 
         # Profile Completeness
         pc_card = ctk.CTkFrame(right, fg_color=CARD_COLOR, corner_radius=16,

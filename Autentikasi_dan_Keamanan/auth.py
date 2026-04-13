@@ -5,9 +5,7 @@ Beaply - Logika Bisnis Sistem Autentikasi & Keamanan
 Modul sesuai spesifikasi:
   1. registrasi_pengguna     — Registrasi akun baru
   2. login_pengguna          — Login dengan email & password
-  3. sso_google              — SSO via Google (stub)
-  4. sso_apple               — SSO via Apple (stub)
-  5. lupa_sandi              — Inisiasi reset password (OTP)
+  3. lupa_sandi              — Inisiasi reset password (OTP)
   6. verifikasi_otp          — Verifikasi kode OTP
   7. reset_password          — Set password baru
   8. buat_sesi               — Buat session token
@@ -37,7 +35,6 @@ from .auth_database import (
     increment_reset_attempts,
     add_password_history,
     get_password_history,
-    link_sso_account,
 )
 from .auth_utils import (
     hash_password,
@@ -220,62 +217,7 @@ def login_pengguna(email: str, password: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════
-# 3. SSO GOOGLE (Stub)
-# ════════════════════════════════════════════════════════════
-
-def sso_google(google_auth_code: str = "") -> dict:
-    """
-    [STUB] Autentikasi melalui Google OAuth 2.0.
-
-    Implementasi penuh memerlukan:
-      1. Redirect ke Google OAuth consent page
-      2. Terima authorization code dari callback
-      3. Tukar code → access token via Google API
-      4. Ambil profil pengguna dari Google API
-      5. Buat/hubungkan akun → buat sesi
-
-    Untuk implementasi penuh, diperlukan:
-      - Google OAuth Client ID & Secret
-      - Backend server dengan redirect URI
-      - Library: google-auth, google-auth-oauthlib
-
-    Return: {success: bool, message: str, ...}
-    """
-    return {
-        "success": False,
-        "message": "SSO Google belum dikonfigurasi.\nFitur ini memerlukan backend server terpisah.",
-        "is_new_user": False,
-    }
-
-
-# ════════════════════════════════════════════════════════════
-# 4. SSO APPLE (Stub)
-# ════════════════════════════════════════════════════════════
-
-def sso_apple(apple_identity_token: str = "", authorization_code: str = "") -> dict:
-    """
-    [STUB] Autentikasi melalui Apple Sign-In.
-
-    Implementasi penuh memerlukan:
-      1. Apple Developer Account
-      2. Service ID & Private Key
-      3. Verifikasi identity token via Apple API
-      4. Decode profil dari JWT token
-      5. Buat/hubungkan akun → buat sesi
-
-    Mendukung fitur "Hide My Email" dari Apple.
-
-    Return: {success: bool, message: str, ...}
-    """
-    return {
-        "success": False,
-        "message": "SSO Apple belum dikonfigurasi.\nFitur ini memerlukan backend server terpisah.",
-        "is_new_user": False,
-    }
-
-
-# ════════════════════════════════════════════════════════════
-# 5. LUPA SANDI
+# 3. LUPA SANDI
 # ════════════════════════════════════════════════════════════
 
 def lupa_sandi(email: str) -> dict:

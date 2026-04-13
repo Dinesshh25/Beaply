@@ -13,8 +13,6 @@ from .auth import (
     init_auth,
     registrasi_pengguna,
     login_pengguna,
-    sso_google,
-    sso_apple,
     lupa_sandi,
     verifikasi_otp,
     reset_password,
