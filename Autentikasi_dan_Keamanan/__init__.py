@@ -7,6 +7,18 @@ Modul:
   - auth_database    : Tabel & CRUD SQLite untuk autentikasi
   - auth_utils       : Utilitas keamanan (bcrypt, validasi, rate limiter)
   - email_service    : Layanan pengiriman email (DEV mode / SMTP)
+
+Detailing Modul (10 fungsi):
+  1. tampilan_auth      → main.py (HalamanAuth)
+  2. registrasi_pengguna
+  3. login_pengguna
+  4. lupa_sandi
+  5. verifikasi_otp
+  6. reset_password
+  7. buat_sesi
+  8. logout_pengguna
+  9. validasi_input
+ 10. hash_password      → auth_utils.py
 """
 
 from .auth import (
