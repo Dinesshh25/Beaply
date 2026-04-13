@@ -2,19 +2,25 @@
 auth.py
 Beaply - Logika Bisnis Sistem Autentikasi & Keamanan
 
-Modul sesuai spesifikasi:
-  1. registrasi_pengguna     — Registrasi akun baru
-  2. login_pengguna          — Login dengan email & password
-  3. sso_google              — SSO via Google (stub)
-  4. sso_apple               — SSO via Apple (stub)
-  5. lupa_sandi              — Inisiasi reset password (OTP)
-  6. verifikasi_otp          — Verifikasi kode OTP
-  7. reset_password          — Set password baru
-  8. buat_sesi               — Buat session token
-  9. refresh_token_fn        — Refresh session
-  10. logout_pengguna        — Logout (single / all devices)
-  11. validasi_input         — Wrapper validasi email + password
-  12. get_current_user       — Ambil user dari session aktif
+Nama Fitur: Sistem Autentikasi dan Keamanan
+
+Modul sesuai Detailing Modul:
+  No  Nama Modul            Tipe        Penanggung Jawab
+  ──  ────────────────────  ──────────  ─────────────────
+   1  tampilan_auth         Procedure   Gebby Rizki Aditya
+   2  registrasi_pengguna   Function    Gebby Rizki Aditya
+   3  login_pengguna        Function    Gebby Rizki Aditya
+   4  lupa_sandi            Procedure   Gebby Rizki Aditya
+   5  verifikasi_otp        Function    Gebby Rizki Aditya
+   6  reset_password        Function    Gebby Rizki Aditya
+   7  buat_sesi             Function    Gebby Rizki Aditya
+   8  logout_pengguna       Function    Gebby Rizki Aditya
+   9  validasi_input        Function    Gebby Rizki Aditya
+  10  hash_password         Function    Gebby Rizki Aditya
+
+Catatan:
+  - tampilan_auth diimplementasikan di main.py (class HalamanAuth)
+  - hash_password diimplementasikan di auth_utils.py
 """
 
 from .auth_database import (
@@ -37,7 +43,6 @@ from .auth_database import (
     increment_reset_attempts,
     add_password_history,
     get_password_history,
-    link_sso_account,
 )
 from .auth_utils import (
     hash_password,
@@ -75,7 +80,27 @@ def init_auth():
 
 
 # ════════════════════════════════════════════════════════════
-# 1. REGISTRASI PENGGUNA
+# MODUL 1: tampilan_auth (Procedure)
+# ════════════════════════════════════════════════════════════
+#
+# Tipe      : Procedure (tidak mengembalikan nilai)
+# Deskripsi : Menampilkan antarmuka halaman autentikasi utama:
+#             form login, form registrasi, dan tautan "Lupa Kata Sandi".
+# Fitur Terkait: registrasi_pengguna, login_pengguna, lupa_sandi
+# Input     : -
+# Output    : -
+# I.S.      : Pengguna belum terautentikasi.
+# F.S.      : Form autentikasi ditampilkan dan siap menerima input.
+#
+# IMPLEMENTASI: di main.py → class HalamanAuth
+#   - _build_login_form()    → form login (email + password)
+#   - _build_register_form() → form registrasi
+#   - _go_lupa_sandi()       → navigasi ke halaman lupa sandi
+# ════════════════════════════════════════════════════════════
+
+
+# ════════════════════════════════════════════════════════════
+# MODUL 2: registrasi_pengguna (Function)
 # ════════════════════════════════════════════════════════════
 
 def registrasi_pengguna(email: str, password: str, confirm_password: str,
@@ -83,13 +108,22 @@ def registrasi_pengguna(email: str, password: str, confirm_password: str,
     """
     Mendaftarkan pengguna baru ke dalam sistem.
 
-    Validasi:
-      - Format email
-      - Kekuatan password (min 8 char, upper/lower/digit/symbol)
-      - Password == confirm_password
-      - Email belum terdaftar
+    Tipe        : Function
+    Fitur Terkait: validasi_input, hash_password, kirim_email_verifikasi
 
-    Return: {success: bool, user_id: str, message: str}
+    Input:
+        - email (String)            : alamat email pengguna
+        - password (String)         : kata sandi
+        - confirm_password (String) : konfirmasi kata sandi
+        - nama_lengkap (String)     : nama lengkap pengguna
+
+    Output:
+        - status_registrasi (Object: {success: Boolean, user_id: String,
+                                      message: String})
+
+    I.S. : Email belum terdaftar di database.
+    F.S. : Akun pengguna tersimpan di DB dengan status 'active',
+           email verifikasi terkirim.
     """
     # Sanitasi input
     email = sanitize_input(email).lower().strip()
@@ -116,10 +150,10 @@ def registrasi_pengguna(email: str, password: str, confirm_password: str,
     if get_user_by_email(email):
         return {"success": False, "user_id": "", "message": "Email sudah terdaftar."}
 
-    # Hash password
+    # Hash password (memanggil modul 10: hash_password)
     pwd_hash = hash_password(password)
 
-    # Simpan ke DB (langsung active karena desktop app — tidak perlu email verification)
+    # Simpan ke DB
     ok, msg, user_id = create_user(email, pwd_hash, nama_lengkap, status="active")
     if not ok:
         return {"success": False, "user_id": "", "message": msg}
@@ -131,24 +165,31 @@ def registrasi_pengguna(email: str, password: str, confirm_password: str,
 
 
 # ════════════════════════════════════════════════════════════
-# 2. LOGIN PENGGUNA
+# MODUL 3: login_pengguna (Function)
 # ════════════════════════════════════════════════════════════
 
 def login_pengguna(email: str, password: str) -> dict:
     """
     Mengautentikasi pengguna menggunakan email dan kata sandi.
 
-    Return: {
-        success: bool,
-        session_id: str,
-        token: str,
-        user_profile: dict,
-        message: str
-    }
+    Tipe        : Function
+    Fitur Terkait: validasi_input, verifikasi_password, buat_sesi, rate_limiter
+
+    Input:
+        - email (String)    : alamat email pengguna
+        - password (String) : kata sandi
+
+    Output:
+        - auth_response (Object: {success: Boolean, access_token: String,
+          refresh_token: String, user_profile: Object, message: String})
+
+    I.S. : Pengguna memiliki akun terdaftar dan terverifikasi.
+    F.S. : Sesi aktif dibuat, token dikirim ke klien,
+           timestamp login terakhir diperbarui.
     """
     email = email.lower().strip()
 
-    # Rate limiting
+    # Rate limiting (maks. 5 percobaan gagal per 15 menit)
     allowed, remaining, lockout = rate_limiter.check(email, "login")
     if not allowed:
         return {
@@ -167,7 +208,7 @@ def login_pengguna(email: str, password: str) -> dict:
             "message": "Email atau kata sandi salah.",
         }
 
-    # Cek status akun
+    # Cek status akun (aktif/terblokir/unverified)
     if user["status"] == "suspended":
         return {
             "success": False, "session_id": "", "token": "",
@@ -184,7 +225,7 @@ def login_pengguna(email: str, password: str) -> dict:
     # Verifikasi password
     if not user["password_hash"] or not verify_password(password, user["password_hash"]):
         rate_limiter.record_attempt(email, "login")
-        # Update failed attempts di DB juga
+        # Update failed attempts di DB
         new_count = user["failed_login_attempts"] + 1
         lockout_until = None
         if new_count >= 5:
@@ -197,7 +238,7 @@ def login_pengguna(email: str, password: str) -> dict:
             "message": "Email atau kata sandi salah.",
         }
 
-    # Berhasil! Buat sesi
+    # Login berhasil! Buat sesi (memanggil modul 7: buat_sesi)
     session_result = buat_sesi(user["id"])
 
     # Update login info
@@ -220,70 +261,28 @@ def login_pengguna(email: str, password: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════
-# 3. SSO GOOGLE (Stub)
-# ════════════════════════════════════════════════════════════
-
-def sso_google(google_auth_code: str = "") -> dict:
-    """
-    [STUB] Autentikasi melalui Google OAuth 2.0.
-
-    Implementasi penuh memerlukan:
-      1. Redirect ke Google OAuth consent page
-      2. Terima authorization code dari callback
-      3. Tukar code → access token via Google API
-      4. Ambil profil pengguna dari Google API
-      5. Buat/hubungkan akun → buat sesi
-
-    Untuk implementasi penuh, diperlukan:
-      - Google OAuth Client ID & Secret
-      - Backend server dengan redirect URI
-      - Library: google-auth, google-auth-oauthlib
-
-    Return: {success: bool, message: str, ...}
-    """
-    return {
-        "success": False,
-        "message": "SSO Google belum dikonfigurasi.\nFitur ini memerlukan backend server terpisah.",
-        "is_new_user": False,
-    }
-
-
-# ════════════════════════════════════════════════════════════
-# 4. SSO APPLE (Stub)
-# ════════════════════════════════════════════════════════════
-
-def sso_apple(apple_identity_token: str = "", authorization_code: str = "") -> dict:
-    """
-    [STUB] Autentikasi melalui Apple Sign-In.
-
-    Implementasi penuh memerlukan:
-      1. Apple Developer Account
-      2. Service ID & Private Key
-      3. Verifikasi identity token via Apple API
-      4. Decode profil dari JWT token
-      5. Buat/hubungkan akun → buat sesi
-
-    Mendukung fitur "Hide My Email" dari Apple.
-
-    Return: {success: bool, message: str, ...}
-    """
-    return {
-        "success": False,
-        "message": "SSO Apple belum dikonfigurasi.\nFitur ini memerlukan backend server terpisah.",
-        "is_new_user": False,
-    }
-
-
-# ════════════════════════════════════════════════════════════
-# 5. LUPA SANDI
+# MODUL 4: lupa_sandi (Procedure)
 # ════════════════════════════════════════════════════════════
 
 def lupa_sandi(email: str) -> dict:
     """
-    Inisiasi alur pemulihan kata sandi.
-    Generate OTP 6 digit → simpan → kirim ke email.
+    Menginisiasi alur pemulihan kata sandi.
+    Pengguna memasukkan email, sistem memverifikasi email terdaftar,
+    lalu mengirim OTP (6 digit, berlaku 10 menit) ke email pengguna.
 
-    Return: {success: bool, method: str, message: str, otp: str (DEV only)}
+    Tipe        : Procedure
+    Fitur Terkait: kirim_otp, validasi_email
+
+    Input:
+        - email (String) : alamat email pengguna
+
+    Output:
+        - status (Object: {success: Boolean, method: String,
+                           message: String})
+
+    I.S. : Pengguna memiliki akun terdaftar.
+    F.S. : OTP/link reset terkirim ke email, record pemulihan tersimpan
+           di DB dengan timestamp expiry.
     """
     email = email.lower().strip()
 
@@ -308,14 +307,14 @@ def lupa_sandi(email: str) -> dict:
             "message": "Jika email terdaftar, kode OTP akan dikirim.",
         }
 
-    # Generate OTP
+    # Generate OTP 6 digit
     otp = generate_otp(6)
     otp_hash = hash_password(otp)
 
     # Simpan ke DB (berlaku 10 menit)
     create_password_reset(user["id"], "otp", otp_hash, expires_minutes=10)
 
-    # Kirim email
+    # Kirim email OTP
     ok, msg = email_service.send_otp(email, otp)
     rate_limiter.record_attempt(email, "otp_send")
 
@@ -332,19 +331,30 @@ def lupa_sandi(email: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════
-# 6. VERIFIKASI OTP
+# MODUL 5: verifikasi_otp (Function)
 # ════════════════════════════════════════════════════════════
 
 def verifikasi_otp(email: str, otp_code: str) -> dict:
     """
-    Verifikasi kode OTP yang dimasukkan pengguna.
+    Memverifikasi kode OTP yang dimasukkan pengguna.
+    Mencocokkan OTP dengan yang disimpan di database,
+    memeriksa masa berlaku, dan menghitung percobaan gagal
+    (maks. 3 kali sebelum OTP di-invalidasi).
 
-    Return: {
-        valid: bool,
-        reset_token: str (jika valid),
-        attempts_remaining: int,
-        message: str
-    }
+    Tipe        : Function
+    Fitur Terkait: lupa_sandi, reset_password
+
+    Input:
+        - email (String)    : alamat email pengguna
+        - otp_code (String) : kode OTP 6 digit
+
+    Output:
+        - (Object: {valid: Boolean, reset_token: String,
+                    attempts_remaining: Integer, message: String})
+
+    I.S. : OTP telah dikirim dan belum kedaluwarsa.
+    F.S. : Jika valid, reset_token sementara dihasilkan
+           untuk proses reset password.
     """
     email = email.lower().strip()
     user = get_user_by_email(email)
@@ -366,7 +376,7 @@ def verifikasi_otp(email: str, otp_code: str) -> dict:
 
     # Cek OTP
     if not verify_password(otp_code, reset_req["token_hash"]):
-        # Tambah counter percobaan
+        # Tambah counter percobaan (maks 3 kali)
         new_count = increment_reset_attempts(reset_req["id"])
         remaining = max(0, 3 - new_count)
         msg = f"Kode OTP salah. Sisa percobaan: {remaining}."
@@ -377,7 +387,7 @@ def verifikasi_otp(email: str, otp_code: str) -> dict:
             "attempts_remaining": remaining, "message": msg,
         }
 
-    # OTP valid! Generate reset token
+    # OTP valid! Generate reset token sementara
     reset_token = generate_token()
 
     return {
@@ -389,36 +399,47 @@ def verifikasi_otp(email: str, otp_code: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════
-# 7. RESET PASSWORD
+# MODUL 6: reset_password (Function)
 # ════════════════════════════════════════════════════════════
 
 def reset_password(email: str, new_password: str,
                    confirm_new_password: str) -> dict:
     """
-    Atur kata sandi baru setelah verifikasi OTP berhasil.
+    Mengatur kata sandi baru setelah verifikasi OTP/link berhasil.
+    Memvalidasi kekuatan kata sandi baru dan memastikan tidak sama
+    dengan 3 kata sandi terakhir. Kata sandi di-hash dan diperbarui
+    di database.
 
-    Validasi:
-      - Kekuatan password baru
-      - Password baru != 3 password terakhir
-      - new_password == confirm_new_password
+    Tipe        : Function
+    Fitur Terkait: verifikasi_otp, hash_password, validasi_input
 
-    Return: {success: bool, message: str}
+    Input:
+        - reset_token (String)          : token dari verifikasi OTP
+        - new_password (String)         : kata sandi baru
+        - confirm_new_password (String) : konfirmasi kata sandi baru
+
+    Output:
+        - status (Object: {success: Boolean, message: String})
+
+    I.S. : Reset token valid dan belum kedaluwarsa.
+    F.S. : Kata sandi diperbarui, semua sesi aktif dihapus
+           (force re-login), reset token di-invalidasi.
     """
     email = email.lower().strip()
     user = get_user_by_email(email)
     if not user:
         return {"success": False, "message": "Akun tidak ditemukan."}
 
-    # Validasi kekuatan
+    # Validasi kekuatan password baru
     valid, errors = validate_password_strength(new_password)
     if not valid:
         return {"success": False, "message": "Password baru lemah:\n• " + "\n• ".join(errors)}
 
-    # Cocokkan
+    # Cocokkan password
     if new_password != confirm_new_password:
         return {"success": False, "message": "Konfirmasi kata sandi tidak cocok."}
 
-    # Cek riwayat password
+    # Cek riwayat 3 password terakhir
     history = get_password_history(user["id"], limit=3)
     if check_password_history(new_password, history):
         return {
@@ -426,7 +447,7 @@ def reset_password(email: str, new_password: str,
             "message": "Kata sandi baru tidak boleh sama dengan\n3 kata sandi terakhir.",
         }
 
-    # Hash & simpan
+    # Hash & simpan (memanggil modul 10: hash_password)
     new_hash = hash_password(new_password)
     update_user_password(user["id"], new_hash)
     add_password_history(user["id"], new_hash)
@@ -447,15 +468,30 @@ def reset_password(email: str, new_password: str,
 
 
 # ════════════════════════════════════════════════════════════
-# 8. BUAT SESI
+# MODUL 7: buat_sesi (Function)
 # ════════════════════════════════════════════════════════════
 
 def buat_sesi(user_id: str, device_info: dict = None,
               ip_address: str = "127.0.0.1") -> dict:
     """
-    Membuat sesi pengguna yang aman.
+    Membuat sesi pengguna yang aman. Menghasilkan access token
+    (berlaku 15 menit) dan refresh token (berlaku 7 hari).
+    Menyimpan informasi sesi (device, IP, timestamp) di database.
 
-    Return: {session_id: str, token: str, expires_at: str}
+    Tipe        : Function
+    Fitur Terkait: login_pengguna
+
+    Input:
+        - user_id (String)      : ID pengguna
+        - device_info (Object)  : informasi device (optional)
+        - ip_address (String)   : alamat IP (optional)
+
+    Output:
+        - session (Object: {access_token: String, refresh_token: String,
+          expires_in: Integer, session_id: String})
+
+    I.S. : Pengguna berhasil diautentikasi.
+    F.S. : Sesi aktif tersimpan, token dihasilkan dan dikirim ke klien.
     """
     token = generate_session_token()
     token_hash = hash_password(token)
@@ -480,50 +516,28 @@ def buat_sesi(user_id: str, device_info: dict = None,
 
 
 # ════════════════════════════════════════════════════════════
-# 9. REFRESH TOKEN
-# ════════════════════════════════════════════════════════════
-
-def refresh_token_fn(session_id: str) -> dict:
-    """
-    Perbarui session yang kedaluwarsa.
-    Implementasi token rotation: session lama di-invalidasi.
-
-    Return: {success: bool, session_id: str, token: str, expires_at: str, message: str}
-    """
-    old_session = get_session(session_id)
-    if not old_session:
-        return {
-            "success": False, "session_id": "", "token": "",
-            "expires_at": "", "message": "Sesi tidak valid atau kedaluwarsa.",
-        }
-
-    # Invalidasi sesi lama
-    invalidate_session(session_id)
-
-    # Buat sesi baru
-    new_session = buat_sesi(old_session["user_id"])
-
-    return {
-        "success": True,
-        "session_id": new_session["session_id"],
-        "token": new_session["token"],
-        "expires_at": new_session["expires_at"],
-        "message": "Sesi diperbarui.",
-    }
-
-
-# ════════════════════════════════════════════════════════════
-# 10. LOGOUT PENGGUNA
+# MODUL 8: logout_pengguna (Function)
 # ════════════════════════════════════════════════════════════
 
 def logout_pengguna(logout_all_devices: bool = False) -> dict:
     """
-    Mengakhiri sesi pengguna.
+    Mengakhiri sesi pengguna. Menghapus/menginvalidasi access token
+    dan refresh token, membersihkan data sesi dari server dan klien.
+    Mendukung logout dari satu perangkat atau semua perangkat.
 
-    Args:
-      logout_all_devices: True → logout dari semua perangkat
+    Tipe        : Function
+    Fitur Terkait: buat_sesi
 
-    Return: {success: bool, message: str}
+    Input:
+        - session_id (String)           : ID sesi aktif
+        - logout_all_devices (Boolean)  : True → logout semua perangkat
+
+    Output:
+        - status (Object: {success: Boolean, message: String})
+
+    I.S. : Pengguna memiliki sesi aktif.
+    F.S. : Token diinvalidasi, data sesi dihapus,
+           pengguna diarahkan ke halaman login.
     """
     global _current_session
 
@@ -543,15 +557,30 @@ def logout_pengguna(logout_all_devices: bool = False) -> dict:
 
 
 # ════════════════════════════════════════════════════════════
-# 11. VALIDASI INPUT (Wrapper)
+# MODUL 9: validasi_input (Function)
 # ════════════════════════════════════════════════════════════
 
 def validasi_input(field_name: str, field_value: str,
                    validation_rules: dict = None) -> dict:
     """
-    Melakukan validasi terhadap input pengguna.
+    Melakukan validasi terhadap semua input pengguna pada form
+    autentikasi. Termasuk validasi format email (regex), kekuatan
+    password, sanitasi input untuk mencegah SQL Injection dan XSS.
 
-    Return: {valid: bool, errors: list[str]}
+    Tipe        : Function
+    Fitur Terkait: registrasi_pengguna, login_pengguna, reset_password
+
+    Input:
+        - field_name (String)           : nama field (email/password/nama/otp)
+        - field_value (String)          : nilai yang diinput pengguna
+        - validation_rules (Object)     : aturan validasi tambahan (optional)
+
+    Output:
+        - validation_result (Object: {valid: Boolean,
+                                      errors: Array<String>})
+
+    I.S. : Input pengguna diterima dari form.
+    F.S. : Hasil validasi dikembalikan dengan detail error jika ada.
     """
     errors = []
     value = sanitize_input(field_value)
@@ -579,14 +608,35 @@ def validasi_input(field_name: str, field_value: str,
 
 
 # ════════════════════════════════════════════════════════════
-# 12. GET CURRENT USER
+# MODUL 10: hash_password (Function)
+# ════════════════════════════════════════════════════════════
+#
+# Tipe        : Function
+# Deskripsi   : Melakukan hashing kata sandi menggunakan algoritma
+#               bcrypt dengan salt factor 12. Digunakan saat registrasi
+#               dan reset kata sandi.
+# Fitur Terkait: registrasi_pengguna, reset_password
+#
+# Input:
+#     - plain_password (String) : kata sandi dalam bentuk plaintext
+#
+# Output:
+#     - hashed_password (String) : kata sandi dalam bentuk hash bcrypt
+#                                  yang aman untuk disimpan.
+#
+# I.S. : Kata sandi dalam bentuk plaintext.
+# F.S. : Kata sandi dalam bentuk hash bcrypt yang aman untuk disimpan.
+#
+# IMPLEMENTASI: di auth_utils.py → def hash_password()
+# ════════════════════════════════════════════════════════════
+
+
+# ════════════════════════════════════════════════════════════
+# HELPER: get_current_user & is_authenticated
 # ════════════════════════════════════════════════════════════
 
 def get_current_user() -> dict | None:
-    """
-    Ambil data user yang sedang login berdasarkan session aktif.
-    Return: dict user atau None.
-    """
+    """Ambil data user yang sedang login berdasarkan session aktif."""
     if not _current_session["user_id"]:
         return None
     return get_user_by_id(_current_session["user_id"])
