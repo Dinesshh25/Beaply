@@ -205,24 +205,6 @@ def update_user_password(user_id: str, new_hash: str):
     conn.close()
 
 
-def link_sso_account(user_id: str, provider: str, provider_id: str):
-    """Hubungkan akun SSO (google/apple) ke user."""
-    conn = get_connection()
-    if provider == "google":
-        conn.execute("""
-            UPDATE users SET google_id = ?, auth_provider = 'mixed',
-                             updated_at = datetime('now','localtime')
-            WHERE id = ?
-        """, (provider_id, user_id))
-    elif provider == "apple":
-        conn.execute("""
-            UPDATE users SET apple_id = ?, auth_provider = 'mixed',
-                             updated_at = datetime('now','localtime')
-            WHERE id = ?
-        """, (provider_id, user_id))
-    conn.commit()
-    conn.close()
-
 
 # ════════════════════════════════════════════════════════════
 # CRUD — SESSIONS
