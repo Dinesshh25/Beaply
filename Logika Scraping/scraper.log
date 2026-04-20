@@ -1,0 +1,208 @@
+2026-04-20 09:37:33,603 - INFO - Tabel beasiswa & scraping_log siap.
+2026-04-20 09:42:19,117 - ERROR - Gagal simpan 'Klik pada bagian “': table beasiswa has no column named nama_beasiswa
+2026-04-20 09:42:19,122 - ERROR - Gagal simpan 'Beasiswa 2026 Gratis Kuliah S1 di Korea Selatan oleh KAIST (': no such column: url_sumber
+2026-04-20 09:42:19,122 - ERROR - Gagal simpan 'Beasiswa 2026 Eiffel Excellence Scholarship untuk Kuliah S2-': no such column: url_sumber
+2026-04-20 09:42:19,124 - ERROR - Gagal simpan '[FULL SCHOLARSHIP] Beasiswa KFUPM 2026 Kuliah S2 – S3 di Ara': no such column: url_sumber
+2026-04-20 09:42:19,124 - ERROR - Gagal simpan 'Summer School di Vienna Tahun 2026 untuk Mahasiswa S1 – S2 F': no such column: url_sumber
+2026-04-20 09:42:19,125 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S2 di Doha Institute Qatar untuk Lulusa': no such column: url_sumber
+2026-04-20 09:42:19,125 - ERROR - Gagal simpan 'Beasiswa 2026 S2 Swedia SISGP oleh Pemerintah Swedia': no such column: url_sumber
+2026-04-20 09:42:19,126 - ERROR - Gagal simpan 'Beasiswa 2026 Hansen Leadership Institute di USA Pelatihan K': no such column: url_sumber
+2026-04-20 09:42:19,127 - ERROR - Gagal simpan 'Beasiswa 2026 STEM AFS ke Brazil, China, Mesir, India selama': no such column: url_sumber
+2026-04-20 09:42:19,128 - ERROR - Gagal simpan 'Beasiswa 2026 Penuh S2 – S3 di Arab Saudi oleh KAUST Fellows': no such column: url_sumber
+2026-04-20 09:42:19,128 - ERROR - Gagal simpan 'Beasiswa Penuh Pertukaran Musim Panas ke USA TechGirls untuk': no such column: url_sumber
+2026-04-20 09:42:19,129 - ERROR - Gagal simpan 'Beasiswa Pelatihan Guru di Jepang MEXT / Monbukagakusho FULL': no such column: url_sumber
+2026-04-20 09:42:19,129 - ERROR - Gagal simpan 'Beasiswa Japanese Studies MEXT / Monbukagakusho untuk Mahasi': no such column: url_sumber
+2026-04-20 09:42:19,129 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S1 – S2 di Universitas Paramadina untuk': no such column: url_sumber
+2026-04-20 09:42:19,130 - ERROR - Gagal simpan 'Beasiswa Sang Surya Lazismu UMY untuk Mahasiswa Diploma, S1,': no such column: url_sumber
+2026-04-20 09:42:19,131 - ERROR - Gagal simpan 'Beasiswa Pendidikan Indonesia Emas Kuliah D3/D4/S1 di Univer': no such column: url_sumber
+2026-04-20 09:42:19,131 - ERROR - Gagal simpan '[FULLY FUNDED] Arryman Scholarship ISRSF Kuliah S2 + S3 (Fas': no such column: url_sumber
+2026-04-20 09:42:19,132 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S1, S2, S3 dan Program Non Gelar oleh P': no such column: url_sumber
+2026-04-20 09:42:19,132 - ERROR - Gagal simpan 'Beasiswa 2026 DAAD EPOS untuk Kuliah S2 dan S3 di Jerman': no such column: url_sumber
+2026-04-20 09:42:19,133 - ERROR - Gagal simpan '[Full Scholarship] Beasiswa 2026 ADB JSP Kuliah S2 di berbag': no such column: url_sumber
+2026-04-20 09:42:19,134 - ERROR - Gagal simpan 'Langkah-Langkah Pendaftaran KIP Kuliah Jalur SNBP, SNBT dan ': no such column: url_sumber
+2026-04-20 09:42:19,135 - ERROR - Gagal simpan 'Beasiswa 2026 S2 Belanda oleh Maastricht University Fully Fu': no such column: url_sumber
+2026-04-20 09:42:19,136 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah D3, S1, S2, S3 di Universitas Surabaya ': no such column: url_sumber
+2026-04-20 09:42:19,137 - ERROR - Gagal simpan 'Fulbright ETA – English Teaching Assistant untuk SMA dan SMK': no such column: url_sumber
+2026-04-20 09:42:19,137 - ERROR - Gagal simpan 'Beasiswa 2026 untuk Mahasiswa Tangerang Program CSR PIK2 ber': no such column: url_sumber
+2026-04-20 09:42:19,138 - ERROR - Gagal simpan 'Beasiswa S1 di Jepang Mitsui-Bussan Scholarship untuk Pelaja': no such column: url_sumber
+2026-04-20 09:42:19,139 - ERROR - Gagal simpan 'Beasiswa 2026 Sekolah Gratis di JIS (Jakarta Intercultural S': no such column: url_sumber
+2026-04-20 09:42:19,139 - ERROR - Gagal simpan '[FULL Scholarship] Beasiswa 2026 Kuliah Diploma, S1 dan S2 o': no such column: url_sumber
+2026-04-20 09:42:19,139 - ERROR - Gagal simpan 'Beasiswa 2026 FULL Scholarship Kuliah S2 – S3 di China Progr': no such column: url_sumber
+2026-04-20 09:42:19,140 - ERROR - Gagal simpan 'Beasiswa 2026 Fulbright untuk Kuliah S2 – S3 di Amerika Seri': no such column: url_sumber
+2026-04-20 09:42:19,141 - ERROR - Gagal simpan '[FULL Scholarship] Beasiswa 2026 Pemerintah Turki Turkiye Bu': no such column: url_sumber
+2026-04-20 09:42:19,141 - ERROR - Gagal simpan 'Beasiswa Kuliah S1 di NUS, Singapura Program Goh Keng Swee (': no such column: url_sumber
+2026-04-20 09:42:19,142 - ERROR - Gagal simpan 'Beasiswa S1 UNHAN (Universitas Pertahanan) Kuliah Gratis Tah': no such column: url_sumber
+2026-04-20 09:42:19,143 - ERROR - Gagal simpan 'NRC Fellowship Pelatihan dan Pendanaan Riset untuk Mahasiswa': no such column: url_sumber
+2026-04-20 09:42:19,143 - ERROR - Gagal simpan 'Beasiswa Gratis Kuliah D3/D4 di Politeknik Astra untuk Lulus': no such column: url_sumber
+2026-04-20 09:42:19,143 - ERROR - Gagal simpan 'Beasiswa 2026 Dicoding Kelas Pemrograman Gratis untuk Mahasi': no such column: url_sumber
+2026-04-20 09:42:19,144 - ERROR - Gagal simpan 'Beasiswa FON untuk Pengurus OSIS se-Indonesia Kuliah Gratis ': no such column: url_sumber
+2026-04-20 09:42:19,144 - ERROR - Gagal simpan 'Beasiswa Bank Indonesia 2026 untuk Mahasiswa S1, D4, dan D3': no such column: url_sumber
+2026-04-20 09:42:19,144 - ERROR - Gagal simpan 'Beasiswa Karya Salemba Empat (KSE) 2026 untuk Mahasiswa S1/D': no such column: url_sumber
+2026-04-20 09:42:19,144 - ERROR - Gagal simpan 'Beasiswa Ajinomoto Kuliah S2 di Jepang Tahun 2027 FULL Schol': no such column: url_sumber
+2026-04-20 09:42:19,144 - ERROR - Gagal simpan 'Beasiswa EVE Kuliah Gratis D3 di Politeknik Negeri Jakarta u': no such column: url_sumber
+2026-04-20 09:42:19,145 - ERROR - Gagal simpan 'Beasiswa VDMI 2026 untuk Mahasiswa D3, D4 dan S1 Semester 2 ': no such column: url_sumber
+2026-04-20 09:42:19,145 - ERROR - Gagal simpan 'Beasiswa LNG Academy 2026 Gratis Kuliah D3 untuk Lulusan SMA': no such column: url_sumber
+2026-04-20 09:42:19,145 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S2 dan S3 di Taiwan oleh Taiwan ICDF FU': no such column: url_sumber
+2026-04-20 09:42:19,145 - ERROR - Gagal simpan 'Beasiswa GRATIS Kuliah D3 untuk Lulusan SMA/SMK/MA Program S': no such column: url_sumber
+2026-04-20 09:42:19,145 - ERROR - Gagal simpan 'Beasiswa Politeknik Petrokimia Banten Gratis Kuliah D3 dan I': no such column: url_sumber
+2026-04-20 09:42:19,145 - ERROR - Gagal simpan 'Beasiswa Royal Thai Government Scholarships Kuliah S2 – S3 d': no such column: url_sumber
+2026-04-20 09:42:19,147 - ERROR - Gagal simpan 'Beasiswa 2026 Taiwan MOE untuk Kuliah S1, S2, dan S3 dari Pe': no such column: url_sumber
+2026-04-20 09:42:19,147 - ERROR - Gagal simpan 'Beasiswa Pertamina Sobat Bumi untuk Mahasiswa D3, D4 dan S1': no such column: url_sumber
+2026-04-20 09:42:19,149 - ERROR - Gagal simpan 'Beasiswa 2026 ASEAN-Maybank untuk Calon Mahasiswa Baru dan M': no such column: url_sumber
+2026-04-20 09:42:19,150 - INFO - simpan_beasiswa_batch: baru=0 update=0 gagal=50
+2026-04-20 09:47:52,299 - ERROR - Gagal simpan 'Beasiswa IDCloudHost untuk Lulusan SMA/Sederajat di Telkom U': no such column: url_sumber
+2026-04-20 09:47:52,299 - ERROR - Gagal simpan 'Beasiswa DJITU untuk Siswi SMA/Sederajat dan Mahasiswi': no such column: url_sumber
+2026-04-20 09:47:52,300 - ERROR - Gagal simpan 'Beasiswa S1 MEXT Monbukagakusho di Jepang': no such column: url_sumber
+2026-04-20 09:47:52,300 - ERROR - Gagal simpan 'Beasiswa S2 Universitas Gadjah Mada (UGM)': no such column: url_sumber
+2026-04-20 09:47:52,301 - ERROR - Gagal simpan 'Beasiswa Glow and Lovely Kuliah S1 untuk Lulusan SMA/Sederaj': no such column: url_sumber
+2026-04-20 09:47:52,302 - ERROR - Gagal simpan 'Beasiswa Astra 1st untuk Mahasiswa S1': no such column: url_sumber
+2026-04-20 09:47:52,302 - ERROR - Gagal simpan 'Beasiswa Kuliah S1 dari ILF untuk Lulusan SMA/Sederajat': no such column: url_sumber
+2026-04-20 09:47:52,303 - ERROR - Gagal simpan 'Beasiswa IGGS untuk Lulusan SMA/Sederajat di Telkom Universi': no such column: url_sumber
+2026-04-20 09:47:52,303 - ERROR - Gagal simpan 'Beasiswa Amgala Vision Batch 2 untuk Mahasiswa S1': no such column: url_sumber
+2026-04-20 09:47:52,304 - ERROR - Gagal simpan 'Beasiswa Summer School Latvia untuk Mahasiswa S1, S2 dan S3': no such column: url_sumber
+2026-04-20 09:47:52,304 - ERROR - Gagal simpan 'Beasiswa Dokter dan Dokter Gigi di Universitas Muhammadiyah ': no such column: url_sumber
+2026-04-20 09:47:52,304 - ERROR - Gagal simpan 'Beasiswa Kuliah S1, S2 dan S3 dari MOE di Taiwan': no such column: url_sumber
+2026-04-20 09:47:52,305 - ERROR - Gagal simpan 'Beasiswa DJITU untuk Siswi SMA/Sederajat dan Mahasiswi': no such column: url_sumber
+2026-04-20 09:47:52,306 - ERROR - Gagal simpan 'Beasiswa VDMI untuk Mahasiswa D3, D4 dan S1': no such column: url_sumber
+2026-04-20 09:47:52,306 - ERROR - Gagal simpan 'Beasiswa Dicoding Kelas Pemrograman untuk Mahasiswa Aktif': no such column: url_sumber
+2026-04-20 09:47:52,306 - ERROR - Gagal simpan 'Beasiswa S1 Mitsui Bussan Scholarship Program di Jepang': no such column: url_sumber
+2026-04-20 09:47:52,306 - ERROR - Gagal simpan 'Beasiswa STEM Industri Strategis dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,308 - ERROR - Gagal simpan 'Beasiswa Diploma, S1, S2 dan Profesi di Universitas Muhammad': no such column: url_sumber
+2026-04-20 09:47:52,309 - ERROR - Gagal simpan 'Beasiswa D3, D4 dan S1 di Telkom University': no such column: url_sumber
+2026-04-20 09:47:52,309 - ERROR - Gagal simpan 'Beasiswa D3, D4 dan S1 di Universitas Muhammadiyah Malang (U': no such column: url_sumber
+2026-04-20 09:47:52,310 - ERROR - Gagal simpan 'Beasiswa S2 untuk Masyarakat Umum, PNS, TNI, dan Polri di Un': no such column: url_sumber
+2026-04-20 09:47:52,310 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 MEXT Research Students di Jepang': no such column: url_sumber
+2026-04-20 09:47:52,310 - ERROR - Gagal simpan 'Beasiswa S2 Manajemen di PPM School of Management': no such column: url_sumber
+2026-04-20 09:47:52,310 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari Australia Awards Scholarships (AAS)': no such column: url_sumber
+2026-04-20 09:47:52,312 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari Pemerintah Malaysia': no such column: url_sumber
+2026-04-20 09:47:52,313 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari Royal Thai Government Scholarships d': no such column: url_sumber
+2026-04-20 09:47:52,313 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari ICDF di Taiwan': no such column: url_sumber
+2026-04-20 09:47:52,314 - ERROR - Gagal simpan 'Beasiswa Kemitraan S2 (Co-Funding) LPDP – University of Dund': no such column: url_sumber
+2026-04-20 09:47:52,315 - ERROR - Gagal simpan 'Beasiswa S2 dari Ajinomoto di Jepang': no such column: url_sumber
+2026-04-20 09:47:52,315 - ERROR - Gagal simpan 'Beasiswa Kemitraan (Co-Funding) LPDP – NUS Master in Venture': no such column: url_sumber
+2026-04-20 09:47:52,317 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 Skema Pendanaan Parsial dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,317 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 Jalur Daerah Afirmasi dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,317 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 untuk Penyandang Disabilitas dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,319 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 Jalur Prasejahtera dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,319 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 untuk Putra-Putri Papua dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,319 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 untuk Dosen Tetap dari LPDP': no such column: url_sumber
+2026-04-20 09:47:52,320 - ERROR - Gagal simpan 'Beasiswa D2 dan D3 dari MEXT di Jepang': no such column: url_sumber
+2026-04-20 09:47:52,320 - ERROR - Gagal simpan 'Beasiswa D3 di Universitas Pertahanan': no such column: url_sumber
+2026-04-20 09:47:52,321 - ERROR - Gagal simpan 'Beasiswa Sinar Mas Agribusiness and Food Kuliah D3 untuk Lul': no such column: url_sumber
+2026-04-20 09:47:52,322 - ERROR - Gagal simpan 'Beasiswa Kuliah D3 dan Ikatan Kerja di Politeknik Petrokimia': no such column: url_sumber
+2026-04-20 09:47:52,322 - ERROR - Gagal simpan 'Beasiswa D3 dari LNG Academy di Politeknik Negeri Jakarta': no such column: url_sumber
+2026-04-20 09:47:52,322 - ERROR - Gagal simpan 'Beasiswa EVE Kuliah D3 di Politeknik Negeri Jakarta': no such column: url_sumber
+2026-04-20 09:47:52,324 - ERROR - Gagal simpan 'Beasiswa Astra Kuliah D3-D4 di Politeknik Astra': no such column: url_sumber
+2026-04-20 09:47:52,325 - ERROR - Gagal simpan 'Beasiswa Astra D3 dan D4 di Politeknik Astra': no such column: url_sumber
+2026-04-20 09:47:52,325 - ERROR - Gagal simpan 'Beasiswa D3/D4 di Politeknik Astra': no such column: url_sumber
+2026-04-20 09:47:52,326 - ERROR - Gagal simpan 'Beasiswa D3 LNG Academy untuk Lulusan SMA/Sederajat': no such column: url_sumber
+2026-04-20 09:47:52,326 - ERROR - Gagal simpan 'Beasiswa SPACE untuk Pelajar dan Mahasiswa': no such column: url_sumber
+2026-04-20 09:47:52,327 - ERROR - Gagal simpan 'Beasiswa S1 dan D3 dari APERTI BUMN': no such column: url_sumber
+2026-04-20 09:47:52,327 - ERROR - Gagal simpan 'Beasiswa Taruna di Kementerian Kelautan dan Perikanan RI': no such column: url_sumber
+2026-04-20 09:47:52,331 - INFO - simpan_beasiswa_batch: baru=0 update=0 gagal=49
+2026-04-20 09:48:16,550 - WARNING - Timeout menunggu listing di: https://cari.scholarship.or.id/listing-category/beasiswa-pemerintah/
+2026-04-20 09:48:32,475 - WARNING - Timeout menunggu listing di: https://cari.scholarship.or.id/listing-category/beasiswa-swasta/
+2026-04-20 09:59:12,064 - INFO - Tabel beasiswa & scraping_log siap.
+2026-04-20 10:06:09,677 - ERROR - Gagal simpan 'Klik pada bagian “': table beasiswa has no column named nama_beasiswa
+2026-04-20 10:06:09,679 - ERROR - Gagal simpan 'Beasiswa 2026 Gratis Kuliah S1 di Korea Selatan oleh KAIST (': no such column: url_sumber
+2026-04-20 10:06:09,680 - ERROR - Gagal simpan 'Beasiswa 2026 Eiffel Excellence Scholarship untuk Kuliah S2-': no such column: url_sumber
+2026-04-20 10:06:09,681 - ERROR - Gagal simpan '[FULL SCHOLARSHIP] Beasiswa KFUPM 2026 Kuliah S2 – S3 di Ara': no such column: url_sumber
+2026-04-20 10:06:09,682 - ERROR - Gagal simpan 'Summer School di Vienna Tahun 2026 untuk Mahasiswa S1 – S2 F': no such column: url_sumber
+2026-04-20 10:06:09,682 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S2 di Doha Institute Qatar untuk Lulusa': no such column: url_sumber
+2026-04-20 10:06:09,682 - ERROR - Gagal simpan 'Beasiswa 2026 S2 Swedia SISGP oleh Pemerintah Swedia': no such column: url_sumber
+2026-04-20 10:06:09,684 - ERROR - Gagal simpan 'Beasiswa 2026 Hansen Leadership Institute di USA Pelatihan K': no such column: url_sumber
+2026-04-20 10:06:09,685 - ERROR - Gagal simpan 'Beasiswa 2026 STEM AFS ke Brazil, China, Mesir, India selama': no such column: url_sumber
+2026-04-20 10:06:09,687 - ERROR - Gagal simpan 'Beasiswa 2026 Penuh S2 – S3 di Arab Saudi oleh KAUST Fellows': no such column: url_sumber
+2026-04-20 10:06:09,688 - ERROR - Gagal simpan 'Beasiswa Penuh Pertukaran Musim Panas ke USA TechGirls untuk': no such column: url_sumber
+2026-04-20 10:06:09,689 - ERROR - Gagal simpan 'Beasiswa Pelatihan Guru di Jepang MEXT / Monbukagakusho FULL': no such column: url_sumber
+2026-04-20 10:06:09,690 - ERROR - Gagal simpan 'Beasiswa Japanese Studies MEXT / Monbukagakusho untuk Mahasi': no such column: url_sumber
+2026-04-20 10:06:09,691 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S1 – S2 di Universitas Paramadina untuk': no such column: url_sumber
+2026-04-20 10:06:09,693 - ERROR - Gagal simpan 'Beasiswa Sang Surya Lazismu UMY untuk Mahasiswa Diploma, S1,': no such column: url_sumber
+2026-04-20 10:06:09,694 - ERROR - Gagal simpan 'Beasiswa Pendidikan Indonesia Emas Kuliah D3/D4/S1 di Univer': no such column: url_sumber
+2026-04-20 10:06:09,695 - ERROR - Gagal simpan '[FULLY FUNDED] Arryman Scholarship ISRSF Kuliah S2 + S3 (Fas': no such column: url_sumber
+2026-04-20 10:06:09,695 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S1, S2, S3 dan Program Non Gelar oleh P': no such column: url_sumber
+2026-04-20 10:06:09,696 - ERROR - Gagal simpan 'Beasiswa 2026 DAAD EPOS untuk Kuliah S2 dan S3 di Jerman': no such column: url_sumber
+2026-04-20 10:06:09,698 - ERROR - Gagal simpan '[Full Scholarship] Beasiswa 2026 ADB JSP Kuliah S2 di berbag': no such column: url_sumber
+2026-04-20 10:06:09,698 - ERROR - Gagal simpan 'Langkah-Langkah Pendaftaran KIP Kuliah Jalur SNBP, SNBT dan ': no such column: url_sumber
+2026-04-20 10:06:09,699 - ERROR - Gagal simpan 'Beasiswa 2026 S2 Belanda oleh Maastricht University Fully Fu': no such column: url_sumber
+2026-04-20 10:06:09,699 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah D3, S1, S2, S3 di Universitas Surabaya ': no such column: url_sumber
+2026-04-20 10:06:09,701 - ERROR - Gagal simpan 'Fulbright ETA – English Teaching Assistant untuk SMA dan SMK': no such column: url_sumber
+2026-04-20 10:06:09,702 - ERROR - Gagal simpan 'Beasiswa 2026 untuk Mahasiswa Tangerang Program CSR PIK2 ber': no such column: url_sumber
+2026-04-20 10:06:09,702 - ERROR - Gagal simpan 'Beasiswa S1 di Jepang Mitsui-Bussan Scholarship untuk Pelaja': no such column: url_sumber
+2026-04-20 10:06:09,703 - ERROR - Gagal simpan 'Beasiswa 2026 Sekolah Gratis di JIS (Jakarta Intercultural S': no such column: url_sumber
+2026-04-20 10:06:09,703 - ERROR - Gagal simpan '[FULL Scholarship] Beasiswa 2026 Kuliah Diploma, S1 dan S2 o': no such column: url_sumber
+2026-04-20 10:06:09,704 - ERROR - Gagal simpan 'Beasiswa 2026 FULL Scholarship Kuliah S2 – S3 di China Progr': no such column: url_sumber
+2026-04-20 10:06:09,707 - ERROR - Gagal simpan 'Beasiswa 2026 Fulbright untuk Kuliah S2 – S3 di Amerika Seri': no such column: url_sumber
+2026-04-20 10:06:09,707 - ERROR - Gagal simpan '[FULL Scholarship] Beasiswa 2026 Pemerintah Turki Turkiye Bu': no such column: url_sumber
+2026-04-20 10:06:09,708 - ERROR - Gagal simpan 'Beasiswa Kuliah S1 di NUS, Singapura Program Goh Keng Swee (': no such column: url_sumber
+2026-04-20 10:06:09,708 - ERROR - Gagal simpan 'Beasiswa S1 UNHAN (Universitas Pertahanan) Kuliah Gratis Tah': no such column: url_sumber
+2026-04-20 10:06:09,708 - ERROR - Gagal simpan 'NRC Fellowship Pelatihan dan Pendanaan Riset untuk Mahasiswa': no such column: url_sumber
+2026-04-20 10:06:09,708 - ERROR - Gagal simpan 'Beasiswa Gratis Kuliah D3/D4 di Politeknik Astra untuk Lulus': no such column: url_sumber
+2026-04-20 10:06:09,710 - ERROR - Gagal simpan 'Beasiswa 2026 Dicoding Kelas Pemrograman Gratis untuk Mahasi': no such column: url_sumber
+2026-04-20 10:06:09,711 - ERROR - Gagal simpan 'Beasiswa FON untuk Pengurus OSIS se-Indonesia Kuliah Gratis ': no such column: url_sumber
+2026-04-20 10:06:09,711 - ERROR - Gagal simpan 'Beasiswa Bank Indonesia 2026 untuk Mahasiswa S1, D4, dan D3': no such column: url_sumber
+2026-04-20 10:06:09,711 - ERROR - Gagal simpan 'Beasiswa Karya Salemba Empat (KSE) 2026 untuk Mahasiswa S1/D': no such column: url_sumber
+2026-04-20 10:06:09,712 - ERROR - Gagal simpan 'Beasiswa Ajinomoto Kuliah S2 di Jepang Tahun 2027 FULL Schol': no such column: url_sumber
+2026-04-20 10:06:09,712 - ERROR - Gagal simpan 'Beasiswa EVE Kuliah Gratis D3 di Politeknik Negeri Jakarta u': no such column: url_sumber
+2026-04-20 10:06:09,713 - ERROR - Gagal simpan 'Beasiswa VDMI 2026 untuk Mahasiswa D3, D4 dan S1 Semester 2 ': no such column: url_sumber
+2026-04-20 10:06:09,713 - ERROR - Gagal simpan 'Beasiswa LNG Academy 2026 Gratis Kuliah D3 untuk Lulusan SMA': no such column: url_sumber
+2026-04-20 10:06:09,713 - ERROR - Gagal simpan 'Beasiswa 2026 Kuliah S2 dan S3 di Taiwan oleh Taiwan ICDF FU': no such column: url_sumber
+2026-04-20 10:06:09,714 - ERROR - Gagal simpan 'Beasiswa GRATIS Kuliah D3 untuk Lulusan SMA/SMK/MA Program S': no such column: url_sumber
+2026-04-20 10:06:09,714 - ERROR - Gagal simpan 'Beasiswa Politeknik Petrokimia Banten Gratis Kuliah D3 dan I': no such column: url_sumber
+2026-04-20 10:06:09,715 - ERROR - Gagal simpan 'Beasiswa Royal Thai Government Scholarships Kuliah S2 – S3 d': no such column: url_sumber
+2026-04-20 10:06:09,715 - ERROR - Gagal simpan 'Beasiswa 2026 Taiwan MOE untuk Kuliah S1, S2, dan S3 dari Pe': no such column: url_sumber
+2026-04-20 10:06:09,715 - ERROR - Gagal simpan 'Beasiswa Pertamina Sobat Bumi untuk Mahasiswa D3, D4 dan S1': no such column: url_sumber
+2026-04-20 10:06:09,718 - ERROR - Gagal simpan 'Beasiswa 2026 ASEAN-Maybank untuk Calon Mahasiswa Baru dan M': no such column: url_sumber
+2026-04-20 10:06:09,724 - INFO - simpan_beasiswa_batch: baru=0 update=0 gagal=50
+2026-04-20 10:12:28,068 - ERROR - Gagal simpan 'Beasiswa IDCloudHost untuk Lulusan SMA/Sederajat di Telkom U': no such column: url_sumber
+2026-04-20 10:12:28,068 - ERROR - Gagal simpan 'Beasiswa DJITU untuk Siswi SMA/Sederajat dan Mahasiswi': no such column: url_sumber
+2026-04-20 10:12:28,070 - ERROR - Gagal simpan 'Beasiswa S1 MEXT Monbukagakusho di Jepang': no such column: url_sumber
+2026-04-20 10:12:28,070 - ERROR - Gagal simpan 'Beasiswa S2 Universitas Gadjah Mada (UGM)': no such column: url_sumber
+2026-04-20 10:12:28,070 - ERROR - Gagal simpan 'Beasiswa Glow and Lovely Kuliah S1 untuk Lulusan SMA/Sederaj': no such column: url_sumber
+2026-04-20 10:12:28,072 - ERROR - Gagal simpan 'Beasiswa Astra 1st untuk Mahasiswa S1': no such column: url_sumber
+2026-04-20 10:12:28,072 - ERROR - Gagal simpan 'Beasiswa Kuliah S1 dari ILF untuk Lulusan SMA/Sederajat': no such column: url_sumber
+2026-04-20 10:12:28,072 - ERROR - Gagal simpan 'Beasiswa IGGS untuk Lulusan SMA/Sederajat di Telkom Universi': no such column: url_sumber
+2026-04-20 10:12:28,072 - ERROR - Gagal simpan 'Beasiswa Amgala Vision Batch 2 untuk Mahasiswa S1': no such column: url_sumber
+2026-04-20 10:12:28,073 - ERROR - Gagal simpan 'Beasiswa Summer School Latvia untuk Mahasiswa S1, S2 dan S3': no such column: url_sumber
+2026-04-20 10:12:28,073 - ERROR - Gagal simpan 'Beasiswa Dokter dan Dokter Gigi di Universitas Muhammadiyah ': no such column: url_sumber
+2026-04-20 10:12:28,074 - ERROR - Gagal simpan 'Beasiswa Kuliah S1, S2 dan S3 dari MOE di Taiwan': no such column: url_sumber
+2026-04-20 10:12:28,074 - ERROR - Gagal simpan 'Beasiswa DJITU untuk Siswi SMA/Sederajat dan Mahasiswi': no such column: url_sumber
+2026-04-20 10:12:28,074 - ERROR - Gagal simpan 'Beasiswa VDMI untuk Mahasiswa D3, D4 dan S1': no such column: url_sumber
+2026-04-20 10:12:28,075 - ERROR - Gagal simpan 'Beasiswa Dicoding Kelas Pemrograman untuk Mahasiswa Aktif': no such column: url_sumber
+2026-04-20 10:12:28,075 - ERROR - Gagal simpan 'Beasiswa S1 Mitsui Bussan Scholarship Program di Jepang': no such column: url_sumber
+2026-04-20 10:12:28,075 - ERROR - Gagal simpan 'Beasiswa STEM Industri Strategis dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,076 - ERROR - Gagal simpan 'Beasiswa Diploma, S1, S2 dan Profesi di Universitas Muhammad': no such column: url_sumber
+2026-04-20 10:12:28,076 - ERROR - Gagal simpan 'Beasiswa D3, D4 dan S1 di Telkom University': no such column: url_sumber
+2026-04-20 10:12:28,076 - ERROR - Gagal simpan 'Beasiswa D3, D4 dan S1 di Universitas Muhammadiyah Malang (U': no such column: url_sumber
+2026-04-20 10:12:28,076 - ERROR - Gagal simpan 'Beasiswa S2 untuk Masyarakat Umum, PNS, TNI, dan Polri di Un': no such column: url_sumber
+2026-04-20 10:12:28,076 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 MEXT Research Students di Jepang': no such column: url_sumber
+2026-04-20 10:12:28,079 - ERROR - Gagal simpan 'Beasiswa S2 Manajemen di PPM School of Management': no such column: url_sumber
+2026-04-20 10:12:28,079 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari Australia Awards Scholarships (AAS)': no such column: url_sumber
+2026-04-20 10:12:28,080 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari Pemerintah Malaysia': no such column: url_sumber
+2026-04-20 10:12:28,080 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari Royal Thai Government Scholarships d': no such column: url_sumber
+2026-04-20 10:12:28,080 - ERROR - Gagal simpan 'Beasiswa S2 dan S3 dari ICDF di Taiwan': no such column: url_sumber
+2026-04-20 10:12:28,081 - ERROR - Gagal simpan 'Beasiswa Kemitraan S2 (Co-Funding) LPDP – University of Dund': no such column: url_sumber
+2026-04-20 10:12:28,083 - ERROR - Gagal simpan 'Beasiswa S2 dari Ajinomoto di Jepang': no such column: url_sumber
+2026-04-20 10:12:28,083 - ERROR - Gagal simpan 'Beasiswa Kemitraan (Co-Funding) LPDP – NUS Master in Venture': no such column: url_sumber
+2026-04-20 10:12:28,084 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 Skema Pendanaan Parsial dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,084 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 Jalur Daerah Afirmasi dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,084 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 untuk Penyandang Disabilitas dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,084 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 Jalur Prasejahtera dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,084 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 untuk Putra-Putri Papua dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,085 - ERROR - Gagal simpan 'Beasiswa SHARE S2-S3 untuk Dosen Tetap dari LPDP': no such column: url_sumber
+2026-04-20 10:12:28,085 - ERROR - Gagal simpan 'Beasiswa D2 dan D3 dari MEXT di Jepang': no such column: url_sumber
+2026-04-20 10:12:28,085 - ERROR - Gagal simpan 'Beasiswa D3 di Universitas Pertahanan': no such column: url_sumber
+2026-04-20 10:12:28,088 - ERROR - Gagal simpan 'Beasiswa Sinar Mas Agribusiness and Food Kuliah D3 untuk Lul': no such column: url_sumber
+2026-04-20 10:12:28,088 - ERROR - Gagal simpan 'Beasiswa Kuliah D3 dan Ikatan Kerja di Politeknik Petrokimia': no such column: url_sumber
+2026-04-20 10:12:28,088 - ERROR - Gagal simpan 'Beasiswa D3 dari LNG Academy di Politeknik Negeri Jakarta': no such column: url_sumber
+2026-04-20 10:12:28,088 - ERROR - Gagal simpan 'Beasiswa EVE Kuliah D3 di Politeknik Negeri Jakarta': no such column: url_sumber
+2026-04-20 10:12:28,090 - ERROR - Gagal simpan 'Beasiswa Astra Kuliah D3-D4 di Politeknik Astra': no such column: url_sumber
+2026-04-20 10:12:28,091 - ERROR - Gagal simpan 'Beasiswa Astra D3 dan D4 di Politeknik Astra': no such column: url_sumber
+2026-04-20 10:12:28,091 - ERROR - Gagal simpan 'Beasiswa D3/D4 di Politeknik Astra': no such column: url_sumber
+2026-04-20 10:12:28,092 - ERROR - Gagal simpan 'Beasiswa D3 LNG Academy untuk Lulusan SMA/Sederajat': no such column: url_sumber
+2026-04-20 10:12:28,092 - ERROR - Gagal simpan 'Beasiswa SPACE untuk Pelajar dan Mahasiswa': no such column: url_sumber
+2026-04-20 10:12:28,093 - ERROR - Gagal simpan 'Beasiswa S1 dan D3 dari APERTI BUMN': no such column: url_sumber
+2026-04-20 10:12:28,094 - ERROR - Gagal simpan 'Beasiswa Taruna di Kementerian Kelautan dan Perikanan RI': no such column: url_sumber
+2026-04-20 10:12:28,096 - INFO - simpan_beasiswa_batch: baru=0 update=0 gagal=49
+2026-04-20 10:12:51,263 - WARNING - Timeout menunggu listing di: https://cari.scholarship.or.id/listing-category/beasiswa-pemerintah/
+2026-04-20 10:13:07,407 - WARNING - Timeout menunggu listing di: https://cari.scholarship.or.id/listing-category/beasiswa-swasta/
