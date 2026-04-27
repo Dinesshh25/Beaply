@@ -1,120 +1,73 @@
-"""
-main.py
-Beaply — Aplikasi Desktop Manajemen Profil & Beasiswa
-GUI: CustomTkinter
-Fitur: Autentikasi, Profil, Beasiswa, Settings,
-       Tracker & Pengingat, Eksplorasi & Navigasi, Notifikasi Terpusat
-"""
-
-import sys, traceback, logging
-logging.basicConfig(filename='error.log', level=logging.ERROR,
-                    format='%(asctime)s %(message)s', filemode='w')
-
 import customtkinter as ctk
 
-from database import init_db
-from Profile_dan_Setting.settings import ambil_preferensi
-from ui_utils import apply_pref
-from Autentikasi_dan_Keamanan import init_auth, logout_pengguna
+from model.auth_model import init_auth_db
+from controllers.auth_controller import AuthController
+from views.auth_view import HalamanAuth, HalamanLupaSandi
 
-# Import GUI pages that are used directly in BeaplyApp
-from Autentikasi_dan_Keamanan.gui_auth import HalamanAuth, HalamanLupaSandi
-from Profile_dan_Setting.gui_profile import HalamanHome, HalamanBuatProfil
-from gui_dashboard import LayoutDenganSidebar
+from views.dashboard_view import LayoutDenganSidebar
 
-init_db()
-init_auth()
-
-PROFIL_AKTIF_ID = None
-
-class BeaplyApp(ctk.CTk):
+class MainController:
+    """
+    Main Controller yang bertanggung jawab untuk mendirikan aplikasi (root window)
+    serta navigasi antar controller/fitur.
+    """
     def __init__(self):
-        super().__init__()
-        self.title("Beaply — Insight Beasiswa")
-        self.geometry("960x720")
-        self.minsize(860, 600)
+        self.root = ctk.CTk()
+        self.root.title("Beaply — MVC Version")
+        self.root.geometry("960x720")
+        self.root.minsize(860, 600)
         ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
-        self._current_user = None
-        # Log Tkinter callback errors
-        self.report_callback_exception = self._on_tk_error
-        self._go_auth()
+        
+        self.current_user = None
+        
+        # Setup container untuk menaruh View
+        self.container = ctk.CTkFrame(self.root, fg_color="transparent")
+        self.container.pack(fill="both", expand=True)
 
-    def _on_tk_error(self, exc_type, exc_value, exc_tb):
-        err = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-        logging.error(err)
-        print(err, file=sys.stderr)
+        # Inisialisasi Database Model
+        init_auth_db()
 
-    def _clear(self):
-        for w in self.winfo_children(): w.destroy()
+        # Mulai dengan memanggil AuthController
+        self.auth_controller = AuthController(self)
+        self.auth_controller.mount_views(HalamanAuth, HalamanLupaSandi)
+        self.auth_controller.tampilkan_auth()
 
-    # ── Navigasi: Autentikasi ─────────────────────────────
-    def _go_auth(self):
-        self._clear()
-        self._current_user = None
-        HalamanAuth(self,
-                    login_callback=self._on_login_success,
-                    lupa_sandi_callback=self._go_lupa_sandi
-                    ).pack(fill="both", expand=True)
+    def get_container(self):
+        # Bersihkan layar sebelumnya setiap kali pindah halaman utama
+        for widget in self.container.winfo_children():
+            widget.destroy()
+        return self.container
 
-    def _on_login_success(self, user_profile: dict):
-        self._current_user = user_profile
-        self._go_home_after_login()
+    def show_view(self, view_instance):
+        view_instance.pack(fill="both", expand=True)
 
-    def _go_lupa_sandi(self):
-        self._clear()
-        HalamanLupaSandi(self,
-                         kembali_callback=self._go_auth,
-                         reset_selesai_callback=self._go_auth,
-                         ).pack(fill="both", expand=True)
+    def on_login_success(self, user_profile):
+        """Callback dieksekusi oleh AuthController ketika login berhasil."""
+        self.current_user = user_profile
+        print(f"Login sukses untuk {user_profile['email']}")
+        
+        self._goToOldDashboard()
 
-    # ── Navigasi: Utama (setelah auth) ────────────────────
-    def _go_home_after_login(self):
-        self._clear()
-        user_id = self._current_user["id"] if self._current_user else None
-        HalamanHome(self,
-                    buka_buat=self._go_buat_profil,
-                    buka_dashboard=self._go_dashboard,
-                    user_id=user_id,
-                    ).pack(fill="both", expand=True)
+    def _goToOldDashboard(self):
+        container = self.get_container()
+        user_id = self.current_user["id"]
+        
+        layout = LayoutDenganSidebar(container, user_id, logout_callback=self._on_logout)
+        layout.pack(fill="both", expand=True)
 
-    def _go_buat_profil(self):
-        self._clear()
-        user_id = self._current_user["id"] if self._current_user else None
-        HalamanBuatProfil(self,
-                          selesai_callback=self._go_dashboard,
-                          kembali_callback=self._go_home_after_login,
-                          user_id=user_id,
-                          ).pack(fill="both", expand=True)
+    def _showPlaceholder(self):
+        container = self.get_container()
+        ctk.CTkLabel(container, text="Login Berhasil!\nNamun dashboard belum di-refactor MVC dan modul lama tidak ditemukan.", font=ctk.CTkFont(size=20)).pack(expand=True)
+        ctk.CTkButton(container, text="Logout", command=self._on_logout).pack(pady=20)
 
-    def _go_dashboard(self, profil_id=None):
-        global PROFIL_AKTIF_ID
-        if profil_id: PROFIL_AKTIF_ID = profil_id
-        self._clear()
+    def _on_logout(self):
+        self.current_user = None
+        self.auth_controller.tampilkan_auth()
 
-        def _apply_and_layout():
-            pref = ambil_preferensi(PROFIL_AKTIF_ID)
-            try:
-                apply_pref(pref)
-            except Exception as e:
-                import logging
-                logging.getLogger().error("Scaling error ignored: " + str(e))
-                
-            LayoutDenganSidebar(self, PROFIL_AKTIF_ID,
-                                logout_callback=self._go_logout
-                                ).pack(fill="both", expand=True)
-
-        self.after(10, _apply_and_layout)
-
-    def _go_logout(self):
-        global PROFIL_AKTIF_ID
-        PROFIL_AKTIF_ID = None
-        logout_pengguna()
-        self._current_user = None
-        ctk.set_appearance_mode("light")
-        self._go_auth()
-
+    def run(self):
+        self.root.mainloop()
 
 if __name__ == "__main__":
-    app = BeaplyApp()
-    app.mainloop()
+    app = MainController()
+    app.run()
