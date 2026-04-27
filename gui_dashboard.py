@@ -4,14 +4,16 @@ import sys
 import traceback
 import logging
 
-from database import ambil_preferensi_db
-from Profile_dan_Setting.settings import ambil_preferensi
-from Profile_dan_Setting.profile import tampil_profil
-from Tracker_dan_Pengingat import (
-    ambil_semua_tracker, format_deadline_display, hitung_statistik
+from controllers.profil_controller import ambil_preferensi
+from controllers.profil_controller import tampil_profil
+from controllers.tracker_controller import (
+    get_semua_tracker as ambil_semua_tracker,
+    hitung_statistik,
+    fmt_deadline as format_deadline_display,
 )
-from Eksplorasi_dan_Navigasi import (
-    ambil_semua_beasiswa, ambil_bookmark_user
+from controllers.eksplorasi_controller import (
+    get_semua_beasiswa as ambil_semua_beasiswa,
+    get_bookmarks as ambil_bookmark_user,
 )
 from ui_utils import (
     t, BG_COLOR, CARD_COLOR, BORDER_COLOR, TEXT_DARK, TEXT_MUTED,
@@ -20,14 +22,14 @@ from ui_utils import (
     PASTEL_COLORS, hitung_completeness, get_bahasa, apply_pref
 )
 
-# Import Pages
-from Eksplorasi_dan_Navigasi.gui_eksplorasi import HalamanEksplorasi, HalamanBookmarks
-from Tracker_dan_Pengingat.gui_tracker import HalamanTracker, HalamanKalender
-from Notifikasi_Terpusat.gui_notifikasi import HalamanNotifikasi
-from Profile_dan_Setting.gui_profile import HalamanProfil
-from Profile_dan_Setting.gui_settings import HalamanSettings
-from PusatBantuan.gui_help_center import HalamanHelpCenter
-from Rekomendasi.gui_rekomendasi import HalamanRekomendasi
+# Import Pages — dari views/ (MVC)
+from views.eksplorasi_view import HalamanEksplorasi, HalamanBookmarks
+from views.tracker_view import HalamanTracker, HalamanKalender
+from views.notifikasi_view import HalamanNotifikasi
+from views.profil_view import HalamanProfil
+from views.settings_view import HalamanSettings
+from views.bantuan_view import HalamanHelpCenter
+from views.rekomendasi_view import HalamanRekomendasi
 
 
 # ════════════════════════════════════════════════════════════
