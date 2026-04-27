@@ -8,7 +8,7 @@ Modul:
   - check_password_history           (3 password terakhir)
   - validate_email_format            (regex)
   - sanitize_input                   (cegah injection)
-  - generate_otp / generate_token    (OTP 6 digit, UUID token)
+  - generate_otp / generate_togitken    (OTP 6 digit, UUID token)
   - RateLimiter                      (sliding window, 5/15min, lockout 30min)
 """
 
