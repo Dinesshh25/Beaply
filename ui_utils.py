@@ -1,476 +1,170 @@
-import customtkinter as ctk
-from tkinter import messagebox
-from Profile_dan_Setting.settings import ambil_preferensi
+"""
+ui_utils.py
+Beaply - COMPATIBILITY SHIM (Backward-compatible re-exports)
 
-# ── Design System Colors ──
-BG_COLOR          = "#FDF6F0"
-CARD_COLOR        = "#FFFFFF"
-SIDEBAR_BG        = "#FDF6F0"
-SIDEBAR_ACTIVE_BG = "#D6EAD8"
-SIDEBAR_ACTIVE_TX = "#2D6A4F"
-BTN_PRIMARY       = "#A8C5B0"
-BTN_PRIMARY_HOVER = "#8FB898"
-BTN_PALE          = "#E2EBE5"
-TEXT_DARK         = "#2D2D2D"
-TEXT_MUTED        = "#888888"
-TEXT_ACCENT       = "#D4917B"
-BORDER_COLOR      = "#E8E0D8"
-INPUT_BG          = "#F0ECE8"
-PASTEL_COLORS     = ["#E8EBE4", "#F4EFE6", "#F6E6E4", "#E8EEE4", "#F0E8E4", "#E4EBE8"]
-BTN_GREEN         = "#A8C5B0"
-TEXT_LIGHT        = "#FFFFFF"
+File ini sekarang hanya menjadi bridge/shim yang me-re-export semua
+simbol dari lokasi MVC baru. File-file lama yang masih mengimpor dari
+'ui_utils' akan tetap berfungsi tanpa perubahan.
 
-# ════════════════════════════════════════════════════════════
-# TERJEMAHAN (i18n)
-# ════════════════════════════════════════════════════════════
+LOKASI BARU:
+  - Design Tokens → views/components/design_tokens.py
+  - i18n (TEKS)   → views/components/i18n.py
+  - UI Helpers     → views/components/ui_helpers.py
+"""
 
-TEKS = {
-    "id": {
-        "tagline":          "Insight Beasiswa untuk Mahasiswa",
-        "btn_buat":         "+ Buat Profil Baru",
-        "btn_pilih":        "Pilih Profil yang Ada",
-        "info_kosong":      "Belum ada profil. Buat profil dulu ya!",
-        "judul_pilih":      "Pilih Profil",
-        "judul_buat":       "Buat Profil Baru",
-        "btn_kembali":      "← Kembali",
-        "btn_simpan":       "Simpan Profil",
-        "sek_wajib":        "Data Wajib",
-        "sek_spesifik":     "Data Spesifik (Opsional)",
-        "f_nama":           "Nama Lengkap *",
-        "f_tgl":            "Tanggal Lahir * (YYYY-MM-DD)",
-        "f_email":          "Email *",
-        "f_jurusan":        "Jurusan *",
-        "f_kampus":         "Nama Kampus *",
-        "f_jenjang":        "Jenjang *",
-        "f_semester":       "Semester *",
-        "f_ip":             "IP Terakhir * (0.00–4.00)",
-        "f_jk":             "Jenis Kelamin *",
-        "f_kip":            "Penerima KIP",
-        "f_kip_ya":         "Ya",
-        "f_ielts":          "Skor IELTS (0.0–9.0)",
-        "f_toefl":          "Skor TOEFL iBT (0–120)",
-        "f_duolingo":       "Skor Duolingo (10–160)",
-        "f_sat":            "Skor SAT (400–1600)",
-        "f_act":            "Skor ACT (1–36)",
-        "f_gre":            "Skor GRE (260–340)",
-        "f_gmat":           "Skor GMAT (200–800)",
-        "f_hsk":            "Skor HSK (1–6)",
-        "f_jlpt":           "Level JLPT",
-        "ok_buat":          "Profil berhasil dibuat! 🎉",
-        "sapa":             "Halo",
-        "btn_settings":     "⚙ Pengaturan",
-        "btn_logout":       "Keluar",
-        "judul_profil":     "📋 Profil Mahasiswa",
-        "judul_skor":       "Skor Tes Bahasa / Kemampuan",
-        "lb_nama":          "Nama",
-        "lb_tgl":           "Tgl Lahir",
-        "lb_email":         "Email",
-        "lb_jurusan":       "Jurusan",
-        "lb_kampus":        "Kampus",
-        "lb_jenjang":       "Jenjang",
-        "lb_semester":      "Semester",
-        "lb_ip":            "IP",
-        "lb_jk":            "Jenis Kelamin",
-        "lb_kip":           "KIP",
-        "v_ya":             "Ya",
-        "v_tidak":          "Tidak",
-        "judul_settings":   "⚙ Pengaturan",
-        "tab_edit":         "Edit Profil",
-        "tab_pref":         "Preferensi",
-        "tab_hapus":        "Hapus Akun",
-        "btn_simpan_edit":  "Simpan Perubahan",
-        "ok_edit":          "Profil berhasil diperbarui.",
-        "lb_tema":          "Tema Tampilan",
-        "lb_ukuran":        "Ukuran Teks",
-        "lb_bahasa":        "Bahasa Antarmuka",
-        "opt_light":        "☀ Mode Terang",
-        "opt_dark":         "🌙 Mode Gelap",
-        "opt_system":       "🖥 Sistem",
-        "opt_small":        "Kecil",
-        "opt_medium":       "Sedang",
-        "opt_large":        "Besar",
-        "opt_id":           "🇮🇩 Bahasa Indonesia",
-        "opt_en":           "🇬🇧 English",
-        "btn_simpan_pref":  "Simpan Preferensi",
-        "ok_pref":          "Preferensi tersimpan!",
-        "warn_hapus":       "⚠️ Hapus Akun",
-        "teks_hapus":       "Aksi ini tidak bisa dibatalkan.\nSeluruh data profilmu akan dihapus permanen.",
-        "btn_hapus":        "Hapus Akun Saya",
-        "konfirm_judul":    "Konfirmasi Hapus",
-        "konfirm_teks":     "Kamu yakin ingin menghapus akun ini?\nData tidak bisa dipulihkan!",
-        "ok_hapus":         "Akun berhasil dihapus.",
-        "batal_hapus":      "Penghapusan dibatalkan.",
-        "gagal":            "Gagal",
-        "berhasil":         "Berhasil",
-        "akun_dihapus":     "Akun Dihapus",
-        "dibatalkan":       "Dibatalkan",
-        "menu_dashboard":    "Dashboard",
-        "menu_scholarships":"Scholarships",
-        "menu_recom":       "Recommendations",
-        "menu_bookmarks":   "Bookmarks",
-        "menu_calendar":    "Calendar",
-        "menu_notif":       "Notifications",
-        "menu_profile":     "Profile",
-        "guest_name":       "Guest User",
-        "guest_email":      "guest@beaply.com",
-        "lbl_acc_sec":      "Account & Security",
-        "lbl_change_pw":    "Change Password",
-        "lbl_desc_pw":      "Change password to keep account secure",
-        "btn_change_pw":    "Ubah Password",
-        "lbl_display":      "Display",
-        "btn_edit_profile": "Edit Profile",
-        "desc_theme":       "Select application theme",
-        "desc_lang":        "Select interface language",
-        "desc_size":        "Select text size",
-        "lbl_old_pw":       "Password Lama",
-        "lbl_new_pw":       "Password Baru",
-        "lbl_conf_pw":      "Konfirmasi Password",
-        "lbl_password":     "Password",
-        "btn_login":        "Login",
-        "err_wrong_pw":     "Password salah!",
-        # ── Autentikasi ──
-        "auth_judul":       "🎓 Beaply",
-        "auth_tagline":     "Insight Beasiswa untuk Mahasiswa",
-        "tab_login":        "Masuk",
-        "tab_register":     "Daftar",
-        "f_email_login":    "Email",
-        "f_pass_login":     "Kata Sandi",
-        "btn_login":        "Masuk",
-        "btn_register":     "Daftar",
-        "f_nama_reg":       "Nama Lengkap",
-        "f_email_reg":      "Email",
-        "f_pass_reg":       "Kata Sandi",
-        "f_confirm_reg":    "Konfirmasi Kata Sandi",
-        "link_lupa":        "Lupa Kata Sandi?",
-        "kekuatan_pwd":     "Kekuatan:",
-        "lupa_judul":       "🔐 Lupa Kata Sandi",
-        "lupa_desc":        "Masukkan email Anda untuk menerima kode OTP.",
-        "btn_kirim_otp":    "Kirim Kode OTP",
-        "otp_judul":        "Masukkan Kode OTP",
-        "otp_desc":         "Kode 6 digit telah dikirim ke email Anda.",
-        "btn_verif_otp":    "Verifikasi OTP",
-        "btn_kirim_ulang":  "Kirim Ulang OTP",
-        "reset_judul":      "🔑 Buat Kata Sandi Baru",
-        "f_pwd_baru":       "Kata Sandi Baru",
-        "f_pwd_konfirm":    "Konfirmasi Kata Sandi Baru",
-        "btn_reset":        "Simpan Kata Sandi Baru",
-        "reset_ok":         "Kata sandi berhasil diperbarui!\nSilakan login kembali.",
-        "dev_otp_info":     "[DEV MODE] Kode OTP Anda:",
-        # ── Sidebar ──
-        "nav_dashboard":    "🏠 Dashboard",
-        "nav_eksplorasi":   "🔍 Eksplorasi",
-        "nav_tracker":      "📋 Tracker",
-        "nav_kalender":     "📅 Kalender",
-        "nav_notifikasi":   "🔔 Notifikasi",
-        "nav_profil":       "👤 Profil",
-        "nav_rekomendasi": "🎯 Rekomendasi",
-        "nav_bantuan":     "❓ Pusat Bantuan",
-        "nav_settings":     "⚙ Pengaturan",
-        # ── Tracker ──
-        "t_judul":          "📋 Tracker Pendaftaran",
-        "t_tambah":         "+ Tambah Tracker",
-        "t_nama":           "Nama Beasiswa *",
-        "t_deadline":       "Deadline (YYYY-MM-DD)",
-        "t_catatan":        "Catatan",
-        "t_status":         "Status",
-        "t_simpan":         "Simpan Tracker",
-        "t_ok":             "Tracker berhasil ditambahkan!",
-        "t_hapus":          "Hapus",
-        "t_edit":           "Edit",
-        "t_bookmark":       "⭐",
-        "t_statistik":      "📊 Statistik",
-        "t_aktif":          "Aktif",
-        "t_proses":         "Proses",
-        "t_terkirim":       "Terkirim",
-        "t_diterima":       "Diterima",
-        "t_ditolak":        "Ditolak",
-        # ── Kalender ──
-        "k_judul":          "📅 Kalender Deadline",
-        "k_prev":           "◀",
-        "k_next":           "▶",
-        "k_detail":         "Detail Deadline",
-        # ── Eksplorasi ──
-        "e_judul":          "🔍 Eksplorasi Beasiswa",
-        "e_cari":           "Cari beasiswa...",
-        "e_filter":         "Filter",
-        "e_sort":           "Urutkan",
-        "e_kategori":       "Kategori",
-        "e_jenjang":        "Jenjang",
-        "e_ipk_min":        "IPK Min",
-        "e_semua":          "Semua",
-        "e_bookmark":       "⭐ Bookmark",
-        "e_unbookmark":     "☆ Hapus Bookmark",
-        "e_hasil":          "hasil ditemukan",
-        "e_sort_nama":      "Nama A-Z",
-        "e_sort_nama_d":    "Nama Z-A",
-        "e_sort_dl":        "Deadline Terdekat",
-        "e_sort_dl_d":      "Deadline Terjauh",
-        "e_sort_ipk":       "IPK Terendah",
-        "e_sort_ipk_d":     "IPK Tertinggi",
-        # ── Notifikasi ──
-        "n_judul":          "🔔 Notifikasi",
-        "n_semua":          "Semua",
-        "n_belum":          "Belum Dibaca",
-        "n_sudah":          "Sudah Dibaca",
-        "n_tandai_semua":   "✓ Tandai Semua Dibaca",
-        "n_hapus_semua":    "🗑 Hapus Semua",
-        "n_kosong":         "Tidak ada notifikasi.",
-        "n_pengaturan":     "⚙ Pengaturan Notifikasi",
-        "n_push":           "Push Notification",
-        "n_email":          "Email Notification",
-        "n_deadline":       "Notifikasi Deadline",
-        "n_status":         "Notifikasi Status",
-        "n_sistem":         "Notifikasi Sistem",
-        "n_simpan":         "Simpan Pengaturan",
-    },
-    "en": {
-        "tagline":          "Scholarship Insight for Students",
-        "btn_buat":         "+ Create New Profile",
-        "btn_pilih":        "Select Existing Profile",
-        "info_kosong":      "No profiles yet. Create one first!",
-        "judul_pilih":      "Select Profile",
-        "judul_buat":       "Create New Profile",
-        "btn_kembali":      "← Back",
-        "btn_simpan":       "Save Profile",
-        "sek_wajib":        "Required Data",
-        "sek_spesifik":     "Specific Data (Optional)",
-        "f_nama":           "Full Name *",
-        "f_tgl":            "Date of Birth * (YYYY-MM-DD)",
-        "f_email":          "Email *",
-        "f_jurusan":        "Major *",
-        "f_kampus":         "University Name *",
-        "f_jenjang":        "Degree *",
-        "f_semester":       "Semester *",
-        "f_ip":             "Latest GPA * (0.00–4.00)",
-        "f_jk":             "Gender *",
-        "f_kip":            "KIP Recipient",
-        "f_kip_ya":         "Yes",
-        "f_ielts":          "IELTS Score (0.0–9.0)",
-        "f_toefl":          "TOEFL iBT Score (0–120)",
-        "f_duolingo":       "Duolingo Score (10–160)",
-        "f_sat":            "SAT Score (400–1600)",
-        "f_act":            "ACT Score (1–36)",
-        "f_gre":            "GRE Score (260–340)",
-        "f_gmat":           "GMAT Score (200–800)",
-        "f_hsk":            "HSK Score (1–6)",
-        "f_jlpt":           "JLPT Level",
-        "ok_buat":          "Profile created successfully! 🎉",
-        "sapa":             "Hello",
-        "btn_settings":     "⚙ Settings",
-        "btn_logout":       "Logout",
-        "judul_profil":     "📋 Student Profile",
-        "judul_skor":       "Language / Proficiency Test Scores",
-        "lb_nama":          "Name",
-        "lb_tgl":           "Birth Date",
-        "lb_email":         "Email",
-        "lb_jurusan":       "Major",
-        "lb_kampus":        "University",
-        "lb_jenjang":       "Degree",
-        "lb_semester":      "Semester",
-        "lb_ip":            "GPA",
-        "lb_jk":            "Gender",
-        "lb_kip":           "KIP",
-        "v_ya":             "Yes",
-        "v_tidak":          "No",
-        "judul_settings":   "⚙ Settings",
-        "tab_edit":         "Edit Profile",
-        "tab_pref":         "Preferences",
-        "tab_hapus":        "Delete Account",
-        "btn_simpan_edit":  "Save Changes",
-        "ok_edit":          "Profile updated successfully.",
-        "lb_tema":          "Display Theme",
-        "lb_ukuran":        "Text Size",
-        "lb_bahasa":        "Interface Language",
-        "opt_light":        "☀ Light Mode",
-        "opt_dark":         "🌙 Dark Mode",
-        "opt_system":       "🖥 System",
-        "opt_small":        "Small",
-        "opt_medium":       "Medium",
-        "opt_large":        "Large",
-        "opt_id":           "🇮🇩 Bahasa Indonesia",
-        "opt_en":           "🇬🇧 English",
-        "btn_simpan_pref":  "Save Preferences",
-        "ok_pref":          "Preferences saved!",
-        "warn_hapus":       "⚠️ Delete Account",
-        "teks_hapus":       "This action cannot be undone.\nAll your profile data will be permanently deleted.",
-        "btn_hapus":        "Delete My Account",
-        "konfirm_judul":    "Confirm Deletion",
-        "konfirm_teks":     "Are you sure you want to delete this account?\nThis cannot be undone!",
-        "ok_hapus":         "Account successfully deleted.",
-        "batal_hapus":      "Deletion cancelled.",
-        "gagal":            "Error",
-        "berhasil":         "Success",
-        "akun_dihapus":     "Account Deleted",
-        "dibatalkan":       "Cancelled",
-        "menu_dashboard":    "Dashboard",
-        "menu_scholarships":"Scholarships",
-        "menu_recom":       "Recommendations",
-        "menu_bookmarks":   "Bookmarks",
-        "menu_calendar":    "Calendar",
-        "menu_notif":       "Notifications",
-        "menu_profile":     "Profile",
-        "guest_name":       "Guest User",
-        "guest_email":      "guest@beaply.com",
-        "lbl_acc_sec":      "Account & Security",
-        "lbl_change_pw":    "Change Password",
-        "lbl_desc_pw":      "Change password to keep account secure",
-        "btn_change_pw":    "Change Password",
-        "lbl_display":      "Display",
-        "btn_edit_profile": "Edit Profile",
-        "desc_theme":       "Select application theme",
-        "desc_lang":        "Select interface language",
-        "desc_size":        "Select text size",
-        "lbl_old_pw":       "Old Password",
-        "lbl_new_pw":       "New Password",
-        "lbl_conf_pw":      "Confirm Password",
-        "lbl_password":     "Password",
-        "btn_login":        "Login",
-        "err_wrong_pw":     "Wrong password!",
-        # ── Authentication ──
-        "auth_judul":       "🎓 Beaply",
-        "auth_tagline":     "Scholarship Insight for Students",
-        "tab_login":        "Login",
-        "tab_register":     "Register",
-        "f_email_login":    "Email",
-        "f_pass_login":     "Password",
-        "btn_login":        "Login",
-        "btn_register":     "Register",
-        "f_nama_reg":       "Full Name",
-        "f_email_reg":      "Email",
-        "f_pass_reg":       "Password",
-        "f_confirm_reg":    "Confirm Password",
-        "link_lupa":        "Forgot Password?",
-        "kekuatan_pwd":     "Strength:",
-        "lupa_judul":       "🔐 Forgot Password",
-        "lupa_desc":        "Enter your email to receive an OTP code.",
-        "btn_kirim_otp":    "Send OTP Code",
-        "otp_judul":        "Enter OTP Code",
-        "otp_desc":         "A 6-digit code has been sent to your email.",
-        "btn_verif_otp":    "Verify OTP",
-        "btn_kirim_ulang":  "Resend OTP",
-        "reset_judul":      "🔑 Create New Password",
-        "f_pwd_baru":       "New Password",
-        "f_pwd_konfirm":    "Confirm New Password",
-        "btn_reset":        "Save New Password",
-        "reset_ok":         "Password updated successfully!\nPlease login again.",
-        "dev_otp_info":     "[DEV MODE] Your OTP code:",
-        # ── Sidebar ──
-        "nav_dashboard":    "🏠 Dashboard",
-        "nav_eksplorasi":   "🔍 Explore",
-        "nav_tracker":      "📋 Tracker",
-        "nav_kalender":     "📅 Calendar",
-        "nav_notifikasi":   "🔔 Notifications",
-        "nav_profil":       "👤 Profile",
-        "nav_rekomendasi": "🎯 Recommendations",
-        "nav_bantuan":     "❓ Help Center",
-        "nav_settings":     "⚙ Settings",
-        # ── Tracker ──
-        "t_judul":          "📋 Application Tracker",
-        "t_tambah":         "+ Add Tracker",
-        "t_nama":           "Scholarship Name *",
-        "t_deadline":       "Deadline (YYYY-MM-DD)",
-        "t_catatan":        "Notes",
-        "t_status":         "Status",
-        "t_simpan":         "Save Tracker",
-        "t_ok":             "Tracker added successfully!",
-        "t_hapus":          "Delete",
-        "t_edit":           "Edit",
-        "t_bookmark":       "⭐",
-        "t_statistik":      "📊 Statistics",
-        "t_aktif":          "Active",
-        "t_proses":         "In Progress",
-        "t_terkirim":       "Submitted",
-        "t_diterima":       "Accepted",
-        "t_ditolak":        "Rejected",
-        # ── Calendar ──
-        "k_judul":          "📅 Deadline Calendar",
-        "k_prev":           "◀",
-        "k_next":           "▶",
-        "k_detail":         "Deadline Details",
-        # ── Explore ──
-        "e_judul":          "🔍 Explore Scholarships",
-        "e_cari":           "Search scholarships...",
-        "e_filter":         "Filter",
-        "e_sort":           "Sort",
-        "e_kategori":       "Category",
-        "e_jenjang":        "Degree",
-        "e_ipk_min":        "Min GPA",
-        "e_semua":          "All",
-        "e_bookmark":       "⭐ Bookmark",
-        "e_unbookmark":     "☆ Remove",
-        "e_hasil":          "results found",
-        "e_sort_nama":      "Name A-Z",
-        "e_sort_nama_d":    "Name Z-A",
-        "e_sort_dl":        "Nearest Deadline",
-        "e_sort_dl_d":      "Farthest Deadline",
-        "e_sort_ipk":       "Lowest GPA",
-        "e_sort_ipk_d":     "Highest GPA",
-        # ── Notifications ──
-        "n_judul":          "🔔 Notifications",
-        "n_semua":          "All",
-        "n_belum":          "Unread",
-        "n_sudah":          "Read",
-        "n_tandai_semua":   "✓ Mark All Read",
-        "n_hapus_semua":    "🗑 Delete All",
-        "n_kosong":         "No notifications.",
-        "n_pengaturan":     "⚙ Notification Settings",
-        "n_push":           "Push Notification",
-        "n_email":          "Email Notification",
-        "n_deadline":       "Deadline Notifications",
-        "n_status":         "Status Notifications",
-        "n_sistem":         "System Notifications",
-        "n_simpan":         "Save Settings",
-    },
-}
+# ── Re-export Design Tokens ──
+from views.components.design_tokens import (
+    BG_COLOR, CARD_COLOR, SIDEBAR_BG, SIDEBAR_ACTIVE_BG, SIDEBAR_ACTIVE_TX,
+    BTN_PRIMARY, BTN_PRIMARY_HOVER, BTN_PALE,
+    TEXT_DARK, TEXT_MUTED, TEXT_ACCENT, BORDER_COLOR, INPUT_BG,
+    PASTEL_COLORS, BTN_GREEN, TEXT_LIGHT,
+)
 
-def t(key: str, bhs: str = "id") -> str:
-    return TEKS.get(bhs, TEKS["id"]).get(key, key)
+# ── Re-export i18n ──
+from views.components.i18n import t, TEKS
 
+# ── Re-export UI Helpers ──
+from views.components.ui_helpers import (
+    ukuran_font, apply_pref, get_bahasa,
+    konfirm_yesno, show_info, show_error,
+    hitung_completeness,
+)
+  # UIUTILS - Backward Compatibility Shim
+# ----------------------------------------------------------------
+# SEMUA CODE YANG DISINI HANYA UNTUK MENYELAMATKAN FILE-FILE
+# DI FOLDER CONTROLLER AGAR TETAP BISA JALAN TANPA ERROR.
+# LOGIKA UTAMA SUDAH PINDAH KE FOLDER views/components/
+# ----------------------------------------------------------------
 
-# ════════════════════════════════════════════════════════════
-# HELPER
-# ════════════════════════════════════════════════════════════
+import os
+from views.components.design_tokens import *
+from views.components.i18n import *
+from views.components.ui_helpers import *
 
-def ukuran_font(pref: dict) -> tuple:
-    tbl = {"small": (14, 11, 9), "medium": (18, 13, 11), "large": (22, 16, 13)}
-    return tbl.get(pref.get("ukuran_teks", "medium"), tbl["medium"])
+# ----------------------------------------------------------------
+# 1. RE-EXPORT FUNGSI DATABASE (views/components/database.py)
+# ----------------------------------------------------------------
 
-def apply_pref(pref: dict):
-    ctk.set_appearance_mode(pref.get("tema", "light"))
-    ukuran = pref.get("ukuran_teks", "medium").lower()
-    if ukuran == "small":
-        ctk.set_widget_scaling(0.9)
-    elif ukuran == "large":
-        ctk.set_widget_scaling(1.1)
-    else:
-        ctk.set_widget_scaling(1.0)
+def get_db_path():
+    return DATABASE_PATH
 
-def get_bahasa(profil_id) -> str:
-    pref = ambil_preferensi(profil_id)
-    return pref.get("bahasa", "id")
+def connect_db():
+    """Kembalikan koneksi database."""
+    return sqlite3.connect(DATABASE_PATH)
 
-def konfirm_yesno(parent, judul, pesan):
-    return messagebox.askyesno(judul, pesan, parent=parent)
+def run_query(query, params=()):
+    """Jalankan query SQL dan kembalikan hasilnya."""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    conn.commit()
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
 
-def show_info(parent, judul, pesan):
-    messagebox.showinfo(judul, pesan, parent=parent)
+# ----------------------------------------------------------------
+# 2. RE-EXPORT FUNGSI PROFIL (views/components/profil_logic.py)
+# ----------------------------------------------------------------
 
-def show_error(parent, judul, pesan):
-    messagebox.showerror(judul, pesan, parent=parent)
+def simpan_profil(nama, email, password):
+    """Simpan profil baru."""
+    from controllers.profil_controller import simpan_profil as simpan_controller
+    return simpan_controller(nama, email, password)
 
-def hitung_completeness(profil):
-    """Calculate profile completeness percentage."""
-    if not profil:
-        return 0
-    _required = ["nama", "tanggal_lahir", "email", "jurusan",
-                 "kampus", "semester", "ip", "jenjang", "jenis_kelamin"]
-    _optional = ["skor_ielts", "skor_toefl", "skor_duolingo",
-                 "skor_sat", "skor_act", "skor_gre", "skor_gmat",
-                 "skor_hsk", "level_jlpt"]
-    _all = _required + _optional
-    filled = 0
-    for fld in _all:
-        val = profil.get(fld)
-        if val is not None and str(val).strip() != "" and val != 0 and val != 0.0:
-            filled += 1
-    return int((filled / len(_all)) * 100)
+def login_user(email, password):
+    """Login user."""
+    from controllers.profil_controller import login_user as login_controller
+    return login_controller(email, password)
+
+def tampil_profil(profil_id):
+    """Tampilkan profil."""
+    from controllers.profil_controller import tampil_profil as tampil_controller
+    return tampil_controller(profil_id)
+
+def simpan_preferensi(profil_id, bhs="id", tema="system"):
+    """Simpan preferensi."""
+    from controllers.profil_controller import simpan_preferensi as simpan_pref_controller
+    return simpan_pref_controller(profil_id, bhs, tema)
+
+def ambil_preferensi(profil_id):
+    """Ambil preferensi."""
+    from controllers.profil_controller import ambil_preferensi as ambil_pref_controller
+    return ambil_pref_controller(profil_id)
+
+def verifikasi_email(email):
+    """Verifikasi email."""
+    from controllers.profil_controller import verifikasi_email as verif_email_controller
+    return verif_email_controller(email)
+
+# ----------------------------------------------------------------
+# 3. RE-EXPORT FUNGSI TRACKER (views/components/tracker_logic.py)
+# ----------------------------------------------------------------
+
+def simpan_tracker(user_id, nama, jenis, deadline, lokasi=""):
+    """Simpan tracker."""
+    from controllers.tracker_controller import simpan_tracker as simpan_tracker_controller
+    return simpan_tracker_controller(user_id, nama, jenis, deadline, lokasi)
+
+def hapus_tracker(tracker_id):
+    """Hapus tracker."""
+    from controllers.tracker_controller import hapus_tracker as hapus_tracker_controller
+    return hapus_tracker_controller(tracker_id)
+
+def update_tracker(tracker_id, nama=None, jenis=None, deadline=None, lokasi=None):
+    """Update tracker."""
+    from controllers.tracker_controller import update_tracker as update_tracker_controller
+    return update_tracker_controller(tracker_id, nama, jenis, deadline, lokasi)
+
+def get_semua_tracker(user_id):
+    """Ambil semua tracker."""
+    from controllers.tracker_controller import get_semua_tracker as get_all_tracker_controller
+    return get_all_tracker_controller(user_id)
+
+def hitung_statistik(user_id):
+    """Hitung statistik tracker."""
+    from controllers.tracker_controller import hitung_statistik as hitung_stats_controller
+    return hitung_stats_controller(user_id)
+
+def fmt_deadline(tanggal):
+    """Format deadline."""
+    from controllers.tracker_controller import fmt_deadline as format_deadline_controller
+    return format_deadline_controller(tanggal)
+
+# ----------------------------------------------------------------
+# 4. RE-EXPORT FUNGSI EKSPLORASI (views/components/eksplorasi_logic.py)
+# ----------------------------------------------------------------
+
+def get_semua_beasiswa(limit=1000):
+    """Ambil semua beasiswa."""
+    from controllers.eksplorasi_controller import get_semua_beasiswa as get_all_scholarships_controller
+    return get_all_scholarships_controller(limit)
+
+def get_bookmarks(user_id):
+    """Ambil bookmark user."""
+    from controllers.eksplorasi_controller import get_bookmarks as get_bookmarks_controller
+    return get_bookmarks_controller(user_id)
+
+def toggle_bookmark(user_id, beasiswa_id):
+    """Toggle bookmark."""
+    from controllers.eksplorasi_controller import toggle_bookmark as toggle_bookmark_controller
+    return toggle_bookmark_controller(user_id, beasiswa_id)
+
+def simpan_pendaftaran(user_id, beasiswa_id, nama_beasiswa, status="applied"):
+    """Simpan pendaftaran."""
+    from controllers.eksplorasi_controller import simpan_pendaftaran as save_application_controller
+    return save_application_controller(user_id, beasiswa_id, nama_beasiswa, status)
+
+def get_semua_pendaftaran(user_id):
+    """Ambil semua pendaftaran."""
+    from controllers.eksplorasi_controller import get_semua_pendaftaran as get_all_applications_controller
+    return get_all_pendaftaran(user_id)
+
+def hapus_pendaftaran(pendaftaran_id):
+    """Hapus pendaftaran."""
+    from controllers.eksplorasi_controller import hapus_pendaftaran as delete_application_controller
+    return delete_application_controller(pendaftaran_id)
+
+def update_status_pendaftaran(pendaftaran_id, status):
+    """Update status pendaftaran."""
+    from controllers.eksplorasi_controller import update_status_pendaftaran as update_application_status_controller
+    return update_application_status_controller(pendaftaran_id, status)
