@@ -33,11 +33,7 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS profil (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-<<<<<<< HEAD
-            user_id         TEXT    DEFAULT NULL,
-=======
             password        TEXT    NOT NULL DEFAULT '123456',
->>>>>>> firliana
             nama            TEXT    NOT NULL,
             tanggal_lahir   TEXT    NOT NULL,
             email           TEXT    NOT NULL UNIQUE,
@@ -102,21 +98,13 @@ def simpan_profil_db(data: dict) -> tuple[bool, str, int]:
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO profil (
-<<<<<<< HEAD
-                user_id, nama, tanggal_lahir, email, jurusan, kampus,
-=======
                 password, nama, tanggal_lahir, email, jurusan, kampus,
->>>>>>> firliana
                 semester, ip, jenjang, jenis_kelamin,
                 status_kip, skor_ielts, skor_toefl, skor_duolingo,
                 skor_sat, skor_act, skor_gre, skor_gmat,
                 skor_hsk, level_jlpt
             ) VALUES (
-<<<<<<< HEAD
-                :user_id, :nama, :tanggal_lahir, :email, :jurusan, :kampus,
-=======
                 :password, :nama, :tanggal_lahir, :email, :jurusan, :kampus,
->>>>>>> firliana
                 :semester, :ip, :jenjang, :jenis_kelamin,
                 :status_kip, :skor_ielts, :skor_toefl, :skor_duolingo,
                 :skor_sat, :skor_act, :skor_gre, :skor_gmat,
@@ -244,5 +232,16 @@ def simpan_preferensi_db(profil_id: int, preferensi: dict) -> tuple[bool, str]:
         conn.commit()
         conn.close()
         return True, "Preferensi tersimpan."
+    except Exception as e:
+        return False, str(e)
+
+def ganti_password_db(profil_id: int, password_baru: str) -> tuple[bool, str]:
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE profil SET password = ? WHERE id = ?', (password_baru, profil_id))
+        conn.commit()
+        conn.close()
+        return True, 'Password berhasil diubah.'
     except Exception as e:
         return False, str(e)

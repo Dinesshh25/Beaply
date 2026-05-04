@@ -12,6 +12,8 @@ from datetime import datetime
 # ─────────────────────────────────────────────────────────────
 
 BATAS_SEMESTER = {
+    "D3": 10,
+    "D4": 14,
     "S1": 14,
     "S2": 8,
     "S3": 14,
@@ -56,8 +58,8 @@ def validasi_data_wajib(data: dict) -> tuple[bool, str]:
         return False, "Nama kampus tidak boleh kosong."
 
     jenjang = str(data.get("jenjang", "")).strip()
-    if jenjang not in ("S1", "S2", "S3"):
-        return False, "Jenjang harus S1, S2, atau S3."
+    if jenjang not in ("D3", "D4", "S1", "S2", "S3"):
+        return False, "Jenjang harus D3, D4, S1, S2, atau S3."
 
     try:
         semester = int(data.get("semester", 0))

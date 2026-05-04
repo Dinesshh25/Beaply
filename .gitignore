@@ -1,3 +1,36 @@
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Database (lokal, jangan di-commit)
 *.db
 
+# Feedback data (generated at runtime)
+PusatBantuan/feedback_data.json
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Misc
+*.log
