@@ -1,15 +1,42 @@
+<<<<<<< HEAD
 import customtkinter as ctk
 from datetime import datetime
 from utils.ui_utils import (
+=======
+"""
+views/eksplorasi_view.py
+Beaply - View: Eksplorasi & Navigasi Beasiswa
+
+Dipindahkan dari: Eksplorasi_dan_Navigasi/gui_eksplorasi.py
+Import sekarang dari controllers/eksplorasi_controller.
+"""
+import customtkinter as ctk
+from datetime import datetime
+from ui_utils import (
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
     t, PASTEL_COLORS, BG_COLOR, CARD_COLOR, BORDER_COLOR,
     TEXT_DARK, TEXT_MUTED, BTN_PALE, BTN_PRIMARY, BTN_PRIMARY_HOVER,
     TEXT_ACCENT, konfirm_yesno
 )
+<<<<<<< HEAD
 from model.eksplorasi_model import (
     ambil_semua_beasiswa, ambil_bookmark,
     is_bookmarked, toggle_bookmark
 )
 from model.notifikasi_model import tambah_notifikasi
+=======
+from controllers.eksplorasi_controller import (
+    get_semua_beasiswa, get_bookmarks, check_bookmarked, toggle_bookmark_beasiswa,
+)
+from controllers.notifikasi_controller import buat_notifikasi_deadline
+
+
+# Alias untuk keterbacaan
+ambil_semua_beasiswa = get_semua_beasiswa
+ambil_bookmark_user = get_bookmarks
+cek_bookmark = check_bookmarked
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
 # ════════════════════════════════════════════════════════════
 # HALAMAN: Eksplorasi Beasiswa
@@ -33,7 +60,11 @@ class HalamanEksplorasi(ctk.CTkFrame):
     def _check_deadline_notifs(self):
         """Auto-create notifications for bookmarked scholarships with deadline <7 days."""
         today = datetime.now().date()
+<<<<<<< HEAD
         bookmarks = ambil_bookmark(self.profil_id)
+=======
+        bookmarks = ambil_bookmark_user(self.profil_id)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         for bea in bookmarks:
             dl = bea.get("deadline", "")
             if not dl:
@@ -42,11 +73,18 @@ class HalamanEksplorasi(ctk.CTkFrame):
                 dl_date = datetime.strptime(dl, "%Y-%m-%d").date()
                 days_left = (dl_date - today).days
                 if 0 <= days_left <= 7:
+<<<<<<< HEAD
                     tambah_notifikasi(
                         self.profil_id,
                         f"Deadline Terdekat: {bea.get('nama', 'Beasiswa')}",
                         f"Beasiswa ini akan tutup pada {dl}. Jangan lupa mendaftar!",
                         "deadline"
+=======
+                    buat_notifikasi_deadline(
+                        self.profil_id,
+                        bea.get("nama", "Beasiswa"),
+                        days_left,
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                     )
             except (ValueError, TypeError):
                 pass
@@ -54,7 +92,10 @@ class HalamanEksplorasi(ctk.CTkFrame):
     def _build(self):
         bhs = self._bhs
 
+<<<<<<< HEAD
         # ── Search bar + Sort/Filter ──
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         top = ctk.CTkFrame(self, fg_color="transparent")
         top.pack(fill="x", pady=(0, 10))
 
@@ -80,19 +121,28 @@ class HalamanEksplorasi(ctk.CTkFrame):
                       font=ctk.CTkFont(size=12),
                       command=self._show_filter).pack(side="left")
 
+<<<<<<< HEAD
         # ── Active filters display ──
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         self.filter_bar = ctk.CTkFrame(self, fg_color="transparent")
         self.filter_bar.pack(fill="x", pady=(0, 4))
         self._update_filter_bar()
 
+<<<<<<< HEAD
         # ── Count label ──
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         self.count_label = ctk.CTkLabel(
             self, text=f"{len(self._filtered)} Scholarships Found",
             font=ctk.CTkFont(size=14, weight="bold"), text_color=TEXT_DARK,
             anchor="w")
         self.count_label.pack(fill="x", pady=(0, 8))
 
+<<<<<<< HEAD
         # ── Grid container ──
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         self.grid_scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.grid_scroll.pack(fill="both", expand=True)
         self._apply_filters_and_sort()
@@ -151,13 +201,17 @@ class HalamanEksplorasi(ctk.CTkFrame):
     def _apply_filters_and_sort(self):
         q = self.search_entry.get().strip().lower() if hasattr(self, 'search_entry') else ""
         result = list(self._all_beasiswa)
+<<<<<<< HEAD
 
         # Search
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         if q:
             result = [b for b in result
                       if q in b.get("nama", "").lower()
                       or q in b.get("penyelenggara", "").lower()
                       or q in b.get("jenjang", "").lower()]
+<<<<<<< HEAD
 
         # Filter jenjang
         if self._filter_jenjang:
@@ -173,6 +227,15 @@ class HalamanEksplorasi(ctk.CTkFrame):
             result = [b for b in result if b.get("syarat_ielts")]
 
         # Sort
+=======
+        if self._filter_jenjang:
+            fj = self._filter_jenjang.upper()
+            result = [b for b in result if fj in b.get("jenjang", "").upper()]
+        if self._filter_toefl:
+            result = [b for b in result if b.get("syarat_toefl")]
+        if self._filter_ielts:
+            result = [b for b in result if b.get("syarat_ielts")]
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         if self._sort_mode == "deadline_asc":
             result.sort(key=lambda b: b.get("deadline") or "9999-99-99")
         elif self._sort_mode == "deadline_desc":
@@ -181,17 +244,24 @@ class HalamanEksplorasi(ctk.CTkFrame):
             result.sort(key=lambda b: b.get("nama", "").lower())
         elif self._sort_mode == "name_desc":
             result.sort(key=lambda b: b.get("nama", "").lower(), reverse=True)
+<<<<<<< HEAD
 
         self._filtered = result
 
     def _get_deadline_color(self, deadline_str):
         """Return color based on days until deadline."""
+=======
+        self._filtered = result
+
+    def _get_deadline_color(self, deadline_str):
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         if not deadline_str:
             return None
         try:
             dl = datetime.strptime(deadline_str, "%Y-%m-%d").date()
             days = (dl - datetime.now().date()).days
             if days < 0:
+<<<<<<< HEAD
                 return "#999999"   # Expired (gray)
             elif days <= 7:
                 return "#EF4444"   # Red
@@ -199,21 +269,37 @@ class HalamanEksplorasi(ctk.CTkFrame):
                 return "#F59E0B"   # Orange
             else:
                 return "#22C55E"   # Green
+=======
+                return "#999999"
+            elif days <= 7:
+                return "#EF4444"
+            elif days <= 14:
+                return "#F59E0B"
+            else:
+                return "#22C55E"
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         except (ValueError, TypeError):
             return None
 
     def _render_grid(self):
         for w in self.grid_scroll.winfo_children():
             w.destroy()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         cols = 3
         for i, bea in enumerate(self._filtered):
             row_idx = i // cols
             col_idx = i % cols
             bg = PASTEL_COLORS[i % len(PASTEL_COLORS)]
+<<<<<<< HEAD
 
             # Check if bookmarked and get deadline color
             is_bm = is_bookmarked(self.profil_id, bea.get("id", 0))
+=======
+            is_bm = cek_bookmark(self.profil_id, bea.get("id", 0))
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             dl_color = self._get_deadline_color(bea.get("deadline")) if is_bm else None
 
             card = ctk.CTkFrame(self.grid_scroll, fg_color=bg, corner_radius=14,
@@ -222,42 +308,61 @@ class HalamanEksplorasi(ctk.CTkFrame):
             card.grid(row=row_idx, column=col_idx, padx=6, pady=6, sticky="nsew")
             self.grid_scroll.grid_columnconfigure(col_idx, weight=1)
 
+<<<<<<< HEAD
             # Title
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             ctk.CTkLabel(card, text=bea.get("nama", "Beasiswa"),
                          font=ctk.CTkFont(size=12, weight="bold"),
                          text_color=TEXT_DARK, wraplength=200,
                          justify="left", anchor="w").pack(
                 anchor="w", padx=14, pady=(14, 2))
 
+<<<<<<< HEAD
             # Penyelenggara
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             penyelenggara = bea.get("penyelenggara", "")
             if penyelenggara:
                 ctk.CTkLabel(card, text=penyelenggara,
                              font=ctk.CTkFont(size=10), text_color=TEXT_MUTED,
                              anchor="w", wraplength=200).pack(anchor="w", padx=14, pady=(0, 4))
 
+<<<<<<< HEAD
             # Jenjang
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             jenjang = bea.get("jenjang", "-")
             ctk.CTkLabel(card, text=f"Jenjang: {jenjang}",
                          font=ctk.CTkFont(size=9), text_color=TEXT_MUTED,
                          anchor="w").pack(anchor="w", padx=14, pady=(2, 0))
 
+<<<<<<< HEAD
             # Deadline with color indicator
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             deadline = bea.get("deadline", "")
             if deadline:
                 color = self._get_deadline_color(deadline)
                 dl_frame = ctk.CTkFrame(card, fg_color="transparent")
                 dl_frame.pack(anchor="w", padx=14, pady=(4, 0))
                 if color:
+<<<<<<< HEAD
                     dot = ctk.CTkFrame(dl_frame, fg_color=color, width=8, height=8,
                                        corner_radius=4)
+=======
+                    dot = ctk.CTkFrame(dl_frame, fg_color=color, width=8, height=8, corner_radius=4)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                     dot.pack(side="left", padx=(0, 4), pady=2)
                 ctk.CTkLabel(dl_frame, text=f"Deadline: {deadline}",
                              font=ctk.CTkFont(size=9),
                              text_color=color if color else TEXT_ACCENT,
                              anchor="w").pack(side="left")
 
+<<<<<<< HEAD
             # Bottom row: bookmark button
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             bot = ctk.CTkFrame(card, fg_color="transparent")
             bot.pack(fill="x", padx=10, pady=(6, 10))
             bm_text = "\u2605" if is_bm else "\u2606"
@@ -274,7 +379,11 @@ class HalamanEksplorasi(ctk.CTkFrame):
         self._render_grid()
 
     def _toggle_bm(self, bea):
+<<<<<<< HEAD
         toggle_bookmark(self.profil_id, bea.get("id", 0))
+=======
+        toggle_bookmark_beasiswa(self.profil_id, bea.get("id", 0))
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         self._render_grid()
 
     def _show_sort(self):
@@ -319,10 +428,15 @@ class HalamanEksplorasi(ctk.CTkFrame):
         top.configure(fg_color=BG_COLOR)
         top.transient(self.winfo_toplevel())
         top.grab_set()
+<<<<<<< HEAD
 
         scroll = ctk.CTkScrollableFrame(top, fg_color="transparent")
         scroll.pack(fill="both", expand=True, padx=16, pady=16)
 
+=======
+        scroll = ctk.CTkScrollableFrame(top, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=16, pady=16)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(scroll, text="Filter By Jenjang",
                      font=ctk.CTkFont(size=14, weight="bold"),
                      text_color=TEXT_DARK).pack(anchor="w", pady=(0, 8))
@@ -332,7 +446,10 @@ class HalamanEksplorasi(ctk.CTkFrame):
             ctk.CTkRadioButton(scroll, text=j, variable=jenjang_var, value=j,
                                text_color=TEXT_DARK,
                                font=ctk.CTkFont(size=12)).pack(anchor="w", pady=2)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(scroll, text="Test Score Requirements",
                      font=ctk.CTkFont(size=14, weight="bold"),
                      text_color=TEXT_DARK).pack(anchor="w", pady=(16, 8))
@@ -369,7 +486,10 @@ class HalamanBookmarks(ctk.CTkFrame):
         self._build()
 
     def _get_deadline_info(self, deadline_str):
+<<<<<<< HEAD
         """Return (color, label) based on days until deadline."""
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         if not deadline_str:
             return None, ""
         try:
@@ -387,22 +507,34 @@ class HalamanBookmarks(ctk.CTkFrame):
             return None, ""
 
     def _build(self):
+<<<<<<< HEAD
         bm_list = ambil_bookmark(self.profil_id)
 
         # ── Header ──
+=======
+        bm_list = ambil_bookmark_user(self.profil_id)
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         hdr = ctk.CTkFrame(self, fg_color="transparent")
         hdr.pack(fill="x", pady=(0, 12))
         ctk.CTkLabel(hdr, text=f"{len(bm_list)} Bookmarks",
                      font=ctk.CTkFont(size=16, weight="bold"),
                      text_color=TEXT_DARK).pack(side="left")
+<<<<<<< HEAD
         ctk.CTkButton(hdr, text="\ud83d\uddd1 Clear All", width=100, height=32,
+=======
+        ctk.CTkButton(hdr, text="\U0001f5d1 Clear All", width=100, height=32,
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                       fg_color=CARD_COLOR, border_width=1,
                       border_color=BORDER_COLOR, text_color="#D94040",
                       hover_color="#FCE8E8", corner_radius=10,
                       font=ctk.CTkFont(size=11),
                       command=self._clear_all).pack(side="right")
 
+<<<<<<< HEAD
         # Legend
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         leg = ctk.CTkFrame(self, fg_color="transparent")
         leg.pack(fill="x", pady=(0, 8))
         for txt, clr in [("\u2022 >14 days", "#22C55E"), ("\u2022 7-14 days", "#F59E0B"),
@@ -410,7 +542,10 @@ class HalamanBookmarks(ctk.CTkFrame):
             ctk.CTkLabel(leg, text=txt, font=ctk.CTkFont(size=9), text_color=clr).pack(
                 side="left", padx=6)
 
+<<<<<<< HEAD
         # ── List ──
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
@@ -429,8 +564,11 @@ class HalamanBookmarks(ctk.CTkFrame):
             card.pack(fill="x", pady=5)
             inner = ctk.CTkFrame(card, fg_color="transparent")
             inner.pack(fill="x", padx=20, pady=16)
+<<<<<<< HEAD
 
             # Title row
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             title_row = ctk.CTkFrame(inner, fg_color="transparent")
             title_row.pack(fill="x")
             ctk.CTkLabel(title_row, text=bea.get("nama", ""),
@@ -441,19 +579,28 @@ class HalamanBookmarks(ctk.CTkFrame):
                 ctk.CTkLabel(title_row, text=dl_label,
                              font=ctk.CTkFont(size=10, weight="bold"),
                              text_color=dl_color).pack(side="right")
+<<<<<<< HEAD
 
             ctk.CTkLabel(inner, text=bea.get("penyelenggara", ""),
                          font=ctk.CTkFont(size=11), text_color=TEXT_MUTED,
                          anchor="w").pack(fill="x", pady=(2, 0))
 
+=======
+            ctk.CTkLabel(inner, text=bea.get("penyelenggara", ""),
+                         font=ctk.CTkFont(size=11), text_color=TEXT_MUTED,
+                         anchor="w").pack(fill="x", pady=(2, 0))
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             info = f"Jenjang: {bea.get('jenjang', '-')}"
             if bea.get("deadline"):
                 info += f"  |  Deadline: {bea['deadline']}"
             ctk.CTkLabel(inner, text=info,
                          font=ctk.CTkFont(size=10), text_color=TEXT_MUTED,
                          anchor="w").pack(fill="x", pady=(4, 0))
+<<<<<<< HEAD
 
             # Remove button
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             ctk.CTkButton(inner, text="Remove", width=70, height=24,
                           fg_color="transparent", border_width=1,
                           border_color="#D94040", text_color="#D94040",
@@ -463,15 +610,24 @@ class HalamanBookmarks(ctk.CTkFrame):
                 anchor="e", pady=(6, 0))
 
     def _remove_bm(self, beasiswa_id):
+<<<<<<< HEAD
         toggle_bookmark(self.profil_id, beasiswa_id)
+=======
+        toggle_bookmark_beasiswa(self.profil_id, beasiswa_id)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         for w in self.winfo_children():
             w.destroy()
         self._build()
 
     def _clear_all(self):
         if konfirm_yesno(self, "Clear All", "Remove all bookmarks?"):
+<<<<<<< HEAD
             for bm in ambil_bookmark(self.profil_id):
                 toggle_bookmark(self.profil_id, bm.get("id", 0))
+=======
+            for bm in ambil_bookmark_user(self.profil_id):
+                toggle_bookmark_beasiswa(self.profil_id, bm.get("id", 0))
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             for w in self.winfo_children():
                 w.destroy()
             self._build()

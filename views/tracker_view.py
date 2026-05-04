@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import customtkinter as ctk
 from tkinter import messagebox
 from datetime import datetime
@@ -12,6 +13,38 @@ from model.tracker_model import (
     format_deadline_display, buat_pengingat_otomatis, STATUS_LIST
 )
 from model.notifikasi_model import tambah_notifikasi
+=======
+"""
+views/tracker_view.py
+Beaply - View: Tracker & Pengingat Beasiswa
+
+Dipindahkan dari: Tracker_dan_Pengingat/gui_tracker.py
+Import sekarang dari controllers/ bukan dari legacy folder.
+"""
+import customtkinter as ctk
+from tkinter import messagebox
+from datetime import datetime
+from ui_utils import (
+    t, BG_COLOR, CARD_COLOR, BORDER_COLOR, TEXT_DARK, TEXT_MUTED,
+    BTN_PALE, BTN_PRIMARY, BTN_PRIMARY_HOVER, TEXT_ACCENT
+)
+from controllers.tracker_controller import (
+    tampilan_kalender, tambah_penanda_manual, ubah_status,
+    toggle_bookmark, get_semua_tracker, get_tracker_by_id,
+    hapus, fmt_status, clr_status, fmt_deadline,
+    buat_pengingat_otomatis,
+    STATUS_LIST, ambil_semua_tracker, ambil_tracker_by_id,
+)
+from controllers.notifikasi_controller import buat_notifikasi_status
+
+
+# Alias untuk backward compatibility
+format_status = fmt_status
+warna_status = clr_status
+format_deadline_display = fmt_deadline
+hapus_tracker = hapus
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
 # ════════════════════════════════════════════════════════════
 # HALAMAN: Tracker Pendaftaran
@@ -32,7 +65,10 @@ class HalamanTracker(ctk.CTkFrame):
             w.destroy()
         bhs = self._bhs
 
+<<<<<<< HEAD
         # Header
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         hdr = ctk.CTkFrame(self, fg_color="transparent")
         hdr.pack(fill="x", padx=8, pady=(8, 4))
         ctk.CTkLabel(hdr, text=t("t_judul", bhs),
@@ -41,7 +77,10 @@ class HalamanTracker(ctk.CTkFrame):
                       font=ctk.CTkFont(size=12, weight="bold"),
                       command=self._form_tambah).pack(side="right")
 
+<<<<<<< HEAD
         # List tracker
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         trackers = ambil_semua_tracker(self.profil_id)
         scroll = ctk.CTkScrollableFrame(self)
         scroll.pack(fill="both", expand=True, padx=8, pady=4)
@@ -60,31 +99,48 @@ class HalamanTracker(ctk.CTkFrame):
         card = ctk.CTkFrame(parent, corner_radius=10)
         card.pack(fill="x", pady=4)
 
+<<<<<<< HEAD
         # Header row
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         top = ctk.CTkFrame(card, fg_color="transparent")
         top.pack(fill="x", padx=12, pady=(8, 2))
         ctk.CTkLabel(top, text=tr["nama_beasiswa"],
                      font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
 
+<<<<<<< HEAD
         # Bookmark star
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         bm_text = "⭐" if tr["dibookmark"] else "☆"
         ctk.CTkButton(top, text=bm_text, width=30, height=26,
                       fg_color="transparent",
                       command=lambda tid=tr["id"]: self._toggle_bm(tid)).pack(side="right")
 
+<<<<<<< HEAD
         # Status badge
         status_lbl = format_status(tr["status"], bhs)
         status_clr = warna_status(tr["status"])
+=======
+        status_lbl = fmt_status(tr["status"], bhs)
+        status_clr = clr_status(tr["status"])
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(top, text=f"  {status_lbl}  ",
                      font=ctk.CTkFont(size=10),
                      text_color="white",
                      fg_color=status_clr,
                      corner_radius=4).pack(side="right", padx=4)
 
+<<<<<<< HEAD
         # Info row
         info = ctk.CTkFrame(card, fg_color="transparent")
         info.pack(fill="x", padx=12, pady=2)
         dl_text = format_deadline_display(tr["deadline"]) if tr.get("deadline") else "Tidak ada deadline"
+=======
+        info = ctk.CTkFrame(card, fg_color="transparent")
+        info.pack(fill="x", padx=12, pady=2)
+        dl_text = fmt_deadline(tr["deadline"]) if tr.get("deadline") else "Tidak ada deadline"
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(info, text=f"📅 {dl_text}",
                      font=ctk.CTkFont(size=10),
                      text_color="gray50").pack(side="left")
@@ -94,11 +150,17 @@ class HalamanTracker(ctk.CTkFrame):
                          font=ctk.CTkFont(size=10),
                          text_color="gray50").pack(side="left", padx=12)
 
+<<<<<<< HEAD
         # Action buttons
         actions = ctk.CTkFrame(card, fg_color="transparent")
         actions.pack(fill="x", padx=12, pady=(2, 8))
 
         # Status dropdown
+=======
+        actions = ctk.CTkFrame(card, fg_color="transparent")
+        actions.pack(fill="x", padx=12, pady=(2, 8))
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         status_var = ctk.StringVar(value=tr["status"])
         status_dd = ctk.CTkComboBox(
             actions, values=STATUS_LIST, width=140, height=26,
@@ -154,7 +216,10 @@ class HalamanTracker(ctk.CTkFrame):
         if not ok:
             self.err_tracker.configure(text=msg)
             return
+<<<<<<< HEAD
         # Buat pengingat otomatis jika ada deadline
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         if dl:
             buat_pengingat_otomatis(tid)
         messagebox.showinfo(t("berhasil", self._bhs), t("t_ok", self._bhs))
@@ -163,10 +228,16 @@ class HalamanTracker(ctk.CTkFrame):
     def _ubah_status(self, tracker_id, status_baru):
         ok, msg = ubah_status(tracker_id, status_baru)
         if ok:
+<<<<<<< HEAD
             # Buat notifikasi perubahan status
             tr = ambil_tracker_by_id(tracker_id)
             if tr:
                 tambah_notifikasi(self.profil_id, f"Status Update: {tr['nama_beasiswa']}", f"Status beasiswa telah diperbarui menjadi '{status_baru}'.", "status")
+=======
+            tr = ambil_tracker_by_id(tracker_id)
+            if tr:
+                buat_notifikasi_status(self.profil_id, tr["nama_beasiswa"], status_baru)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
     def _toggle_bm(self, tracker_id):
         toggle_bookmark(tracker_id)
@@ -203,18 +274,28 @@ class HalamanKalender(ctk.CTkFrame):
 
         data = tampilan_kalender(self.profil_id, self._bulan, self._tahun)
 
+<<<<<<< HEAD
         # Two-column layout
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
         main_frame.pack(fill="both", expand=True)
 
         # LEFT: Calendar grid
+=======
+        main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        main_frame.pack(fill="both", expand=True)
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         left = ctk.CTkFrame(main_frame, fg_color=CARD_COLOR, corner_radius=16,
                             border_width=1, border_color=BORDER_COLOR)
         left.pack(side="left", fill="both", expand=True, padx=(0, 8))
 
+<<<<<<< HEAD
         # Month header with pink/salmon color
         month_hdr = ctk.CTkFrame(left, fg_color="#F6D6D0", corner_radius=16,
                                  height=50)
+=======
+        month_hdr = ctk.CTkFrame(left, fg_color="#F6D6D0", corner_radius=16, height=50)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         month_hdr.pack(fill="x")
         month_hdr.pack_propagate(False)
         ctk.CTkButton(month_hdr, text="<", width=36, height=36,
@@ -231,7 +312,10 @@ class HalamanKalender(ctk.CTkFrame):
                       font=ctk.CTkFont(size=16, weight="bold"),
                       command=self._next_bulan).pack(side="right", padx=8)
 
+<<<<<<< HEAD
         # Day headers
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         grid = ctk.CTkFrame(left, fg_color="transparent")
         grid.pack(fill="both", expand=True, padx=8, pady=8)
 
@@ -240,7 +324,10 @@ class HalamanKalender(ctk.CTkFrame):
             ctk.CTkLabel(grid, text=h, font=ctk.CTkFont(size=10, weight="bold"),
                          text_color=TEXT_MUTED).grid(row=0, column=c, padx=4, pady=6)
 
+<<<<<<< HEAD
         # Date cells
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         today = datetime.now()
         hari_pertama = data["hari_pertama"]
         total_hari = data["total_hari"]
@@ -273,6 +360,7 @@ class HalamanKalender(ctk.CTkFrame):
         for c in range(7):
             grid.grid_columnconfigure(c, weight=1)
 
+<<<<<<< HEAD
         # Legend
         leg = ctk.CTkFrame(left, fg_color="transparent")
         leg.pack(fill="x", padx=12, pady=(0, 12))
@@ -283,11 +371,23 @@ class HalamanKalender(ctk.CTkFrame):
             f.pack(side="left", padx=8)
             dot = ctk.CTkFrame(f, fg_color=clr, width=10, height=10,
                                corner_radius=5)
+=======
+        leg = ctk.CTkFrame(left, fg_color="transparent")
+        leg.pack(fill="x", padx=12, pady=(0, 12))
+        legends = [("Deadline", "#EF4444"), ("Today", BTN_PRIMARY), ("Bookmark", "#3B82F6")]
+        for txt, clr in legends:
+            f = ctk.CTkFrame(leg, fg_color="transparent")
+            f.pack(side="left", padx=8)
+            dot = ctk.CTkFrame(f, fg_color=clr, width=10, height=10, corner_radius=5)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             dot.pack(side="left", padx=(0, 4))
             ctk.CTkLabel(f, text=txt, font=ctk.CTkFont(size=9),
                          text_color=TEXT_MUTED).pack(side="left")
 
+<<<<<<< HEAD
         # RIGHT: Upcoming events sidebar
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         right = ctk.CTkFrame(main_frame, fg_color="#E8EBE4", corner_radius=16,
                              width=260, border_width=1, border_color=BORDER_COLOR)
         right.pack(side="right", fill="y")
@@ -300,19 +400,31 @@ class HalamanKalender(ctk.CTkFrame):
         events_scroll = ctk.CTkScrollableFrame(right, fg_color="transparent")
         events_scroll.pack(fill="both", expand=True, padx=8, pady=(0, 8))
 
+<<<<<<< HEAD
         # Get tracker events
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         trackers = ambil_semua_tracker(self.profil_id) if self.profil_id else []
         upcoming = [t for t in trackers if t.get("deadline")]
         upcoming.sort(key=lambda x: x.get("deadline", "9999"))
 
         if not upcoming:
+<<<<<<< HEAD
             ctk.CTkLabel(events_scroll, text="No upcoming events.\nAdd deadlines via Tracker.",
+=======
+            ctk.CTkLabel(events_scroll,
+                         text="No upcoming events.\nAdd deadlines via Tracker.",
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                          font=ctk.CTkFont(size=11), text_color=TEXT_MUTED,
                          justify="center").pack(pady=40)
         else:
             for tr in upcoming[:10]:
+<<<<<<< HEAD
                 ev = ctk.CTkFrame(events_scroll, fg_color=CARD_COLOR,
                                   corner_radius=10)
+=======
+                ev = ctk.CTkFrame(events_scroll, fg_color=CARD_COLOR, corner_radius=10)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                 ev.pack(fill="x", pady=3)
                 ctk.CTkLabel(ev, text=tr.get("nama_beasiswa", ""),
                              font=ctk.CTkFont(size=11, weight="bold"),
@@ -340,6 +452,10 @@ class HalamanKalender(ctk.CTkFrame):
         items = tgl_tracker.get(day, [])
         if not items:
             return
+<<<<<<< HEAD
         msg = "\n".join([f"\u2022 {it['nama_beasiswa']} \u2014 {format_status(it['status'], self._bhs)}"
+=======
+        msg = "\n".join([f"\u2022 {it['nama_beasiswa']} \u2014 {fmt_status(it['status'], self._bhs)}"
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                          for it in items])
         messagebox.showinfo(t("k_detail", self._bhs), msg)

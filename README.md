@@ -4,7 +4,7 @@
 
 ---
 
-## ✨ Fitur Utama (Features)
+## ✨ Fitur Utama (Features)z
 
 Aplikasi Beaply memiliki fungsionalitas komprehensif yang dirancang untuk mendukung perjalanan akademik kamu dari proses pendaftaran akun hingga mendapatkan rekomendasi yang presisi:
 
@@ -52,8 +52,6 @@ Aplikasi ini menggunakan teknologi-teknologi unggulan dan *library* andal di dal
 ---
 
 ## 📂 Struktur Modul & Arsitektur (Modular Architecture)
-
-Setelah melalui proses *refactoring*, aplikasi Beaply dirancang secara modular. Setiap subsistem atau fitur ditempatkan di dalam direktorinya masing-masing agar kode lebih bersih, terisolasi, dan mudah berkolaborasi. 
 
 Berikut adalah rincian direktori/modul pada *codebase* Beaply saat ini:
 

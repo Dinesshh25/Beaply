@@ -1,132 +1,232 @@
-import uuid
-import random
-import string
-from model import auth_model
+"""
+controllers/auth_controller.py
+Beaply - Controller: Autentikasi
 
-def generate_otp(length=6):
-    return "".join(random.choices(string.digits, k=length))
+Mediator antara View (gui_auth.py) dan Model (auth_model + auth_utils).
+"""
 
-class AuthController:
-    def __init__(self, main_controller):
-        self.main_controller = main_controller
-        self.view = None
-        self.lupa_sandi_view = None
+from models.auth_model import (
+    create_user, get_user_by_email, get_user_by_id,
+    verify_user_email, update_user_password,
+    create_session, validate_session, invalidate_session,
+    invalidate_all_sessions,
+    create_password_reset, validate_otp,
+    record_login, add_password_history, get_password_history,
+)
+from models.auth_utils import (
+    hash_password, verify_password,
+    validate_password_strength, get_password_strength_level,
+    check_password_history,
+    validate_email_format, sanitize_input,
+    generate_otp, generate_session_token,
+    RateLimiter,
+)
+from models.email_service import email_service
 
-    def mount_views(self, auth_view_cls, lupa_sandi_view_cls):
-        self.auth_view_cls = auth_view_cls
-        self.lupa_sandi_view_cls = lupa_sandi_view_cls
+import logging
+logger = logging.getLogger(__name__)
 
-    def tampilkan_auth(self):
-        """Merender HalamanAuth di container uatama."""
-        self.view = self.auth_view_cls(self.main_controller.get_container(), self)
-        self.main_controller.show_view(self.view)
+# Rate limiter singleton
+_rate_limiter = RateLimiter()
 
-    def tampilkan_lupa_sandi(self):
-        """Merender HalamanLupaSandi di container utama."""
-        self.lupa_sandi_view = self.lupa_sandi_view_cls(self.main_controller.get_container(), self)
-        self.main_controller.show_view(self.lupa_sandi_view)
 
-    def proses_login(self, email, password):
-        email_clean = email.lower().strip()
-        user = auth_model.get_user_by_email(email_clean)
-        
-        if not user:
-            self.view.tampilkan_error_login("Email atau kata sandi salah.")
-            return
+def register(nama: str, email: str, password: str,
+             confirm_password: str) -> tuple[bool, str, int]:
+    """
+    Registrasi user baru.
+    Return: (sukses, pesan, user_id)
+    """
+    nama = sanitize_input(nama)
+    email = sanitize_input(email).lower()
 
-        if not auth_model.verify_password(password, user["password_hash"]):
-            auth_model.update_login_attempts(user["id"], user["failed_login_attempts"] + 1)
-            self.view.tampilkan_error_login("Email atau kata sandi salah.")
-            return
-            
-        # Success
-        auth_model.update_last_login(user["id"])
-        
-        # Beritahu main_controller tentang succesful login and kirim user profile.
-        # Simulasi user_profile dictionary
-        user_profile = {
-            "id": user["id"],
-            "email": user["email"],
-            "nama_lengkap": user["nama_lengkap"]
-        }
-        self.main_controller.on_login_success(user_profile)
+    if not nama or len(nama) < 2:
+        return False, "Nama minimal 2 karakter.", -1
 
-    def proses_register(self, nama, email, pwd, confirm):
-        email_clean = email.lower().strip()
-        if not auth_model.validate_email_format(email_clean):
-            self.view.tampilkan_error_register("Format email tidak valid.")
-            return
-        if pwd != confirm:
-            self.view.tampilkan_error_register("Konfirmasi kata sandi tidak cocok.")
-            return
-            
-        valid, errors = auth_model.validate_password_strength(pwd)
-        if not valid:
-            self.view.tampilkan_error_register("Password lemah: " + ", ".join(errors))
-            return
-            
-        user = auth_model.get_user_by_email(email_clean)
-        if user:
-            self.view.tampilkan_error_register("Email sudah terdaftar.")
-            return
-            
-        hashed_pwd = auth_model.hash_password(pwd)
-        ok, msg, user_id = auth_model.create_user(email_clean, hashed_pwd, nama)
-        if ok:
-            self.view.tampilkan_pesan_sukses("Akun berhasi didaftarkan! Silakan login.")
-        else:
-            self.view.tampilkan_error_register("Terjadi kesalahan sistem: " + msg)
+    if not validate_email_format(email):
+        return False, "Format email tidak valid.", -1
 
-    def proses_permintaan_otp(self, email):
-        email_clean = email.lower().strip()
-        user = auth_model.get_user_by_email(email_clean)
-        if not user:
-            self.lupa_sandi_view.tampilkan_error_lupa("Email tidak ditemukan.")
-            return
-            
-        otp = generate_otp(6)
-        otp_hash = auth_model.hash_password(otp)
-        auth_model.create_password_reset(user["id"], "otp", otp_hash)
-        
-        # Secara lokal pass plaintext otp ke UI untuk bypass email provider
-        self.lupa_sandi_view.lanjut_ke_step2(otp)
+    valid, errors = validate_password_strength(password)
+    if not valid:
+        return False, "\n".join(errors), -1
 
-    def proses_verifikasi_otp(self, email, otp):
-        user = auth_model.get_user_by_email(email.lower().strip())
-        if not user:
-            self.lupa_sandi_view.tampilkan_error_otp("Terjadi kesalahan sesi email.")
-            return
-            
-        req = auth_model.get_password_reset(user["id"])
-        if not req:
-            self.lupa_sandi_view.tampilkan_error_otp("Kode OTP kedaluwarsa atau tidak valid.")
-            return
-            
-        if not auth_model.verify_password(otp, req["token_hash"]):
-            auth_model.increment_reset_attempts(req["id"])
-            self.lupa_sandi_view.tampilkan_error_otp("Kode OTP salah.")
-            return
-            
-        # Berhasil diverifikasi
-        reset_token = uuid.uuid4().hex
-        self.lupa_sandi_view.lanjut_ke_step3(reset_token)
+    if password != confirm_password:
+        return False, "Konfirmasi password tidak cocok.", -1
 
-    def proses_reset_password(self, email, pwd, confirm):
-        if pwd != confirm:
-            self.lupa_sandi_view.tampilkan_error_reset("Konfirmasi kata sandi tidak cocok.")
-            return
-            
-        valid, errors = auth_model.validate_password_strength(pwd)
-        if not valid:
-            self.lupa_sandi_view.tampilkan_error_reset("Password lemah: " + ", ".join(errors))
-            return
-            
-        user = auth_model.get_user_by_email(email.lower().strip())
-        new_hash = auth_model.hash_password(pwd)
-        auth_model.update_user_password(user["id"], new_hash)
-        
-        req = auth_model.get_password_reset(user["id"])
-        if req:
-            auth_model.use_password_reset(req["id"])
-            
-        self.lupa_sandi_view.tampilkan_pesan_sukses("Password berhasil diubah, silahkan login.")
+    existing = get_user_by_email(email)
+    if existing:
+        return False, "Email sudah terdaftar.", -1
+
+    pw_hash = hash_password(password)
+    verification_code = generate_otp()
+
+    ok, msg, uid = create_user(email, pw_hash, nama, verification_code)
+    if ok:
+        add_password_history(uid, pw_hash)
+        email_service.send_verification_email(email, verification_code)
+
+    return ok, msg, uid
+
+
+def login(email: str, password: str) -> tuple[bool, str, dict | None]:
+    """
+    Login user.
+    Return: (sukses, pesan, session_data)
+    """
+    email = sanitize_input(email).lower()
+
+    allowed, remaining, lockout = _rate_limiter.check(email, "login")
+    if not allowed:
+        return False, f"Terlalu banyak percobaan. Coba lagi setelah {lockout}.", None
+
+    user = get_user_by_email(email)
+    if not user:
+        _rate_limiter.record_attempt(email, "login")
+        return False, "Email atau password salah.", None
+
+    if not verify_password(password, user["password_hash"]):
+        _rate_limiter.record_attempt(email, "login")
+        record_login(user["id"], "failed")
+        return False, f"Email atau password salah. ({remaining - 1} percobaan tersisa)", None
+
+    _rate_limiter.reset(email, "login")
+    record_login(user["id"], "success")
+
+    session_token = generate_session_token()
+    create_session(user["id"], session_token)
+
+    return True, "Login berhasil.", {
+        "user_id": user["id"],
+        "email": user["email"],
+        "nama": user["nama_lengkap"],
+        "session_token": session_token,
+    }
+
+
+def logout(session_token: str) -> bool:
+    """Logout user."""
+    try:
+        return invalidate_session(session_token)
+    except Exception as e:
+        logger.error("logout gagal (token=%s...): %s", session_token[:8], e)
+        return False
+
+
+def forgot_password(email: str) -> tuple[bool, str]:
+    """Kirim OTP untuk reset password."""
+    email = sanitize_input(email).lower()
+    user = get_user_by_email(email)
+    if not user:
+        return False, "Email tidak ditemukan."
+
+    otp = generate_otp()
+    create_password_reset(user["id"], otp)
+    ok, msg = email_service.send_otp(email, otp)
+
+    return True, msg
+
+
+def verify_reset_otp(email: str, otp_code: str) -> tuple[bool, str]:
+    """Verifikasi OTP reset password."""
+    user = get_user_by_email(email.strip().lower())
+    if not user:
+        return False, "Email tidak ditemukan."
+    valid = validate_otp(user["id"], otp_code)
+    if not valid:
+        return False, "Kode OTP tidak valid atau sudah expired."
+    return True, "OTP valid."
+
+
+def reset_password(email: str, new_password: str,
+                   confirm_password: str) -> tuple[bool, str]:
+    """Reset password setelah OTP terverifikasi."""
+    if new_password != confirm_password:
+        return False, "Konfirmasi password tidak cocok."
+
+    valid, errors = validate_password_strength(new_password)
+    if not valid:
+        return False, "\n".join(errors)
+
+    user = get_user_by_email(email.strip().lower())
+    if not user:
+        return False, "User tidak ditemukan."
+
+    history = get_password_history(user["id"])
+    if check_password_history(new_password, history):
+        return False, "Password sudah pernah digunakan sebelumnya."
+
+    pw_hash = hash_password(new_password)
+    ok, msg = update_user_password(user["id"], pw_hash)
+    if ok:
+        add_password_history(user["id"], pw_hash)
+        invalidate_all_sessions(user["id"])
+
+    return ok, msg
+
+
+def change_password(user_id: int, old_password: str,
+                    new_password: str, confirm: str) -> tuple[bool, str]:
+    """Ubah password dari settings."""
+    user = get_user_by_id(user_id)
+    if not user:
+        return False, "User tidak ditemukan."
+    if not verify_password(old_password, user["password_hash"]):
+        return False, "Password lama salah."
+    if new_password != confirm:
+        return False, "Konfirmasi password tidak cocok."
+    valid, errors = validate_password_strength(new_password)
+    if not valid:
+        return False, "\n".join(errors)
+    history = get_password_history(user_id)
+    if check_password_history(new_password, history):
+        return False, "Password sudah pernah digunakan."
+    pw_hash = hash_password(new_password)
+    ok, msg = update_user_password(user_id, pw_hash)
+    if ok:
+        add_password_history(user_id, pw_hash)
+    return ok, msg
+
+
+def get_strength_level(password: str) -> tuple:
+    """Untuk indikator visual kekuatan password."""
+    return get_password_strength_level(password)
+
+
+# ════════════════════════════════════════════════════════════
+# SESSION STATE MANAGEMENT
+# ════════════════════════════════════════════════════════════
+
+_CURRENT_USER = None
+_CURRENT_SESSION_TOKEN = None
+
+
+def set_current_user(user_profile: dict | None):
+    """Simpan user yang sedang login ke state global."""
+    global _CURRENT_USER, _CURRENT_SESSION_TOKEN
+    _CURRENT_USER = user_profile
+    _CURRENT_SESSION_TOKEN = (
+        user_profile.get("session_token") if user_profile else None
+    )
+
+
+def get_current_user() -> dict | None:
+    return _CURRENT_USER
+
+
+def get_current_session() -> str | None:
+    return _CURRENT_SESSION_TOKEN
+
+
+def is_authenticated() -> bool:
+    return _CURRENT_USER is not None
+
+
+def logout_pengguna(session_token: str) -> bool:
+    """Logout dan hapus session dari DB."""
+    return logout(session_token)
+
+
+def init_auth():
+    """Inisialisasi tabel auth database."""
+    from models.auth_model import init_auth_db
+    init_auth_db()
+

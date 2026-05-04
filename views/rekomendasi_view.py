@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import customtkinter as ctk
 from tkinter import messagebox
 
@@ -14,6 +15,40 @@ TEXT_ACCENT       = "#D4917B"
 BORDER_COLOR      = "#E8E0D8"
 INPUT_BG          = "#F0ECE8"
 PASTEL_COLORS     = ["#E8EBE4", "#F4EFE6", "#F6E6E4", "#E8EEE4", "#F0E8E4", "#E4EBE8"]
+=======
+"""
+views/rekomendasi_view.py
+Beaply - View: Rekomendasi Beasiswa
+
+Dipindahkan dari: Rekomendasi/gui_rekomendasi.py
+Import sekarang dari controllers/rekomendasi_controller.
+"""
+import customtkinter as ctk
+from tkinter import messagebox
+
+from controllers.rekomendasi_controller import (
+    get_profil_user, hitung_rekomendasi, get_analisis, get_daftar_beasiswa
+)
+
+try:
+    from ui_utils import (
+        BG_COLOR, CARD_COLOR, BORDER_COLOR, TEXT_DARK, TEXT_MUTED,
+        TEXT_ACCENT, BTN_PRIMARY, BTN_PRIMARY_HOVER, PASTEL_COLORS
+    )
+    INPUT_BG = "#F0ECE8"
+except ImportError:
+    BG_COLOR          = "#FDF6F0"
+    CARD_COLOR        = "#FFFFFF"
+    BTN_PRIMARY       = "#A8C5B0"
+    BTN_PRIMARY_HOVER = "#8FB898"
+    TEXT_DARK         = "#2D2D2D"
+    TEXT_MUTED        = "#888888"
+    TEXT_ACCENT       = "#D4917B"
+    BORDER_COLOR      = "#E8E0D8"
+    INPUT_BG          = "#F0ECE8"
+    PASTEL_COLORS     = ["#E8EBE4", "#F4EFE6", "#F6E6E4", "#E8EEE4", "#F0E8E4", "#E4EBE8"]
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
 
 class HalamanRekomendasi(ctk.CTkFrame):
@@ -25,6 +60,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
         self._results = None
 
         self.profil_user = {}
+<<<<<<< HEAD
         if self.profil_id and tampil_profil:
             raw = tampil_profil(self.profil_id)
             if raw:
@@ -35,6 +71,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
                     "organisasi": True,
                     "penghasilan_ortu": 5000000
                 }
+=======
+        if self.profil_id:
+            self.profil_user = get_profil_user(self.profil_id)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
         self._build_initial()
 
@@ -43,7 +83,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
+<<<<<<< HEAD
         # Header card
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         hdr = ctk.CTkFrame(scroll, fg_color="#E8F5E9", corner_radius=16,
                            border_width=1, border_color=BORDER_COLOR,
                            height=120)
@@ -63,11 +106,17 @@ class HalamanRekomendasi(ctk.CTkFrame):
                       height=38, width=180,
                       command=self._do_calculate).pack(side="right")
 
+<<<<<<< HEAD
         # Empty state or input form
         if not self.profil_user:
             self._show_input_form(scroll)
         else:
             # Show explanation
+=======
+        if not self.profil_user:
+            self._show_input_form(scroll)
+        else:
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             info_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=14,
                                      border_width=1, border_color=BORDER_COLOR)
             info_card.pack(fill="x", pady=8)
@@ -75,7 +124,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
                          text="Click 'Get Recommendations' to analyze your profile\nand find the best scholarship matches for you.",
                          font=ctk.CTkFont(size=13), text_color=TEXT_MUTED,
                          justify="center").pack(pady=40)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             if not self._is_premium:
                 pro_card = ctk.CTkFrame(scroll, fg_color="#FFF8E7", corner_radius=14,
                                         border_width=1, border_color="#E8D8B0")
@@ -109,7 +161,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
             setattr(self, attr, e)
 
     def _do_calculate(self):
+<<<<<<< HEAD
         """Calculate recommendations and show results."""
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         if not self.profil_user:
             try:
                 self.profil_user = {
@@ -120,6 +175,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
                     "penghasilan_ortu": 5000000
                 }
             except (ValueError, AttributeError):
+<<<<<<< HEAD
                 messagebox.showerror("Error",
                     "Please enter valid data first.", parent=self)
                 return
@@ -133,6 +189,14 @@ class HalamanRekomendasi(ctk.CTkFrame):
         self._results = hasil
 
         # Rebuild UI with results
+=======
+                messagebox.showerror("Error", "Please enter valid data first.", parent=self)
+                return
+
+        hasil = hitung_rekomendasi(self.profil_user)
+        self._results = hasil
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         for w in self.winfo_children():
             w.destroy()
         self._build_results()
@@ -141,7 +205,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
+<<<<<<< HEAD
         # Header
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         hdr = ctk.CTkFrame(scroll, fg_color="#E8F5E9", corner_radius=16,
                            border_width=1, border_color=BORDER_COLOR)
         hdr.pack(fill="x", pady=(0, 16))
@@ -170,6 +237,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
             card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=14,
                                 border_width=1, border_color=BORDER_COLOR)
             card.pack(fill="x", pady=4)
+<<<<<<< HEAD
 
             card_inner = ctk.CTkFrame(card, fg_color="transparent")
             card_inner.pack(fill="x", padx=20, pady=14)
@@ -179,6 +247,14 @@ class HalamanRekomendasi(ctk.CTkFrame):
             left.pack(side="left", fill="x", expand=True)
 
             # Rank badge
+=======
+            card_inner = ctk.CTkFrame(card, fg_color="transparent")
+            card_inner.pack(fill="x", padx=20, pady=14)
+
+            left = ctk.CTkFrame(card_inner, fg_color="transparent")
+            left.pack(side="left", fill="x", expand=True)
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             rank_f = ctk.CTkFrame(left, fg_color="transparent")
             rank_f.pack(fill="x")
             ctk.CTkLabel(rank_f, text=f"#{i+1}",
@@ -192,13 +268,19 @@ class HalamanRekomendasi(ctk.CTkFrame):
             ctk.CTkLabel(left, text=bea["nama"],
                          font=ctk.CTkFont(size=13, weight="bold"),
                          text_color=TEXT_DARK, anchor="w").pack(fill="x", pady=(2, 0))
+<<<<<<< HEAD
 
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             info = f"Min IPK: {bea['min_ipk']}  |  Max Sem: {bea['max_semester']}"
             ctk.CTkLabel(left, text=info,
                          font=ctk.CTkFont(size=10), text_color=TEXT_MUTED,
                          anchor="w").pack(fill="x")
 
+<<<<<<< HEAD
             # Right: Score badge
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             bg = PASTEL_COLORS[i % len(PASTEL_COLORS)]
             badge = ctk.CTkFrame(card_inner, fg_color=bg, corner_radius=12,
                                  width=72, height=44)
@@ -206,12 +288,18 @@ class HalamanRekomendasi(ctk.CTkFrame):
             badge.pack_propagate(False)
 
             if is_locked:
+<<<<<<< HEAD
                 # Blur effect: show "??%" with lock
                 ctk.CTkLabel(badge, text="🔒",
                              font=ctk.CTkFont(size=16),
                              text_color=TEXT_MUTED).place(
                     relx=0.5, rely=0.5, anchor="center")
                 # Overlay lock message
+=======
+                ctk.CTkLabel(badge, text="\U0001f512",
+                             font=ctk.CTkFont(size=16),
+                             text_color=TEXT_MUTED).place(relx=0.5, rely=0.5, anchor="center")
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                 lock_f = ctk.CTkFrame(card, fg_color="#F8F4F0")
                 lock_f.pack(fill="x", padx=20, pady=(0, 8))
                 ctk.CTkLabel(lock_f, text="Upgrade to Pro to see match score",
@@ -221,6 +309,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
                 badge_color = BTN_PRIMARY if skor >= 60 else TEXT_ACCENT
                 ctk.CTkLabel(badge, text=f"{skor}%",
                              font=ctk.CTkFont(size=15, weight="bold"),
+<<<<<<< HEAD
                              text_color=badge_color).place(
                     relx=0.5, rely=0.5, anchor="center")
 
@@ -236,6 +325,19 @@ class HalamanRekomendasi(ctk.CTkFrame):
             tips_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR,
                                      corner_radius=14, border_width=1,
                                      border_color=BORDER_COLOR)
+=======
+                             text_color=badge_color).place(relx=0.5, rely=0.5, anchor="center")
+
+        if self._results:
+            top_bea = self._results[0]["beasiswa"]
+            saran = get_analisis(self.profil_user, top_bea)
+
+            ctk.CTkLabel(scroll, text="Smart Tips For You",
+                         font=ctk.CTkFont(size=15, weight="bold"),
+                         text_color=TEXT_DARK, anchor="w").pack(fill="x", pady=(16, 8))
+            tips_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=14,
+                                     border_width=1, border_color=BORDER_COLOR)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
             tips_card.pack(fill="x", pady=4)
             ctk.CTkLabel(tips_card,
                          text=f"Based on your #1 match: {top_bea['nama']}",

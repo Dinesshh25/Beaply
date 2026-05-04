@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import customtkinter as ctk
 from datetime import datetime, timedelta
 from tkinter import messagebox
@@ -9,6 +10,27 @@ from model.notifikasi_model import (
     ambil_riwayat_notif as ambil_riwayat, tandai_dibaca, tandai_semua_dibaca, hapus_notifikasi
 )
 
+=======
+"""
+views/notifikasi_view.py
+Beaply - View: Notifikasi Terpusat
+
+Dipindahkan dari: Notifikasi_Terpusat/gui_notifikasi.py
+Import sekarang dari controllers/notifikasi_controller.
+"""
+import customtkinter as ctk
+from datetime import datetime, timedelta
+from tkinter import messagebox
+from ui_utils import (
+    BG_COLOR, CARD_COLOR, BORDER_COLOR, TEXT_DARK, TEXT_MUTED,
+    BTN_PALE, BTN_PRIMARY, BTN_PRIMARY_HOVER, TEXT_ACCENT, konfirm_yesno
+)
+from controllers.notifikasi_controller import (
+    ambil_riwayat, tandai_dibaca, tandai_semua_dibaca, hapus_notifikasi
+)
+
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 # ════════════════════════════════════════════════════════════
 # HALAMAN: Notifikasi
 # ════════════════════════════════════════════════════════════
@@ -30,6 +52,7 @@ class HalamanNotifikasi(ctk.CTkFrame):
             w.destroy()
         bhs = self._bhs
 
+<<<<<<< HEAD
         # Filter tabs + action buttons
         top = ctk.CTkFrame(self, fg_color="transparent")
         top.pack(fill="x", pady=(0, 16))
@@ -37,6 +60,12 @@ class HalamanNotifikasi(ctk.CTkFrame):
         # Pill filter tabs
         tabs_frame = ctk.CTkFrame(top, fg_color="#E8EBE4", corner_radius=20,
                                   height=36)
+=======
+        top = ctk.CTkFrame(self, fg_color="transparent")
+        top.pack(fill="x", pady=(0, 16))
+
+        tabs_frame = ctk.CTkFrame(top, fg_color="#E8EBE4", corner_radius=20, height=36)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         tabs_frame.pack(side="left")
         tabs_frame.pack_propagate(False)
         for label, fval in [("All", None), ("Read", 1), ("Unread", 0)]:
@@ -51,7 +80,10 @@ class HalamanNotifikasi(ctk.CTkFrame):
                 command=lambda f=fval: self._set_filter(f),
             ).pack(side="left", padx=2, pady=2)
 
+<<<<<<< HEAD
         # Action buttons
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkButton(top, text="Clear All", width=90, height=32,
                       fg_color="#F6E6E4", text_color="#D94040",
                       hover_color="#FCE0E0", corner_radius=10,
@@ -63,7 +95,10 @@ class HalamanNotifikasi(ctk.CTkFrame):
                       font=ctk.CTkFont(size=11, weight="bold"),
                       command=self._tandai_semua).pack(side="right")
 
+<<<<<<< HEAD
         # Notifications list
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
@@ -77,7 +112,10 @@ class HalamanNotifikasi(ctk.CTkFrame):
                          justify="center").pack(pady=60)
             return
 
+<<<<<<< HEAD
         # Group by date
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         now = datetime.now()
         groups = {}
         for n in notifs:
@@ -109,7 +147,10 @@ class HalamanNotifikasi(ctk.CTkFrame):
                 card.pack(fill="x", pady=3)
                 inner = ctk.CTkFrame(card, fg_color="transparent")
                 inner.pack(fill="x", padx=16, pady=12)
+<<<<<<< HEAD
                 # Title
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                 title_f = ctk.CTkFrame(inner, fg_color="transparent")
                 title_f.pack(fill="x")
                 ctk.CTkLabel(title_f, text=n.get("judul", "Notification"),
@@ -119,12 +160,18 @@ class HalamanNotifikasi(ctk.CTkFrame):
                     dot = ctk.CTkFrame(title_f, fg_color=TEXT_ACCENT,
                                        width=8, height=8, corner_radius=4)
                     dot.pack(side="right")
+<<<<<<< HEAD
                 # Message
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                 ctk.CTkLabel(inner, text=n.get("pesan", ""),
                              font=ctk.CTkFont(size=11), text_color=TEXT_MUTED,
                              anchor="w", wraplength=600, justify="left").pack(
                     fill="x", pady=(2, 0))
+<<<<<<< HEAD
                 # Actions
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
                 act_f = ctk.CTkFrame(inner, fg_color="transparent")
                 act_f.pack(fill="x", pady=(6, 0))
                 ts_text = n.get("dibuat_pada", "")[:16]

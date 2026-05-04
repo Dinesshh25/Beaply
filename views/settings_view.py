@@ -1,10 +1,23 @@
+<<<<<<< HEAD
 import customtkinter as ctk
 from tkinter import messagebox
 from utils.ui_utils import (
+=======
+"""
+views/settings_view.py
+Beaply - View: Settings
+
+Dipindahkan dari: Profile_dan_Setting/gui_settings.py
+Import sekarang dari controllers/profil_controller.
+"""
+import customtkinter as ctk
+from ui_utils import (
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
     BG_COLOR, CARD_COLOR, BORDER_COLOR, TEXT_DARK, TEXT_MUTED,
     BTN_PALE, BTN_PRIMARY, BTN_PRIMARY_HOVER, INPUT_BG,
     show_error, show_info, konfirm_yesno, get_bahasa
 )
+<<<<<<< HEAD
 from model.settings_model import ambil_preferensi, hapus_akun, simpan_preferensi
 from model.profile_model import tampil_profil
 
@@ -217,17 +230,33 @@ class SettingsWindow(ctk.CTkToplevel):
 # ════════════════════════════════════════════════════════════
 # HALAMAN: Settings (Inline)
 # ════════════════════════════════════════════════════════════
+=======
+from controllers.profil_controller import (
+    ambil_preferensi, simpan_preferensi, hapus_akun, tampil_profil
+)
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
 class HalamanSettings(ctk.CTkFrame):
     """Settings — inline version matching mockup."""
     def __init__(self, master, profil_id, bhs="id", logout_cb=None):
         super().__init__(master, fg_color="transparent")
+<<<<<<< HEAD
         self.profil_id = profil_id
         self._bhs = bhs
+=======
+        self.profil_id  = profil_id
+        self._bhs       = bhs
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         self._logout_cb = logout_cb
         self._build()
 
     def _build(self):
+<<<<<<< HEAD
+=======
+        for w in self.winfo_children():
+            w.destroy()
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
@@ -235,7 +264,11 @@ class HalamanSettings(ctk.CTkFrame):
                      font=ctk.CTkFont(size=12), text_color=TEXT_MUTED).pack(
             anchor="w", pady=(0, 16))
 
+<<<<<<< HEAD
         # ── Account & Security ──
+=======
+        # Account & Security
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(scroll, text="Account & Security",
                      font=ctk.CTkFont(size=16, weight="bold"),
                      text_color=TEXT_DARK).pack(anchor="w", pady=(0, 8))
@@ -274,7 +307,11 @@ class HalamanSettings(ctk.CTkFrame):
                      font=ctk.CTkFont(size=10, weight="bold"),
                      width=70, height=26).pack(side="right")
 
+<<<<<<< HEAD
         # ── Display ──
+=======
+        # Display
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(scroll, text="Display",
                      font=ctk.CTkFont(size=16, weight="bold"),
                      text_color=TEXT_DARK).pack(anchor="w", pady=(8, 8))
@@ -283,11 +320,15 @@ class HalamanSettings(ctk.CTkFrame):
         disp_card.pack(fill="x", pady=(0, 16))
         pref = ambil_preferensi(self.profil_id)
 
+<<<<<<< HEAD
         # --- Theme ---
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         rt = ctk.CTkFrame(disp_card, fg_color="transparent")
         rt.pack(fill="x", padx=20, pady=12)
         tt = ctk.CTkFrame(rt, fg_color="transparent")
         tt.pack(side="left")
+<<<<<<< HEAD
         ctk.CTkLabel(tt, text="Theme", font=ctk.CTkFont(size=13, weight="bold"), text_color=TEXT_DARK).pack(anchor="w")
         ctk.CTkLabel(tt, text="Select application theme", font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(anchor="w")
         
@@ -298,23 +339,52 @@ class HalamanSettings(ctk.CTkFrame):
         ctk.CTkFrame(disp_card, height=1, fg_color=BORDER_COLOR).pack(fill="x", padx=20)
 
         # --- Language ---
+=======
+        ctk.CTkLabel(tt, text="Theme", font=ctk.CTkFont(size=13, weight="bold"),
+                     text_color=TEXT_DARK).pack(anchor="w")
+        ctk.CTkLabel(tt, text="Select application theme",
+                     font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(anchor="w")
+        t_frame = ctk.CTkSegmentedButton(rt, values=["Light", "Dark"],
+                                         command=self._change_theme)
+        try:
+            t_frame.set(pref.get("tema", "light").capitalize())
+        except Exception:
+            pass
+        t_frame.pack(side="right")
+        ctk.CTkFrame(disp_card, height=1, fg_color=BORDER_COLOR).pack(fill="x", padx=20)
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         rl = ctk.CTkFrame(disp_card, fg_color="transparent")
         rl.pack(fill="x", padx=20, pady=12)
         tl = ctk.CTkFrame(rl, fg_color="transparent")
         tl.pack(side="left")
+<<<<<<< HEAD
         ctk.CTkLabel(tl, text="Language", font=ctk.CTkFont(size=13, weight="bold"), text_color=TEXT_DARK).pack(anchor="w")
         ctk.CTkLabel(tl, text="Select interface language", font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(anchor="w")
         
         l_frame = ctk.CTkComboBox(rl, values=["Bahasa Indonesia", "English"], width=160, height=30, corner_radius=8, command=self._change_lang)
+=======
+        ctk.CTkLabel(tl, text="Language", font=ctk.CTkFont(size=13, weight="bold"),
+                     text_color=TEXT_DARK).pack(anchor="w")
+        ctk.CTkLabel(tl, text="Select interface language",
+                     font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(anchor="w")
+        l_frame = ctk.CTkComboBox(rl, values=["Bahasa Indonesia", "English"],
+                                  width=160, height=30, corner_radius=8,
+                                  command=self._change_lang)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         l_frame.set("Bahasa Indonesia" if pref.get("bahasa") == "id" else "English")
         l_frame.pack(side="right")
         ctk.CTkFrame(disp_card, height=1, fg_color=BORDER_COLOR).pack(fill="x", padx=20)
 
+<<<<<<< HEAD
         # --- Text Size ---
+=======
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         rs = ctk.CTkFrame(disp_card, fg_color="transparent")
         rs.pack(fill="x", padx=20, pady=12)
         ts = ctk.CTkFrame(rs, fg_color="transparent")
         ts.pack(side="left")
+<<<<<<< HEAD
         ctk.CTkLabel(ts, text="Text Size", font=ctk.CTkFont(size=13, weight="bold"), text_color=TEXT_DARK).pack(anchor="w")
         ctk.CTkLabel(ts, text="Select text size", font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(anchor="w")
         
@@ -324,6 +394,21 @@ class HalamanSettings(ctk.CTkFrame):
         s_frame.pack(side="right")
 
         # ── Notification ──
+=======
+        ctk.CTkLabel(ts, text="Text Size", font=ctk.CTkFont(size=13, weight="bold"),
+                     text_color=TEXT_DARK).pack(anchor="w")
+        ctk.CTkLabel(ts, text="Select text size",
+                     font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(anchor="w")
+        s_frame = ctk.CTkSegmentedButton(rs, values=["Small", "Medium", "Large"],
+                                         command=self._change_text_size)
+        try:
+            s_frame.set(pref.get("ukuran_teks", "medium").capitalize())
+        except Exception:
+            pass
+        s_frame.pack(side="right")
+
+        # Notification
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkLabel(scroll, text="Notification",
                      font=ctk.CTkFont(size=16, weight="bold"),
                      text_color=TEXT_DARK).pack(anchor="w", pady=(8, 8))
@@ -337,7 +422,11 @@ class HalamanSettings(ctk.CTkFrame):
                      text_color=TEXT_DARK).pack(side="left")
         ctk.CTkSwitch(nr, text="", width=40).pack(side="right")
 
+<<<<<<< HEAD
         # ── Delete Account ──
+=======
+        # Delete Account
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         del_card = ctk.CTkFrame(scroll, fg_color=CARD_COLOR, corner_radius=14,
                                 border_width=2, border_color="#D94040")
         del_card.pack(fill="x", pady=(8, 0))
@@ -350,11 +439,19 @@ class HalamanSettings(ctk.CTkFrame):
     def _save_pref_partial(self, key, value):
         pref = ambil_preferensi(self.profil_id)
         pref[key] = value
+<<<<<<< HEAD
         simpan_preferensi(self.profil_id, pref["tema"], pref["ukuran_teks"], pref["bahasa"])
 
     def _change_theme(self, choice):
         val_map = {"Light": "light", "Dark": "dark"}
         act = val_map.get(choice, "light")
+=======
+        simpan_preferensi(self.profil_id,
+                          pref["tema"], pref["ukuran_teks"], pref["bahasa"])
+
+    def _change_theme(self, choice):
+        act = {"Light": "light", "Dark": "dark"}.get(choice, "light")
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.set_appearance_mode(act)
         self._save_pref_partial("tema", act)
 
@@ -367,12 +464,17 @@ class HalamanSettings(ctk.CTkFrame):
     def _change_text_size(self, choice):
         act = choice.lower()
         self._save_pref_partial("ukuran_teks", act)
+<<<<<<< HEAD
         if act == "small":
             ctk.set_widget_scaling(0.9)
         elif act == "large":
             ctk.set_widget_scaling(1.1)
         else:
             ctk.set_widget_scaling(1.0)
+=======
+        scale = {"small": 0.9, "large": 1.1}.get(act, 1.0)
+        ctk.set_widget_scaling(scale)
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
 
     def _do_hapus(self):
         if konfirm_yesno(self, "Delete Account", "Are you sure? This can't be undone."):
@@ -395,6 +497,7 @@ class HalamanSettings(ctk.CTkFrame):
                      font=ctk.CTkFont(size=16, weight="bold"),
                      text_color=TEXT_DARK).pack(pady=(20, 16))
         e1 = ctk.CTkEntry(top, placeholder_text="Current Password", show="*",
+<<<<<<< HEAD
                           height=38, corner_radius=10, fg_color=INPUT_BG, border_width=0)
         e1.pack(pady=5, padx=24, fill="x")
         e2 = ctk.CTkEntry(top, placeholder_text="New Password", show="*",
@@ -403,6 +506,17 @@ class HalamanSettings(ctk.CTkFrame):
         e3 = ctk.CTkEntry(top, placeholder_text="Confirm New Password", show="*",
                           height=38, corner_radius=10, fg_color=INPUT_BG, border_width=0)
         e3.pack(pady=5, padx=24, fill="x")
+=======
+                           height=38, corner_radius=10, fg_color=INPUT_BG, border_width=0)
+        e1.pack(pady=5, padx=24, fill="x")
+        e2 = ctk.CTkEntry(top, placeholder_text="New Password", show="*",
+                           height=38, corner_radius=10, fg_color=INPUT_BG, border_width=0)
+        e2.pack(pady=5, padx=24, fill="x")
+        e3 = ctk.CTkEntry(top, placeholder_text="Confirm New Password", show="*",
+                           height=38, corner_radius=10, fg_color=INPUT_BG, border_width=0)
+        e3.pack(pady=5, padx=24, fill="x")
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         def save_pw():
             if not e1.get() or not e2.get() or not e3.get():
                 return show_error(top, "Error", "All fields required!")
@@ -410,6 +524,10 @@ class HalamanSettings(ctk.CTkFrame):
                 return show_error(top, "Error", "Passwords don't match!")
             show_info(top, "Success", "Password changed!")
             top.destroy()
+<<<<<<< HEAD
+=======
+
+>>>>>>> 14a6b3f28e0f19b0c641fd9179026190a55f2248
         ctk.CTkButton(top, text="Change Password", height=40,
                       fg_color=BTN_PRIMARY, hover_color=BTN_PRIMARY_HOVER,
                       text_color=TEXT_DARK, corner_radius=12,
