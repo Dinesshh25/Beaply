@@ -10,9 +10,10 @@ DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", 
 
 
 def get_connection():
-    """Buka koneksi ke database SQLite."""
+    """Buka koneksi ke database SQLite dengan foreign keys aktif."""
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # hasil query bisa diakses kayak dict
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
@@ -21,29 +22,31 @@ def init_db():
     conn = get_connection()
     cur = conn.cursor()
 
-    # Inisialisasi tabel modul fitur baru
-    from model.tracker_model import init_tracker_db
-    from model.eksplorasi_model import init_eksplorasi_db
-    from model.notifikasi_model import init_notifikasi_db
-    init_tracker_db()
-    init_eksplorasi_db()
-    init_notifikasi_db()
-
-    # ── Tabel profil mahasiswa ────────────────────────────────
+    # ── Tabel user (akun login) ────────────────────────────────
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS profil (
-            id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         TEXT    DEFAULT NULL,
+        CREATE TABLE IF NOT EXISTS user (
+            id_user     INTEGER PRIMARY KEY AUTOINCREMENT,
+            username    TEXT    NOT NULL UNIQUE,
+            password    TEXT    NOT NULL,
+            email       TEXT    NOT NULL UNIQUE,
+            role        TEXT    NOT NULL DEFAULT 'mahasiswa'
+        )
+    """)
+
+    # ── Tabel profile (data akademik mahasiswa) ─────────────────
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS profile (
+            id_profile      INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_user         INTEGER NOT NULL UNIQUE,
             nama            TEXT    NOT NULL,
             tanggal_lahir   TEXT    NOT NULL,
-            email           TEXT    NOT NULL UNIQUE,
             jurusan         TEXT    NOT NULL,
             kampus          TEXT    NOT NULL,
-            semester        INTEGER NOT NULL,
-            ip              REAL    NOT NULL,
+            ipk             REAL    NOT NULL,
             jenjang         TEXT    NOT NULL,
+            semester        INTEGER NOT NULL,
             jenis_kelamin   TEXT    NOT NULL,
-            status_kip      INTEGER DEFAULT 0,
+            status_kip      INTEGER NOT NULL DEFAULT 0,
             skor_ielts      REAL    DEFAULT NULL,
             skor_toefl      INTEGER DEFAULT NULL,
             skor_duolingo   INTEGER DEFAULT NULL,
@@ -53,129 +56,122 @@ def init_db():
             skor_gmat       INTEGER DEFAULT NULL,
             skor_hsk        INTEGER DEFAULT NULL,
             level_jlpt      TEXT    DEFAULT NULL,
-            dibuat_pada     TEXT    DEFAULT (datetime('now','localtime')),
-            diupdate_pada   TEXT    DEFAULT (datetime('now','localtime'))
+            FOREIGN KEY (id_user) REFERENCES user(id_user) ON DELETE CASCADE
         )
     """)
 
-    # ── Tabel preferensi tampilan ────────────────────────────
+    # ── Tabel beasiswa ──────────────────────────────────────────
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS beasiswa (
+            id_beasiswa         INTEGER PRIMARY KEY AUTOINCREMENT,
+            nama_beasiswa       TEXT    NOT NULL,
+            nama_penyelenggara  TEXT    NOT NULL,
+            deskripsi           TEXT    DEFAULT NULL,
+            deadline            TEXT    DEFAULT NULL,
+            lokasi              TEXT    DEFAULT NULL,
+            jenjang             TEXT    DEFAULT NULL,
+            ipk_minimal         REAL    DEFAULT NULL,
+            url_sumber          TEXT    DEFAULT NULL,
+            kategori            TEXT    DEFAULT NULL,
+            tipe_beasiswa       TEXT    DEFAULT NULL
+        )
+    """)
+
+    # ── Tabel bookmarks ─────────────────────────────────────────
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS bookmarks (
+            id_bookmark     INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_user         INTEGER NOT NULL,
+            id_beasiswa     INTEGER NOT NULL,
+            UNIQUE (id_user, id_beasiswa),
+            FOREIGN KEY (id_user)     REFERENCES user(id_user)         ON DELETE CASCADE,
+            FOREIGN KEY (id_beasiswa) REFERENCES beasiswa(id_beasiswa) ON DELETE CASCADE
+        )
+    """)
+
+    # ── Tabel preferensi tampilan ────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS preferensi (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            id_profil   INTEGER NOT NULL UNIQUE,
-            tema        TEXT    NOT NULL DEFAULT 'light',
-            ukuran_teks TEXT    NOT NULL DEFAULT 'medium',
-            bahasa      TEXT    NOT NULL DEFAULT 'id',
-            FOREIGN KEY (id_profil) REFERENCES profil(id) ON DELETE CASCADE
+            id_preferensi   INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_user         INTEGER NOT NULL UNIQUE,
+            tema            TEXT    NOT NULL DEFAULT 'light',
+            ukuran_teks     TEXT    NOT NULL DEFAULT 'medium',
+            bahasa          TEXT    NOT NULL DEFAULT 'id',
+            FOREIGN KEY (id_user) REFERENCES user(id_user) ON DELETE CASCADE
         )
     """)
-
-    # Migrasi: tambah kolom user_id jika belum ada (backward compatible)
-    try:
-        cur.execute("ALTER TABLE profil ADD COLUMN user_id TEXT DEFAULT NULL")
-    except sqlite3.OperationalError:
-        pass  # kolom sudah ada
 
     conn.commit()
     conn.close()
 
 
-# ── CRUD Profil ───────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# CRUD User
+# ══════════════════════════════════════════════════════════════
 
-def simpan_profil_db(data: dict) -> tuple[bool, str, int]:
+def simpan_user_db(data: dict) -> tuple[bool, str, int]:
     """
-    Insert profil baru ke database.
-    Return: (sukses, pesan, id_profil)
+    Insert user baru ke database.
+    Return: (sukses, pesan, id_user)
     """
     try:
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO profil (
-                user_id, nama, tanggal_lahir, email, jurusan, kampus,
-                semester, ip, jenjang, jenis_kelamin,
-                status_kip, skor_ielts, skor_toefl, skor_duolingo,
-                skor_sat, skor_act, skor_gre, skor_gmat,
-                skor_hsk, level_jlpt
-            ) VALUES (
-                :user_id, :nama, :tanggal_lahir, :email, :jurusan, :kampus,
-                :semester, :ip, :jenjang, :jenis_kelamin,
-                :status_kip, :skor_ielts, :skor_toefl, :skor_duolingo,
-                :skor_sat, :skor_act, :skor_gre, :skor_gmat,
-                :skor_hsk, :level_jlpt
-            )
+            INSERT INTO user (username, password, email, role)
+            VALUES (:username, :password, :email, :role)
         """, data)
-        profil_id = cur.lastrowid
-        # buat preferensi default
-        cur.execute("""
-            INSERT OR IGNORE INTO preferensi (id_profil) VALUES (?)
-        """, (profil_id,))
+        user_id = cur.lastrowid
+        # buat preferensi default otomatis
+        cur.execute("INSERT OR IGNORE INTO preferensi (id_user) VALUES (?)", (user_id,))
         conn.commit()
         conn.close()
-        return True, "Profil berhasil disimpan.", profil_id
+        return True, "User berhasil didaftarkan.", user_id
     except sqlite3.IntegrityError:
-        return False, "Email sudah terdaftar.", -1
+        return False, "Username atau email sudah terdaftar.", -1
     except Exception as e:
         return False, str(e), -1
 
 
-def ambil_profil_db(profil_id: int) -> dict | None:
-    """Ambil satu profil berdasarkan id."""
+def ambil_user_db(id_user: int) -> dict | None:
+    """Ambil satu user berdasarkan id_user."""
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM profil WHERE id = ?", (profil_id,))
+    cur.execute("SELECT * FROM user WHERE id_user = ?", (id_user,))
     row = cur.fetchone()
     conn.close()
     return dict(row) if row else None
 
 
-def ambil_semua_profil_db(user_id: str = None) -> list[dict]:
-    """Ambil semua profil, opsional filter by user_id."""
+def ambil_user_by_username_db(username: str) -> dict | None:
+    """Ambil user berdasarkan username (untuk login)."""
     conn = get_connection()
     cur = conn.cursor()
-    if user_id:
-        cur.execute("SELECT * FROM profil WHERE user_id = ? ORDER BY dibuat_pada DESC", (user_id,))
-    else:
-        cur.execute("SELECT * FROM profil ORDER BY dibuat_pada DESC")
-    rows = cur.fetchall()
+    cur.execute("SELECT * FROM user WHERE username = ?", (username,))
+    row = cur.fetchone()
     conn.close()
-    return [dict(r) for r in rows]
+    return dict(row) if row else None
 
 
-def update_profil_db(profil_id: int, data: dict) -> tuple[bool, str]:
-    """Update data profil yang sudah ada."""
+def ganti_password_db(id_user: int, password_baru: str) -> tuple[bool, str]:
+    """Update password user."""
     try:
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("""
-            UPDATE profil SET
-                nama=:nama, tanggal_lahir=:tanggal_lahir, email=:email,
-                jurusan=:jurusan, kampus=:kampus, semester=:semester,
-                ip=:ip, jenjang=:jenjang, jenis_kelamin=:jenis_kelamin,
-                status_kip=:status_kip, skor_ielts=:skor_ielts,
-                skor_toefl=:skor_toefl, skor_duolingo=:skor_duolingo,
-                skor_sat=:skor_sat, skor_act=:skor_act,
-                skor_gre=:skor_gre, skor_gmat=:skor_gmat,
-                skor_hsk=:skor_hsk, level_jlpt=:level_jlpt,
-                diupdate_pada=datetime('now','localtime')
-            WHERE id=:id
-        """, {**data, "id": profil_id})
+        cur.execute("UPDATE user SET password = ? WHERE id_user = ?", (password_baru, id_user))
         conn.commit()
         conn.close()
-        return True, "Profil berhasil diperbarui."
-    except sqlite3.IntegrityError:
-        return False, "Email sudah dipakai akun lain."
+        return True, "Password berhasil diubah."
     except Exception as e:
         return False, str(e)
 
 
-def hapus_profil_db(profil_id: int) -> tuple[bool, str]:
-    """Hapus profil (dan preferensinya via CASCADE)."""
+def hapus_user_db(id_user: int) -> tuple[bool, str]:
+    """Hapus user beserta semua data terkait via CASCADE."""
     try:
         conn = get_connection()
-        conn.execute("PRAGMA foreign_keys = ON")
         cur = conn.cursor()
-        cur.execute("DELETE FROM profil WHERE id = ?", (profil_id,))
+        cur.execute("DELETE FROM user WHERE id_user = ?", (id_user,))
         conn.commit()
         conn.close()
         return True, "Akun berhasil dihapus."
@@ -183,13 +179,151 @@ def hapus_profil_db(profil_id: int) -> tuple[bool, str]:
         return False, str(e)
 
 
-# ── CRUD Preferensi ───────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# CRUD Profile
+# ══════════════════════════════════════════════════════════════
 
-def ambil_preferensi_db(profil_id: int) -> dict:
+def simpan_profile_db(data: dict) -> tuple[bool, str, int]:
+    """
+    Insert profile baru.
+    Return: (sukses, pesan, id_profile)
+    """
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO profile (
+                id_user, nama, tanggal_lahir, jurusan, kampus,
+                ipk, jenjang, semester, jenis_kelamin, status_kip,
+                skor_ielts, skor_toefl, skor_duolingo,
+                skor_sat, skor_act, skor_gre, skor_gmat,
+                skor_hsk, level_jlpt
+            ) VALUES (
+                :id_user, :nama, :tanggal_lahir, :jurusan, :kampus,
+                :ipk, :jenjang, :semester, :jenis_kelamin, :status_kip,
+                :skor_ielts, :skor_toefl, :skor_duolingo,
+                :skor_sat, :skor_act, :skor_gre, :skor_gmat,
+                :skor_hsk, :level_jlpt
+            )
+        """, data)
+        profile_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+        return True, "Profile berhasil disimpan.", profile_id
+    except sqlite3.IntegrityError:
+        return False, "Profile untuk user ini sudah ada.", -1
+    except Exception as e:
+        return False, str(e), -1
+
+
+def ambil_profile_db(id_user: int) -> dict | None:
+    """Ambil profile berdasarkan id_user."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM profile WHERE id_user = ?", (id_user,))
+    row = cur.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def update_profile_db(id_user: int, data: dict) -> tuple[bool, str]:
+    """Update data profile."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE profile SET
+                nama=:nama, tanggal_lahir=:tanggal_lahir,
+                jurusan=:jurusan, kampus=:kampus,
+                ipk=:ipk, jenjang=:jenjang, semester=:semester,
+                jenis_kelamin=:jenis_kelamin, status_kip=:status_kip,
+                skor_ielts=:skor_ielts, skor_toefl=:skor_toefl,
+                skor_duolingo=:skor_duolingo, skor_sat=:skor_sat,
+                skor_act=:skor_act, skor_gre=:skor_gre,
+                skor_gmat=:skor_gmat, skor_hsk=:skor_hsk,
+                level_jlpt=:level_jlpt
+            WHERE id_user=:id_user
+        """, {**data, "id_user": id_user})
+        conn.commit()
+        conn.close()
+        return True, "Profile berhasil diperbarui."
+    except Exception as e:
+        return False, str(e)
+
+
+# ══════════════════════════════════════════════════════════════
+# CRUD Bookmarks
+# ══════════════════════════════════════════════════════════════
+
+def tambah_bookmark_db(id_user: int, id_beasiswa: int) -> tuple[bool, str]:
+    """Tambah bookmark beasiswa untuk user."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO bookmarks (id_user, id_beasiswa)
+            VALUES (?, ?)
+        """, (id_user, id_beasiswa))
+        conn.commit()
+        conn.close()
+        return True, "Beasiswa berhasil dibookmark."
+    except sqlite3.IntegrityError:
+        return False, "Beasiswa sudah ada di bookmark."
+    except Exception as e:
+        return False, str(e)
+
+
+def hapus_bookmark_db(id_user: int, id_beasiswa: int) -> tuple[bool, str]:
+    """Hapus bookmark beasiswa."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            DELETE FROM bookmarks WHERE id_user = ? AND id_beasiswa = ?
+        """, (id_user, id_beasiswa))
+        conn.commit()
+        conn.close()
+        return True, "Bookmark berhasil dihapus."
+    except Exception as e:
+        return False, str(e)
+
+
+def ambil_bookmarks_db(id_user: int) -> list[dict]:
+    """Ambil semua beasiswa yang dibookmark oleh user beserta detailnya."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT b.*, bk.id_bookmark
+        FROM bookmarks bk
+        JOIN beasiswa b ON bk.id_beasiswa = b.id_beasiswa
+        WHERE bk.id_user = ?
+    """, (id_user,))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def cek_bookmark_db(id_user: int, id_beasiswa: int) -> bool:
+    """Cek apakah beasiswa sudah dibookmark oleh user."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 1 FROM bookmarks WHERE id_user = ? AND id_beasiswa = ?
+    """, (id_user, id_beasiswa))
+    hasil = cur.fetchone()
+    conn.close()
+    return hasil is not None
+
+
+# ══════════════════════════════════════════════════════════════
+# CRUD Preferensi
+# ══════════════════════════════════════════════════════════════
+
+def ambil_preferensi_db(id_user: int) -> dict:
     """Ambil preferensi tampilan. Return default kalau belum ada."""
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM preferensi WHERE id_profil = ?", (profil_id,))
+    cur.execute("SELECT * FROM preferensi WHERE id_user = ?", (id_user,))
     row = cur.fetchone()
     conn.close()
     if row:
@@ -197,32 +331,58 @@ def ambil_preferensi_db(profil_id: int) -> dict:
     return {"tema": "light", "ukuran_teks": "medium", "bahasa": "id"}
 
 
-def simpan_preferensi_db(profil_id: int, preferensi: dict) -> tuple[bool, str]:
+def simpan_preferensi_db(id_user: int, preferensi: dict) -> tuple[bool, str]:
     """Upsert preferensi tampilan."""
     try:
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO preferensi (id_profil, tema, ukuran_teks, bahasa)
-            VALUES (:id_profil, :tema, :ukuran_teks, :bahasa)
-            ON CONFLICT(id_profil) DO UPDATE SET
+            INSERT INTO preferensi (id_user, tema, ukuran_teks, bahasa)
+            VALUES (:id_user, :tema, :ukuran_teks, :bahasa)
+            ON CONFLICT(id_user) DO UPDATE SET
                 tema        = excluded.tema,
                 ukuran_teks = excluded.ukuran_teks,
                 bahasa      = excluded.bahasa
-        """, {"id_profil": profil_id, **preferensi})
+        """, {"id_user": id_user, **preferensi})
         conn.commit()
         conn.close()
         return True, "Preferensi tersimpan."
     except Exception as e:
         return False, str(e)
 
-def ganti_password_db(profil_id: int, password_baru: str) -> tuple[bool, str]:
-    try:
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute('UPDATE profil SET password = ? WHERE id = ?', (password_baru, profil_id))
-        conn.commit()
-        conn.close()
-        return True, 'Password berhasil diubah.'
-    except Exception as e:
-        return False, str(e)
+
+# ══════════════════════════════════════════════════════════════
+# CRUD Beasiswa
+# ══════════════════════════════════════════════════════════════
+
+def ambil_semua_beasiswa_db() -> list[dict]:
+    """Ambil semua beasiswa."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM beasiswa")
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def ambil_beasiswa_db(id_beasiswa: int) -> dict | None:
+    """Ambil satu beasiswa berdasarkan id."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM beasiswa WHERE id_beasiswa = ?", (id_beasiswa,))
+    row = cur.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def cari_beasiswa_db(keyword: str) -> list[dict]:
+    """Cari beasiswa berdasarkan nama atau penyelenggara."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT * FROM beasiswa
+        WHERE nama_beasiswa LIKE ? OR nama_penyelenggara LIKE ?
+    """, (f"%{keyword}%", f"%{keyword}%"))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
