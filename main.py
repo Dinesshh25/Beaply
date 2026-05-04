@@ -113,6 +113,13 @@ class BeaplyApp(ctk.CTk):
             pref = ambil_preferensi(PROFIL_AKTIF_ID)
             try:
                 apply_pref(pref)
+                ukuran = pref.get("ukuran_teks", "medium").lower()
+                if ukuran == "small":
+                    ctk.set_widget_scaling(0.85)
+                elif ukuran == "large":
+                    ctk.set_widget_scaling(1.15)
+                else:
+                    ctk.set_widget_scaling(1.0)
             except Exception as e:
                 import logging
                 logging.getLogger().error("Scaling error ignored: " + str(e))

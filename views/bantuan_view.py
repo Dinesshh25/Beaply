@@ -65,7 +65,7 @@ class HalamanHelpCenter(ctk.CTkFrame):
                 anchor="w", padx=16, pady=(0, 14))
 
         # RIGHT: Report form
-        right = ctk.CTkFrame(main, fg_color="#E8EBE4", corner_radius=16,
+        right = ctk.CTkFrame(main, fg_color=PASTEL_COLORS[0], corner_radius=16,
                              width=300, border_width=1, border_color=BORDER_COLOR)
         right.pack(side="right", fill="y")
         right.pack_propagate(False)
@@ -94,7 +94,7 @@ class HalamanHelpCenter(ctk.CTkFrame):
         self.pesan_box.pack(padx=20, pady=(4, 20))
 
         ctk.CTkButton(right, text="Submit Report", width=200, height=38,
-                      fg_color="#F6D6D0", hover_color="#F0C0B8",
+                      fg_color=PASTEL_COLORS[2], hover_color=BORDER_COLOR,
                       text_color=TEXT_DARK, corner_radius=10,
                       font=ctk.CTkFont(size=13, weight="bold"),
                       command=self._submit_laporan).pack(pady=(0, 24))

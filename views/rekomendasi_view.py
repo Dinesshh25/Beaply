@@ -51,7 +51,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
-        hdr = ctk.CTkFrame(scroll, fg_color="#E8F5E9", corner_radius=16,
+        hdr = ctk.CTkFrame(scroll, fg_color=PASTEL_COLORS[3], corner_radius=16,
                            border_width=1, border_color=BORDER_COLOR,
                            height=120)
         hdr.pack(fill="x", pady=(0, 16))
@@ -81,8 +81,8 @@ class HalamanRekomendasi(ctk.CTkFrame):
                          font=ctk.CTkFont(size=13), text_color=TEXT_MUTED,
                          justify="center").pack(pady=40)
             if not self._is_premium:
-                pro_card = ctk.CTkFrame(scroll, fg_color="#FFF8E7", corner_radius=14,
-                                        border_width=1, border_color="#E8D8B0")
+                pro_card = ctk.CTkFrame(scroll, fg_color=PASTEL_COLORS[1], corner_radius=14,
+                                        border_width=1, border_color=BORDER_COLOR)
                 pro_card.pack(fill="x", pady=8)
                 ctk.CTkLabel(pro_card, text="Upgrade to Beaply Pro",
                              font=ctk.CTkFont(size=14, weight="bold"),
@@ -137,7 +137,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
-        hdr = ctk.CTkFrame(scroll, fg_color="#E8F5E9", corner_radius=16,
+        hdr = ctk.CTkFrame(scroll, fg_color=PASTEL_COLORS[3], corner_radius=16,
                            border_width=1, border_color=BORDER_COLOR)
         hdr.pack(fill="x", pady=(0, 16))
         inner = ctk.CTkFrame(hdr, fg_color="transparent")
@@ -196,10 +196,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
             badge.pack_propagate(False)
 
             if is_locked:
-                ctk.CTkLabel(badge, text="\U0001f512",
-                             font=ctk.CTkFont(size=16),
+                ctk.CTkLabel(badge, text="[Locked]",
+                             font=ctk.CTkFont(size=12, weight="bold"),
                              text_color=TEXT_MUTED).place(relx=0.5, rely=0.5, anchor="center")
-                lock_f = ctk.CTkFrame(card, fg_color="#F8F4F0")
+                lock_f = ctk.CTkFrame(card, fg_color=PASTEL_COLORS[1])
                 lock_f.pack(fill="x", padx=20, pady=(0, 8))
                 ctk.CTkLabel(lock_f, text="Upgrade to Pro to see match score",
                              font=ctk.CTkFont(size=9),

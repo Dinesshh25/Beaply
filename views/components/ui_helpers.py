@@ -15,14 +15,11 @@ def ukuran_font(pref: dict) -> tuple:
 
 
 def apply_pref(pref: dict):
+    # Hanya ubah tema secara dinamis.
+    # set_widget_scaling dihapus dari sini karena memiliki bug internal pada
+    # CustomTkinter (menyebabkan crash jika dipanggil setelah Combobox di-destroy).
+    # Scaling hanya akan diterapkan 1x saat aplikasi pertama kali dijalankan (di main.py).
     ctk.set_appearance_mode(pref.get("tema", "light"))
-    ukuran = pref.get("ukuran_teks", "medium").lower()
-    if ukuran == "small":
-        ctk.set_widget_scaling(0.9)
-    elif ukuran == "large":
-        ctk.set_widget_scaling(1.1)
-    else:
-        ctk.set_widget_scaling(1.0)
 
 
 def get_bahasa(profil_id) -> str:
