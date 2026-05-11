@@ -279,23 +279,6 @@ class LayoutDenganSidebar(ctk.CTkFrame):
             btn.pack(fill="x", padx=12, pady=1)
             self.nav_buttons[key] = btn
 
-        # Beaply Pro card
-        pro_card = ctk.CTkFrame(self.sidebar, fg_color="#E8F0EA",
-                                corner_radius=14)
-        pro_card.pack(side="bottom", fill="x", padx=10, pady=(0, 8))
-        ctk.CTkLabel(pro_card, text="Upgrade to",
-                     font=ctk.CTkFont(size=9), text_color=TEXT_MUTED).pack(pady=(8, 0))
-        ctk.CTkLabel(pro_card, text="Beaply Pro",
-                     font=ctk.CTkFont(size=14, weight="bold"),
-                     text_color=SIDEBAR_ACTIVE_TX).pack()
-        ctk.CTkLabel(pro_card, text="Unlock premium features\nand scholarship matches\ntailored just for you.",
-                     font=ctk.CTkFont(size=8), text_color=TEXT_MUTED,
-                     justify="center").pack(padx=6, pady=(2, 4))
-        ctk.CTkButton(pro_card, text="Upgrade Now >", height=26,
-                      fg_color=BTN_PRIMARY, hover_color=BTN_PRIMARY_HOVER,
-                      text_color=TEXT_DARK, corner_radius=8,
-                      font=ctk.CTkFont(size=10, weight="bold")).pack(
-            fill="x", padx=10, pady=(0, 8))
 
         # Logo
         logo_f = ctk.CTkFrame(self.sidebar, fg_color="transparent")

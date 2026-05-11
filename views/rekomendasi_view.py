@@ -80,18 +80,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
                          text="Click 'Get Recommendations' to analyze your profile\nand find the best scholarship matches for you.",
                          font=ctk.CTkFont(size=13), text_color=TEXT_MUTED,
                          justify="center").pack(pady=40)
-            if not self._is_premium:
-                pro_card = ctk.CTkFrame(scroll, fg_color="#FFF8E7", corner_radius=14,
-                                        border_width=1, border_color="#E8D8B0")
-                pro_card.pack(fill="x", pady=8)
-                ctk.CTkLabel(pro_card, text="Upgrade to Beaply Pro",
-                             font=ctk.CTkFont(size=14, weight="bold"),
-                             text_color=TEXT_DARK).pack(pady=(16, 4))
-                ctk.CTkLabel(pro_card,
-                             text="Free users can only see the #1 best match.\nUpgrade to Pro to unlock all recommendation scores!",
-                             font=ctk.CTkFont(size=11), text_color=TEXT_MUTED,
-                             justify="center").pack(padx=16, pady=(0, 16))
-
+            
     def _show_input_form(self, container):
         card = ctk.CTkFrame(container, fg_color=CARD_COLOR, corner_radius=14,
                             border_width=1, border_color=BORDER_COLOR)
@@ -195,20 +184,10 @@ class HalamanRekomendasi(ctk.CTkFrame):
             badge.pack(side="right")
             badge.pack_propagate(False)
 
-            if is_locked:
-                ctk.CTkLabel(badge, text="\U0001f512",
-                             font=ctk.CTkFont(size=16),
-                             text_color=TEXT_MUTED).place(relx=0.5, rely=0.5, anchor="center")
-                lock_f = ctk.CTkFrame(card, fg_color="#F8F4F0")
-                lock_f.pack(fill="x", padx=20, pady=(0, 8))
-                ctk.CTkLabel(lock_f, text="Upgrade to Pro to see match score",
-                             font=ctk.CTkFont(size=9),
-                             text_color=TEXT_MUTED).pack(side="left", padx=8, pady=2)
-            else:
-                badge_color = BTN_PRIMARY if skor >= 60 else TEXT_ACCENT
-                ctk.CTkLabel(badge, text=f"{skor}%",
-                             font=ctk.CTkFont(size=15, weight="bold"),
-                             text_color=badge_color).place(relx=0.5, rely=0.5, anchor="center")
+            badge_color = BTN_PRIMARY if skor >= 60 else TEXT_ACCENT
+            ctk.CTkLabel(badge, text=f"{skor}%",
+                         font=ctk.CTkFont(size=15, weight="bold"),
+                         text_color=badge_color).place(relx=0.5, rely=0.5, anchor="center")
 
         if self._results:
             top_bea = self._results[0]["beasiswa"]
