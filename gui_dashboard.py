@@ -315,15 +315,14 @@ class LayoutDenganSidebar(ctk.CTkFrame):
                          text_color=TEXT_ACCENT).pack()
 
         # Nav items
-# Ubah sementara menjadi string kosong atau teks biasa agar program bisa jalan:
         nav_items = [
-            ("dashboard",    "⌂", "menu_dashboard"),
-            ("eksplorasi",   "≡", "menu_scholarships"),
-            ("rekomendasi",  "★", "menu_recom"),
-            ("bookmarks",    "⚑", "menu_bookmarks"),
-            ("kalender",     "⊡", "menu_calendar"),
-            ("notifikasi",   "!", "menu_notif"),
-            ("profil",       "@", "menu_profile"),
+            ("dashboard",    "\U0001f3e0", "menu_dashboard"),
+            ("eksplorasi",   "\U0001f4da", "menu_scholarships"),
+            ("rekomendasi",  "\u2728", "menu_recom"),
+            ("bookmarks",    "\U0001f516", "menu_bookmarks"),
+            ("kalender",     "\U0001f4c5", "menu_calendar"),
+            ("notifikasi",   "\U0001f514", "menu_notif"),
+            ("profil",       "\U0001f464", "menu_profile"),
         ]
 
         for nav_key, icon, lbl_key in nav_items:
