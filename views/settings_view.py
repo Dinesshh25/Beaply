@@ -163,20 +163,21 @@ class HalamanSettings(ctk.CTkFrame):
 
     def _change_theme(self, choice):
         act = {"Light": "light", "Dark": "dark"}.get(choice, "light")
-        ctk.set_appearance_mode(act)
         self._save_pref_partial("tema", act)
+        if self._logout_cb:
+            self.after(100, self._logout_cb)
 
     def _change_lang(self, choice):
         act = "id" if choice == "Bahasa Indonesia" else "en"
         self._save_pref_partial("bahasa", act)
         if self._logout_cb:
-            self._logout_cb()
+            self.after(100, self._logout_cb)
 
     def _change_text_size(self, choice):
         act = choice.lower()
         self._save_pref_partial("ukuran_teks", act)
-        scale = {"small": 0.9, "large": 1.1}.get(act, 1.0)
-        ctk.set_widget_scaling(scale)
+        show_info(self, "Restart Required", 
+                  "Perubahan ukuran teks akan aktif setelah aplikasi dijalankan ulang (Restart).")
 
     def _do_hapus(self):
         if konfirm_yesno(self, "Delete Account", "Are you sure? This can't be undone."):
@@ -194,7 +195,7 @@ class HalamanSettings(ctk.CTkFrame):
         top.geometry("380x320")
         top.configure(fg_color=BG_COLOR)
         top.transient(self.winfo_toplevel())
-        top.grab_set()
+        top.after(100, top.grab_set)
         ctk.CTkLabel(top, text="Change Password",
                      font=ctk.CTkFont(size=16, weight="bold"),
                      text_color=TEXT_DARK).pack(pady=(20, 16))

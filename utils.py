@@ -19,3 +19,4 @@ from models.validators import (
     RANGE_SKOR,
     JLPT_VALID,
 )
+

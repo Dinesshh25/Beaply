@@ -51,7 +51,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
-        hdr = ctk.CTkFrame(scroll, fg_color="#E8F5E9", corner_radius=16,
+        hdr = ctk.CTkFrame(scroll, fg_color=PASTEL_COLORS[3], corner_radius=16,
                            border_width=1, border_color=BORDER_COLOR,
                            height=120)
         hdr.pack(fill="x", pady=(0, 16))
@@ -126,7 +126,7 @@ class HalamanRekomendasi(ctk.CTkFrame):
         scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         scroll.pack(fill="both", expand=True)
 
-        hdr = ctk.CTkFrame(scroll, fg_color="#E8F5E9", corner_radius=16,
+        hdr = ctk.CTkFrame(scroll, fg_color=PASTEL_COLORS[3], corner_radius=16,
                            border_width=1, border_color=BORDER_COLOR)
         hdr.pack(fill="x", pady=(0, 16))
         inner = ctk.CTkFrame(hdr, fg_color="transparent")

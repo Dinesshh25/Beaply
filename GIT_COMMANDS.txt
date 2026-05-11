@@ -1,0 +1,4 @@
+1. git checkout Main
+2. git pull origin Main
+3. git merge hasan-nashrullah-baru
+4. git push origin Main

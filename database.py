@@ -31,3 +31,4 @@ try:
     from models.beasiswa_model import seed_beasiswa
 except ImportError:
     pass
+

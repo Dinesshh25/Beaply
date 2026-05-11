@@ -161,7 +161,8 @@ class HalamanDashboardUtama(ctk.CTkFrame):
         circ_f = ctk.CTkFrame(pc_card, fg_color="transparent")
         circ_f.pack(fill="x", padx=16, pady=(0, 4))
 
-        canv = ctk.CTkCanvas(circ_f, width=70, height=70, bg=CARD_COLOR, highlightthickness=0)
+        c_color = CARD_COLOR[1] if ctk.get_appearance_mode() == "Dark" else CARD_COLOR[0]
+        canv = ctk.CTkCanvas(circ_f, width=70, height=70, bg=c_color, highlightthickness=0)
         canv.pack(side="left", padx=(0, 8))
         completeness = hitung_completeness(profil)
 
@@ -265,10 +266,11 @@ class LayoutDenganSidebar(ctk.CTkFrame):
         bottom_frame.pack(side="bottom", fill="x", pady=(0, 10))
 
         self.nav_buttons = {}
-        for key, icon, label in [
-            ("settings", "\u2699", "Settings"),
-            ("bantuan", "\u2753", "Help Center"),
+        for key, icon, lbl_key in [
+            ("settings", "\u2699", "menu_settings"),
+            ("bantuan", "\u2753", "menu_help"),
         ]:
+            label = t(lbl_key, bhs)
             btn = ctk.CTkButton(
                 bottom_frame, text=f"  {icon}  {label}",
                 anchor="w", height=32, corner_radius=8,
@@ -297,16 +299,17 @@ class LayoutDenganSidebar(ctk.CTkFrame):
 
         # Nav items
         nav_items = [
-            ("dashboard",    "\ud83c\udfe0", "Dashboard"),
-            ("eksplorasi",   "\ud83d\udcda", "Scholarships"),
-            ("rekomendasi",  "\u2728", "Recommendations"),
-            ("bookmarks",    "\ud83d\udd16", "Bookmarks"),
-            ("kalender",     "\ud83d\udcc5", "Calendar"),
-            ("notifikasi",   "\ud83d\udd14", "Notifications"),
-            ("profil",       "\ud83d\udc64", "Profile"),
+            ("dashboard",    "\U0001f3e0", "menu_dashboard"),
+            ("eksplorasi",   "\U0001f4da", "menu_scholarships"),
+            ("rekomendasi",  "\u2728", "menu_recom"),
+            ("bookmarks",    "\U0001f516", "menu_bookmarks"),
+            ("kalender",     "\U0001f4c5", "menu_calendar"),
+            ("notifikasi",   "\U0001f514", "menu_notif"),
+            ("profil",       "\U0001f464", "menu_profile"),
         ]
 
-        for nav_key, icon, label in nav_items:
+        for nav_key, icon, lbl_key in nav_items:
+            label = t(lbl_key, bhs)
             btn = ctk.CTkButton(
                 self.sidebar, text=f"  {icon}  {label}",
                 anchor="w", height=34, corner_radius=10,
@@ -341,21 +344,36 @@ class LayoutDenganSidebar(ctk.CTkFrame):
         # Avatar
         try:
             from PIL import Image
-            ava_img = ctk.CTkImage(light_image=Image.open("assets/default_avatar.png"), size=(40, 40))
-            ctk.CTkLabel(user_frame, text="", image=ava_img).pack(side="left", padx=(0, 8))
-        except:
-            ctk.CTkLabel(user_frame, text="👤", font=ctk.CTkFont(size=24)).pack(side="left", padx=(0, 8))
+            import os
+            ava_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "assets", "default_avatar.png"))
+            ava_img = ctk.CTkImage(light_image=Image.open(ava_path), size=(40, 40))
+            ava_lbl = ctk.CTkLabel(user_frame, text="", image=ava_img)
+            ava_lbl.pack(side="left", padx=(0, 8))
+        except Exception as e:
+            print("Avatar error:", e)
+            ava_lbl = ctk.CTkLabel(user_frame, text="O", font=ctk.CTkFont(size=24))
+            ava_lbl.pack(side="left", padx=(0, 8))
+        
+        # BIND KLIK UNTUK MENUJU PROFIL
+        ava_lbl.bind("<Button-1>", lambda e: self._navigate("profil"))
+        user_frame.bind("<Button-1>", lambda e: self._navigate("profil"))
             
         # Details Stack
         user_text = ctk.CTkFrame(user_frame, fg_color="transparent")
         user_text.pack(side="left")
+        user_text.bind("<Button-1>", lambda e: self._navigate("profil"))
         
         nama = self.user_profile.get("nama", t("guest_name", bhs))
-        ctk.CTkLabel(user_text, text=nama,
+        name_lbl = ctk.CTkLabel(user_text, text=nama,
                      font=ctk.CTkFont(size=14, weight="bold"),
-                     text_color=TEXT_DARK).pack(anchor="w")
-        ctk.CTkLabel(user_text, text="Student",
-                     font=ctk.CTkFont(size=11), text_color=TEXT_MUTED).pack(anchor="w")
+                     text_color=TEXT_DARK)
+        name_lbl.pack(anchor="w")
+        name_lbl.bind("<Button-1>", lambda e: self._navigate("profil"))
+        
+        role_lbl = ctk.CTkLabel(user_text, text="Student",
+                     font=ctk.CTkFont(size=11), text_color=TEXT_MUTED)
+        role_lbl.pack(anchor="w")
+        role_lbl.bind("<Button-1>", lambda e: self._navigate("profil"))
 
         # Bell icon
         bell_btn = ctk.CTkButton(self.topbar, text="🔔", width=36, height=36,
@@ -374,13 +392,14 @@ class LayoutDenganSidebar(ctk.CTkFrame):
 
         # Update page title
         titles = {
-            "dashboard": "Dashboard", "eksplorasi": "Scholarships",
-            "rekomendasi": "Recommendations", "bookmarks": "Bookmarks",
-            "kalender": "Calendar", "notifikasi": "Notifications",
-            "profil": "Profile", "tracker": "Tracker",
-            "bantuan": "FAQ & Help Center", "settings": "Settings",
+            "dashboard": "title_dashboard", "eksplorasi": "title_scholarships",
+            "rekomendasi": "title_recom", "bookmarks": "title_bookmarks",
+            "kalender": "title_calendar", "notifikasi": "title_notif",
+            "profil": "title_profile", "tracker": "t_judul",
+            "bantuan": "title_help", "settings": "title_settings",
         }
-        self.page_title.configure(text=titles.get(key, key.title()))
+        title_key = titles.get(key, key)
+        self.page_title.configure(text=t(title_key, self._bhs))
 
         # Update sidebar highlight
         for nav_key, btn in self.nav_buttons.items():
@@ -432,9 +451,16 @@ class LayoutDenganSidebar(ctk.CTkFrame):
 
     def _refresh_all(self):
         pref = ambil_preferensi(self.profil_id)
-        apply_pref(pref)
         self._bhs = pref.get("bahasa", "id")
+        
+        # PENTING: Hancurkan semua widget DULU sebelum apply_pref
+        # Hal ini mencegah CustomTkinter crash saat mengatur ulang skala Combobox
         for w in self.winfo_children():
             w.destroy()
+            
+        apply_pref(pref)
         self._build()
-        self._navigate(self._current_nav)
+        
+        nav = getattr(self, "_current_nav", "settings")
+        self._navigate(nav)
+
