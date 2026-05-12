@@ -275,9 +275,24 @@ class BeaplyMainWindow(QMainWindow):
         pref = ambil_preferensi(self._profil_id)
         self._bhs = pref.get("bahasa", "id")
         self._mode = pref.get("tema", "light")
+
+        # Apply theme stylesheet first
         self._apply_theme()
+
+        # Process events so the new QSS is fully applied before
+        # we tear down and rebuild the widget tree. This prevents
+        # the white/black screen flash.
+        QApplication.processEvents()
+
         self._build_main_layout()
-        self._root_stack.setCurrentIndex(1)
+
+        # Index 2 = main layout (sidebar + content).
+        # Previously this was index 1 (Home/profile-select), which
+        # caused a blank screen after theme/language changes.
+        self._root_stack.setCurrentIndex(2)
+
+        # Navigate back to settings so the user stays on the same page
+        self._navigate("settings")
 
     # ── Logout ───────────────────────────────────────────────
     def _go_logout(self):

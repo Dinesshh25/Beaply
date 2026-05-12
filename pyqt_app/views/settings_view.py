@@ -23,6 +23,7 @@ class SettingsView(QWidget):
         self._bhs = bhs
         self._mode = mode
         self._refresh_cb = refresh_cb
+        self._refreshing = False   # guard against re-entrant signals during rebuild
         self._build()
 
     def _build(self):
@@ -234,15 +235,23 @@ class SettingsView(QWidget):
         simpan_preferensi(self._pid, pref["tema"], pref["ukuran_teks"], pref["bahasa"])
 
     def _set_theme(self, val):
+        if self._refreshing:
+            return
         self._save_pref("tema", val)
         if self._refresh_cb:
+            self._refreshing = True
             self._refresh_cb()
+            self._refreshing = False
 
     def _set_lang(self, choice):
+        if self._refreshing:
+            return
         val = "id" if choice == "Bahasa Indonesia" else "en"
         self._save_pref("bahasa", val)
         if self._refresh_cb:
+            self._refreshing = True
             self._refresh_cb()
+            self._refreshing = False
 
     def _set_size(self, val):
         self._save_pref("ukuran_teks", val)
