@@ -43,6 +43,15 @@ from pyqt_app.views.profil_view import ProfilView
 from pyqt_app.views.settings_view import SettingsView
 from pyqt_app.views.bantuan_view import BantuanView
 
+# ── Admin modules ────────────────────────────────────────────
+from pyqt_app.widgets.admin_sidebar import AdminSidebarWidget
+from pyqt_app.widgets.admin_topbar import AdminTopbarWidget
+from pyqt_app.views.admin_scholarship_view import AdminScholarshipView
+from pyqt_app.views.admin_userprofile_view import AdminUserProfileView
+from pyqt_app.views.admin_helpcenter_view import AdminHelpCenterView
+from pyqt_app.views.admin_settings_view import AdminSettingsView
+from controllers.admin_controller import is_admin
+
 # i18n helper
 from pyqt_app.utils.i18n import t as _t
 from controllers.profil_controller import tampil_profil, ambil_preferensi
@@ -65,8 +74,9 @@ class BeaplyMainWindow(QMainWindow):
         self._user_data = {}
         self._bhs = "id"
         self._mode = "light"
+        self._is_admin = False
 
-        # Central stacked widget: 0 = auth, 1 = home (profile select), 2 = main layout
+        # Central stacked widget: 0 = auth, 1 = home (profile select), 2 = main layout, 3 = admin layout
         self._root_stack = QStackedWidget()
         self._root_stack.setObjectName("central")
         self.setCentralWidget(self._root_stack)
@@ -84,6 +94,10 @@ class BeaplyMainWindow(QMainWindow):
         # Main placeholder (built after profile selected)
         self._main_widget = QWidget()
         self._root_stack.addWidget(self._main_widget)    # index 2
+
+        # Admin placeholder (built after admin login)
+        self._admin_widget = QWidget()
+        self._root_stack.addWidget(self._admin_widget)   # index 3
 
         # Apply initial stylesheet
         self._apply_theme()
@@ -105,6 +119,16 @@ class BeaplyMainWindow(QMainWindow):
 
         from controllers.auth_controller import set_current_user
         set_current_user(data)
+
+        # Check if user is admin
+        user_email = data.get("email", "")
+        if is_admin(user_email):
+            self._is_admin = True
+            self._build_admin_layout()
+            self._root_stack.setCurrentIndex(3)
+            return
+
+        self._is_admin = False
 
         # Check if user already has profiles
         from controllers.profil_controller import tampil_semua_profil
@@ -231,7 +255,7 @@ class BeaplyMainWindow(QMainWindow):
         elif key == "bookmarks":
             page = BookmarksView(pid, bhs, mode=mode)
         elif key == "kalender":
-            page = KalenderView(pid, bhs, mode=mode)
+            page = KalenderView(pid, bhs, mode=mode, navigate_cb=self._navigate)
         elif key == "tracker":
             page = TrackerView(pid, bhs, mode=mode)
         elif key == "notifikasi":
@@ -294,6 +318,90 @@ class BeaplyMainWindow(QMainWindow):
         # Navigate back to settings so the user stays on the same page
         self._navigate("settings")
 
+    # ── Admin Layout ─────────────────────────────────────────
+    def _build_admin_layout(self):
+        """Build the admin panel layout with admin sidebar + topbar + content."""
+        self._root_stack.removeWidget(self._admin_widget)
+        self._admin_widget.deleteLater()
+
+        self._admin_widget = QWidget()
+        self._admin_widget.setObjectName("central")
+        admin_lay = QHBoxLayout(self._admin_widget)
+        admin_lay.setContentsMargins(0, 0, 0, 0)
+        admin_lay.setSpacing(0)
+
+        # Admin Sidebar
+        self._admin_sidebar = AdminSidebarWidget()
+        self._admin_sidebar.navigate.connect(self._admin_navigate)
+        admin_lay.addWidget(self._admin_sidebar)
+
+        # Right area
+        right = QFrame()
+        right_lay = QVBoxLayout(right)
+        right_lay.setContentsMargins(20, 12, 20, 12)
+        right_lay.setSpacing(8)
+
+        user_name = self._user_data.get("nama_lengkap", "Anonymous")
+        self._admin_topbar = AdminTopbarWidget(user_name)
+        right_lay.addWidget(self._admin_topbar)
+
+        # Admin content stack
+        self._admin_content_stack = QStackedWidget()
+        right_lay.addWidget(self._admin_content_stack)
+
+        admin_lay.addWidget(right, 1)
+        self._root_stack.addWidget(self._admin_widget)
+
+        # Pre-build and navigate to first page
+        self._admin_pages = {}
+        self._admin_navigate("admin_scholarships")
+
+    def _admin_build_page(self, key: str):
+        """Lazily create and cache an admin page widget."""
+        if key in self._admin_pages:
+            old = self._admin_pages.pop(key)
+            self._admin_content_stack.removeWidget(old)
+            old.deleteLater()
+
+        mode = self._mode
+
+        if key == "admin_scholarships":
+            page = AdminScholarshipView(mode=mode)
+        elif key == "admin_users":
+            page = AdminUserProfileView(mode=mode)
+        elif key == "admin_helpcenter":
+            page = AdminHelpCenterView(mode=mode)
+        elif key == "admin_settings":
+            page = AdminSettingsView(mode=mode, refresh_cb=self._admin_refresh)
+        else:
+            page = QWidget()
+
+        self._admin_content_stack.addWidget(page)
+        self._admin_pages[key] = page
+
+    ADMIN_TITLES = {
+        "admin_scholarships": ("Scholarship Data", "Manage scholarship data"),
+        "admin_users":        ("User Profile", ""),
+        "admin_helpcenter":   ("Help Center", ""),
+        "admin_settings":     ("Settings", ""),
+    }
+
+    def _admin_navigate(self, key: str):
+        self._admin_build_page(key)
+        self._admin_content_stack.setCurrentWidget(self._admin_pages[key])
+        title, subtitle = self.ADMIN_TITLES.get(key, (key, ""))
+        self._admin_topbar.set_title(title, subtitle)
+        self._admin_sidebar.set_active(key)
+
+    def _admin_refresh(self):
+        """Refresh admin layout after settings change."""
+        self._mode = "light"  # Admin uses light mode by default
+        self._apply_theme()
+        QApplication.processEvents()
+        self._build_admin_layout()
+        self._root_stack.setCurrentIndex(3)
+        self._admin_navigate("admin_settings")
+
     # ── Logout ───────────────────────────────────────────────
     def _go_logout(self):
         """Called from profile page logout."""
@@ -302,6 +410,7 @@ class BeaplyMainWindow(QMainWindow):
         self._user_id = None
         self._mode = "light"
         self._bhs = "id"
+        self._is_admin = False
         self._apply_theme()
 
         from controllers.auth_controller import set_current_user

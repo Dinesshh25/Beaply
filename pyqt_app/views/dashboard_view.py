@@ -5,7 +5,7 @@ Dashboard page — 2-column layout matching Figma mockup.
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QSizePolicy, QTableWidget,
-    QTableWidgetItem, QHeaderView, QAbstractItemView
+    QTableWidgetItem, QHeaderView, QAbstractItemView, QTabWidget
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor, QPixmap, QColor
@@ -13,6 +13,9 @@ import datetime, os, calendar
 
 from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
 from pyqt_app.widgets.progress_ring import ProgressRing
+from pyqt_app.widgets.chart_widget import (
+    BarChartWidget, DonutChartWidget, ChartLegendWidget, CHART_COLORS
+)
 from controllers.profil_controller import tampil_profil
 from controllers.tracker_controller import (
     get_semua_tracker as ambil_semua_tracker,
@@ -22,6 +25,7 @@ from controllers.eksplorasi_controller import (
     get_semua_beasiswa as ambil_semua_beasiswa,
     get_bookmarks as ambil_bookmark_user,
 )
+from controllers.analytics_controller import get_analytics_data
 
 ASSETS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets"))
 
@@ -209,34 +213,13 @@ class DashboardView(QWidget):
             table.setRowHeight(i, 42)
         ll.addWidget(table)
 
-        # ━━ SMART TIPS ━━
-        ll.addWidget(self._header("Smart Tips For You", c))
-        tips = [
-            ("\U0001f4dd","Improve Your IELTS Score",
-             "A push to 7.0+ can unlock\nmore scholarships.","View Tips \u203a"),
-            ("\U0001f4c8","Strengthen Your GPA",
-             "A higher GPA increases your\nchances for top-tier scholarships.","View Tips \u203a"),
-            ("\U0001f4c4","Complete Your Documents",
-             "Some scholarships require\nadditional documents.","More Tips \u203a"),
-        ]
-        tw = QWidget(); tw.setStyleSheet("background:transparent;")
-        tlay = QHBoxLayout(tw); tlay.setContentsMargins(0,0,0,0); tlay.setSpacing(10)
-        for i,(ic,ti,de,ac) in enumerate(tips):
-            tc = QFrame(); tc.setObjectName(f"tip{i}"); bg = self._p(i)
-            tc.setStyleSheet(f"#tip{i}{{background:{bg};border-radius:14px;border:1px solid {c['border']};}}")
-            tc.setMinimumHeight(130)
-            tcl = QVBoxLayout(tc); tcl.setContentsMargins(16,14,16,12); tcl.setSpacing(4)
-            il = QLabel(ic); il.setFont(QFont(FONT_FAMILY,18))
-            il.setStyleSheet("background:transparent;"); tcl.addWidget(il)
-            tl2 = QLabel(ti); tl2.setFont(QFont(FONT_FAMILY,11,QFont.Weight.Bold))
-            tl2.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); tcl.addWidget(tl2)
-            dl = QLabel(de); dl.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
-            dl.setWordWrap(True); tcl.addWidget(dl); tcl.addStretch()
-            ab = QPushButton(ac); ab.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-            ab.setStyleSheet(f"background:transparent;border:none;color:{c['text_accent']};font-size:10px;text-align:left;")
-            tcl.addWidget(ab)
-            tlay.addWidget(tc)
-        ll.addWidget(tw)
+        # ━━ ANALYTICS SECTION ━━
+        analytics = get_analytics_data()
+        ll.addWidget(self._build_analytics_section(analytics, c))
+
+        # ━━ INSIGHTS / FAQ ━━
+        ll.addWidget(self._header("Insight & FAQ Beasiswa", c))
+        ll.addWidget(self._build_insights_section(analytics["insights"], c))
         ll.addStretch()
 
         # ── RIGHT COLUMN ──
@@ -330,3 +313,274 @@ class DashboardView(QWidget):
                 wl.addWidget(dl3)
             ccl.addWidget(ww)
         rl.addWidget(cc); rl.addStretch()
+
+    # ═══════════════════════════════════════════════════════════════
+    # ANALYTICS SECTION
+    # ═══════════════════════════════════════════════════════════════
+
+    def _build_analytics_section(self, analytics: dict, c: dict) -> QWidget:
+        """Build the analytics card with tabbed charts."""
+        card = QFrame()
+        card.setObjectName("analyticsCard")
+        card.setStyleSheet(
+            f"#analyticsCard{{background:{c['card']};border:1px solid {c['border']};"
+            f"border-radius:16px;}}"
+        )
+        card_lay = QVBoxLayout(card)
+        card_lay.setContentsMargins(18, 16, 18, 16)
+        card_lay.setSpacing(10)
+
+        # Header row
+        hdr_w = QWidget(); hdr_w.setStyleSheet("background:transparent;")
+        hdr_l = QHBoxLayout(hdr_w); hdr_l.setContentsMargins(0,0,0,0)
+        title_lbl = QLabel("📊  Analitik Beasiswa")
+        title_lbl.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
+        title_lbl.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        hdr_l.addWidget(title_lbl)
+        hdr_l.addStretch()
+
+        # Summary chips
+        total_chip = self._chip(f"Total: {analytics['total']}", "#7DB87D", c)
+        dl_chip    = self._chip(f"Berdeadline: {analytics['with_deadline']}", "#D4917B", c)
+        hdr_l.addWidget(total_chip)
+        hdr_l.addWidget(dl_chip)
+        card_lay.addWidget(hdr_w)
+
+        # Separator
+        sep = QFrame(); sep.setFixedHeight(1)
+        sep.setStyleSheet(f"background:{c['border']};")
+        card_lay.addWidget(sep)
+
+        # Tab widget
+        tabs = QTabWidget()
+        tabs.setStyleSheet(f"""
+            QTabWidget::pane {{
+                border: none; background: transparent;
+            }}
+            QTabBar::tab {{
+                background: {c['input_bg']}; color: {c['text_muted']};
+                border: 1px solid {c['border']}; border-bottom: none;
+                border-radius: 6px 6px 0 0;
+                padding: 5px 12px; font-size: 11px; margin-right: 2px;
+            }}
+            QTabBar::tab:selected {{
+                background: {c['card']}; color: {c['text_dark']};
+                font-weight: bold; border-bottom: 2px solid {c['btn_primary']};
+            }}
+            QTabBar::tab:hover {{ background: {c['btn_pale']}; }}
+        """)
+
+        # ── Tab 1: Deadline per Bulan ──
+        t1 = QWidget(); t1.setStyleSheet("background:transparent;")
+        t1l = QVBoxLayout(t1); t1l.setContentsMargins(0, 8, 0, 4)
+        subtitle1 = QLabel("Distribusi deadline beasiswa sepanjang tahun per bulan")
+        subtitle1.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
+        t1l.addWidget(subtitle1)
+        chart1 = BarChartWidget(
+            analytics["deadline_by_month"],
+            color=CHART_COLORS[:12],
+            mode=self._mode
+        )
+        chart1.setMinimumHeight(200)
+        t1l.addWidget(chart1)
+        tabs.addTab(t1, "📅 Deadline/Bulan")
+
+        # ── Tab 2: Deadline per Tanggal ──
+        t2 = QWidget(); t2.setStyleSheet("background:transparent;")
+        t2l = QVBoxLayout(t2); t2l.setContentsMargins(0, 8, 0, 4)
+        subtitle2 = QLabel("Tanggal dalam sebulan yang paling banyak menjadi deadline")
+        subtitle2.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
+        t2l.addWidget(subtitle2)
+
+        peak_day = analytics["peak_day"]
+        note2 = QLabel(
+            f"🔥 Tanggal {peak_day['day']} adalah yang paling sering muncul "
+            f"({peak_day['count']} beasiswa)"
+        )
+        note2.setStyleSheet(
+            f"color:{c['text_accent']};font-size:10px;font-weight:bold;background:transparent;"
+        )
+        t2l.addWidget(note2)
+
+        chart2 = BarChartWidget(
+            analytics["deadline_by_day"],
+            color="#D4917B",
+            mode=self._mode,
+            show_values=False
+        )
+        chart2.setMinimumHeight(200)
+        t2l.addWidget(chart2)
+        tabs.addTab(t2, "🔢 Deadline/Tanggal")
+
+        # ── Tab 3: Distribusi Jenjang ──
+        t3 = QWidget(); t3.setStyleSheet("background:transparent;")
+        t3l = QHBoxLayout(t3); t3l.setContentsMargins(0, 8, 0, 4); t3l.setSpacing(16)
+
+        jenjang_data = analytics["by_jenjang"][:6]
+        donut3 = DonutChartWidget(jenjang_data, mode=self._mode)
+        donut3.setFixedSize(170, 170)
+        t3l.addWidget(donut3)
+
+        # Legend + numbers
+        leg3_w = QWidget(); leg3_w.setStyleSheet("background:transparent;")
+        leg3_l = QVBoxLayout(leg3_w); leg3_l.setContentsMargins(0,0,0,0); leg3_l.setSpacing(6)
+        title3 = QLabel("Distribusi per Jenjang")
+        title3.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+        title3.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        leg3_l.addWidget(title3)
+        total_j = sum(v for _, v in jenjang_data) or 1
+        for i, (lbl, val) in enumerate(jenjang_data):
+            row = QWidget(); row.setStyleSheet("background:transparent;")
+            rl2 = QHBoxLayout(row); rl2.setContentsMargins(0,0,0,0); rl2.setSpacing(6)
+            dot = QLabel("●"); dot.setFixedWidth(12)
+            dot.setStyleSheet(
+                f"color:{CHART_COLORS[i % len(CHART_COLORS)]};background:transparent;font-size:10px;"
+            )
+            rl2.addWidget(dot)
+            lbl_w = QLabel(lbl)
+            lbl_w.setStyleSheet(f"color:{c['text_dark']};font-size:10px;background:transparent;")
+            rl2.addWidget(lbl_w, 1)
+            pct_w = QLabel(f"{int(val/total_j*100)}%  ({val})")
+            pct_w.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
+            rl2.addWidget(pct_w)
+            leg3_l.addWidget(row)
+        leg3_l.addStretch()
+        t3l.addWidget(leg3_w, 1)
+        tabs.addTab(t3, "🎓 Jenjang")
+
+        # ── Tab 4: Distribusi Region ──
+        t4 = QWidget(); t4.setStyleSheet("background:transparent;")
+        t4l = QHBoxLayout(t4); t4l.setContentsMargins(0, 8, 0, 4); t4l.setSpacing(16)
+
+        region_data = analytics["by_region"]
+        # Tetapkan warna eksplisit: Luar Negeri = biru, Dalam Negeri = hijau
+        REGION_COLORS = {"Luar Negeri": "#3B82F6", "Dalam Negeri": "#22C55E"}
+        region_colors_ordered = [
+            REGION_COLORS.get(lbl, CHART_COLORS[i % len(CHART_COLORS)])
+            for i, (lbl, _) in enumerate(region_data)
+        ]
+        donut4 = DonutChartWidget(
+            region_data, mode=self._mode, thickness=32,
+            colors=region_colors_ordered
+        )
+        donut4.setFixedSize(170, 170)
+        t4l.addWidget(donut4)
+
+        leg4_w = QWidget(); leg4_w.setStyleSheet("background:transparent;")
+        leg4_l = QVBoxLayout(leg4_w); leg4_l.setContentsMargins(0,0,0,0); leg4_l.setSpacing(6)
+        title4 = QLabel("Distribusi Dalam vs Luar Negeri")
+        title4.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+        title4.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        leg4_l.addWidget(title4)
+        total_r = sum(v for _, v in region_data) or 1
+        clr_map = {"Luar Negeri": "#3B82F6", "Dalam Negeri": "#22C55E"}
+        for i, (lbl, val) in enumerate(region_data):
+            row = QWidget(); row.setStyleSheet("background:transparent;")
+            rl3 = QHBoxLayout(row); rl3.setContentsMargins(0,0,0,0); rl3.setSpacing(6)
+            dot_clr = clr_map.get(lbl, CHART_COLORS[i % len(CHART_COLORS)])
+            dot = QLabel("●"); dot.setFixedWidth(12)
+            dot.setStyleSheet(f"color:{dot_clr};background:transparent;font-size:10px;")
+            rl3.addWidget(dot)
+            lbl_w = QLabel(lbl)
+            lbl_w.setStyleSheet(f"color:{c['text_dark']};font-size:10px;background:transparent;")
+            rl3.addWidget(lbl_w, 1)
+            pct_w = QLabel(f"{int(val/total_r*100)}%  ({val})")
+            pct_w.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
+            rl3.addWidget(pct_w)
+            leg4_l.addWidget(row)
+
+        # Extra context
+        ln_pct = int(dict(region_data).get("Luar Negeri", 0) / total_r * 100)
+        ctx = QLabel(
+            f"💡 {ln_pct}% beasiswa tersedia adalah program internasional. "
+            "Persiapkan skor bahasa Inggris untuk membuka lebih banyak peluang!"
+        )
+        ctx.setWordWrap(True)
+        ctx.setStyleSheet(
+            f"color:{c['text_muted']};font-size:9px;background:transparent;"
+            f"padding:8px;border-radius:8px;background:{c['input_bg']};"
+        )
+        leg4_l.addWidget(ctx)
+        leg4_l.addStretch()
+        t4l.addWidget(leg4_w, 1)
+        tabs.addTab(t4, "🌍 Region")
+
+        card_lay.addWidget(tabs)
+        return card
+
+    # ═══════════════════════════════════════════════════════════════
+    # INSIGHTS / FAQ SECTION
+    # ═══════════════════════════════════════════════════════════════
+
+    def _build_insights_section(self, insights: list, c: dict) -> QWidget:
+        """Build expandable FAQ / insight cards from analytics data."""
+        wrapper = QWidget(); wrapper.setStyleSheet("background:transparent;")
+        wl = QVBoxLayout(wrapper); wl.setContentsMargins(0,0,0,0); wl.setSpacing(8)
+
+        # Tag color map
+        tag_colors = {
+            "Deadline Trend":    "#D4917B",
+            "Pola Tanggal":      "#C8A87D",
+            "Distribusi Region": "#7DB8C8",
+            "Distribusi Jenjang":"#A8C5B0",
+            "Tips Strategis":    "#B07DB8",
+            "Info Penting":      "#7D9AB8",
+        }
+
+        for i, ins in enumerate(insights):
+            bg = pastel(i, self._mode)
+            tc_color = tag_colors.get(ins.get("tag",""), c["text_accent"])
+
+            card = QFrame(); card.setObjectName(f"insCard{i}")
+            card.setStyleSheet(
+                f"#insCard{i}{{background:{bg};border-radius:14px;"
+                f"border:1px solid {c['border']};}}"
+            )
+            cl = QVBoxLayout(card); cl.setContentsMargins(16, 12, 16, 12); cl.setSpacing(6)
+
+            # Tag badge + icon
+            top_row = QWidget(); top_row.setStyleSheet("background:transparent;")
+            top_l = QHBoxLayout(top_row); top_l.setContentsMargins(0,0,0,0); top_l.setSpacing(6)
+
+            icon_lbl = QLabel(ins.get("icon","💡"))
+            icon_lbl.setFont(QFont(FONT_FAMILY, 15))
+            icon_lbl.setStyleSheet("background:transparent;")
+            top_l.addWidget(icon_lbl)
+
+            tag_lbl = QLabel(ins.get("tag",""))
+            tag_lbl.setStyleSheet(
+                f"background:{tc_color}22;color:{tc_color};"
+                f"border:1px solid {tc_color}55;border-radius:8px;"
+                f"font-size:9px;font-weight:bold;padding:2px 8px;"
+            )
+            top_l.addWidget(tag_lbl)
+            top_l.addStretch()
+            cl.addWidget(top_row)
+
+            # Title (question)
+            title_lbl = QLabel(ins.get("title",""))
+            title_lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+            title_lbl.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+            title_lbl.setWordWrap(True)
+            cl.addWidget(title_lbl)
+
+            # Body (answer)
+            body_lbl = QLabel(ins.get("body",""))
+            body_lbl.setStyleSheet(
+                f"color:{c['text_muted']};font-size:10px;background:transparent;"
+            )
+            body_lbl.setWordWrap(True)
+            cl.addWidget(body_lbl)
+
+            wl.addWidget(card)
+
+        return wrapper
+
+    def _chip(self, text: str, color: str, c: dict) -> QLabel:
+        """Small colored pill label."""
+        lbl = QLabel(text)
+        lbl.setStyleSheet(
+            f"background:{color}22;color:{color};border:1px solid {color}55;"
+            f"border-radius:8px;font-size:9px;font-weight:bold;padding:2px 8px;"
+        )
+        return lbl

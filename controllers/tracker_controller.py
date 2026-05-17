@@ -18,16 +18,68 @@ from models.tracker_model import (
     hitung_selisih_hari, format_status, warna_status,
     format_deadline_display, STATUS_LIST,
 )
+from models.beasiswa_model import ambil_bookmark
 
 
 # ════════════════════════════════════════════════════════════
 # 1. TAMPILAN KALENDER
 # ════════════════════════════════════════════════════════════
 
+def _bookmark_deadline_color(deadline_str: str) -> str:
+    """
+    Warna kalender untuk bookmark, SAMA dengan aturan border di BookmarksView:
+      Expired      → #9AA0A6 (abu)
+      ≤ 7 hari     → #EF4444 (merah)
+      7–14 hari    → #F59E0B (kuning)
+      > 14 hari    → #22C55E (hijau)
+    """
+    try:
+        days = (datetime.strptime(deadline_str, "%Y-%m-%d").date()
+                - datetime.now().date()).days
+        if days < 0:   return "#9AA0A6"
+        if days <= 7:  return "#EF4444"
+        if days <= 14: return "#F59E0B"
+        return "#22C55E"
+    except Exception:
+        return "#22C55E"
+
+
+def get_bookmark_deadline_dates(profil_id: int, bulan: int,
+                                tahun: int) -> dict:
+    """
+    Ambil deadline beasiswa yang di-bookmark oleh profil_id
+    pada bulan & tahun tertentu.
+
+    Return: dict {day: [{'nama': ..., 'deadline': ..., 'warna': ...}, ...]}
+    """
+    result = {}
+    bookmarks = ambil_bookmark(profil_id)
+    for bea in bookmarks:
+        dl = bea.get("deadline")
+        if not dl:
+            continue
+        try:
+            d = datetime.strptime(dl, "%Y-%m-%d")
+            if d.month == bulan and d.year == tahun:
+                day = d.day
+                if day not in result:
+                    result[day] = []
+                result[day].append({
+                    "nama":    bea.get("nama", ""),
+                    "deadline": dl,
+                    "id":      bea.get("id", 0),
+                    "warna":   _bookmark_deadline_color(dl),  # warna per item
+                })
+        except ValueError:
+            pass
+    return result
+
+
 def tampilan_kalender(profil_id: int, bulan: int = None,
                       tahun: int = None) -> dict:
     """
     Siapkan data untuk render kalender grid bulanan.
+    Menggabungkan deadline dari Tracker DAN Bookmark beasiswa.
     """
     now = datetime.now()
     if bulan is None:
@@ -43,8 +95,11 @@ def tampilan_kalender(profil_id: int, bulan: int = None,
     hari_pertama, total_hari = calendar.monthrange(tahun, bulan)
     tracker_list = ambil_tracker_by_bulan(profil_id, bulan, tahun)
 
-    tgl_warna = {}
-    tgl_tracker = {}
+    tgl_warna   = {}  # {day: hex_color}
+    tgl_tracker = {}  # {day: [tracker_item, ...]}
+    tgl_bookmark = {} # {day: [bookmark_item, ...]}
+
+    # ── Dari Tracker ──
     for t in tracker_list:
         if t["deadline"]:
             try:
@@ -59,6 +114,19 @@ def tampilan_kalender(profil_id: int, bulan: int = None,
             except ValueError:
                 pass
 
+    # ── Dari Bookmark Beasiswa ──
+    bm_dates = get_bookmark_deadline_dates(profil_id, bulan, tahun)
+    for day, bm_items in bm_dates.items():
+        tgl_bookmark[day] = bm_items
+        # Ambil warna paling mendesak dari semua bookmark di hari itu
+        # (sesuai aturan border BookmarksView: merah/kuning/hijau/abu)
+        most_urgent = max(
+            bm_items, key=lambda x: _prioritas_warna(x["warna"])
+        )
+        bm_warna = most_urgent["warna"]
+        if day not in tgl_warna or _prioritas_warna(bm_warna) > _prioritas_warna(tgl_warna[day]):
+            tgl_warna[day] = bm_warna
+
     return {
         "bulan": bulan,
         "tahun": tahun,
@@ -67,8 +135,9 @@ def tampilan_kalender(profil_id: int, bulan: int = None,
         "total_hari": total_hari,
         "tanggal_hari_ini": now.strftime("%Y-%m-%d"),
         "tracker_di_bulan": tracker_list,
-        "tanggal_warna": tgl_warna,
-        "tanggal_tracker": tgl_tracker,
+        "tanggal_warna":    tgl_warna,
+        "tanggal_tracker":  tgl_tracker,
+        "tanggal_bookmark": tgl_bookmark,
     }
 
 
