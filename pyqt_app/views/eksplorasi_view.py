@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QScrollArea, QLineEdit, QGridLayout,
     QDialog, QRadioButton, QCheckBox, QButtonGroup
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QCursor
 from datetime import datetime
 
@@ -19,6 +19,9 @@ from controllers.notifikasi_controller import buat_notifikasi_deadline
 
 
 class EksplorasiView(QWidget):
+    # Emit ketika user menambah/hapus bookmark
+    bookmark_changed = pyqtSignal()
+
     def __init__(self, profil_id, bhs="id", mode="light", parent=None):
         super().__init__(parent)
         self._pid = profil_id
@@ -177,6 +180,7 @@ class EksplorasiView(QWidget):
 
     def _toggle_bm(self, bea):
         toggle_bookmark_beasiswa(self._pid, bea.get("id", 0))
+        self.bookmark_changed.emit()  # beritahu kalender
         self._apply_filters()
         self._render_grid()
 

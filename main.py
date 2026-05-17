@@ -231,7 +231,7 @@ class BeaplyMainWindow(QMainWindow):
         elif key == "bookmarks":
             page = BookmarksView(pid, bhs, mode=mode)
         elif key == "kalender":
-            page = KalenderView(pid, bhs, mode=mode)
+            page = KalenderView(pid, bhs, mode=mode, navigate_cb=self._navigate)
         elif key == "tracker":
             page = TrackerView(pid, bhs, mode=mode)
         elif key == "notifikasi":
