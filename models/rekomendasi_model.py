@@ -79,20 +79,26 @@ def hitung_skor_cocok(profil_user: dict, syarat_beasiswa: dict) -> int:
     if profil_user.get("semester", 1) <= syarat_beasiswa.get("max_semester", 8):
         terpenuhi += 1
 
-    # Jurusan
+    # Jurusan — handle 'Semua Jurusan' dari data scraping
     total += 1
     daftar_jurusan = syarat_beasiswa.get("jurusan", [])
+    jurusan_user = profil_user.get("jurusan", "")
     if isinstance(daftar_jurusan, list):
-        if profil_user.get("jurusan", "") in daftar_jurusan:
+        # Cocok jika: daftar kosong, ada 'Semua Jurusan', atau jurusan user ada di daftar
+        if (
+            not daftar_jurusan
+            or any(j.strip().lower() == "semua jurusan" for j in daftar_jurusan)
+            or jurusan_user in daftar_jurusan
+        ):
             terpenuhi += 1
-    elif profil_user.get("jurusan") == daftar_jurusan:
+    elif jurusan_user == daftar_jurusan:
         terpenuhi += 1
 
-    # Organisasi
+    # Organisasi — wajib_organisasi bisa bool atau tidak ada (berarti tidak wajib)
     total += 1
-    if not syarat_beasiswa.get("wajib_organisasi", False):
-        terpenuhi += 1
-    elif profil_user.get("organisasi", False):
+    wajib_org = syarat_beasiswa.get("wajib_organisasi", False)
+    punya_org = bool(profil_user.get("organisasi") or profil_user.get("aktif_organisasi"))
+    if not wajib_org or punya_org:
         terpenuhi += 1
 
     # Penghasilan orang tua
@@ -128,10 +134,14 @@ def analisis_peluang(data_profil: dict, target_beasiswa: dict) -> str:
 
     jurusan = data_profil.get("jurusan", "")
     daftar = target_beasiswa.get("jurusan", [])
-    if isinstance(daftar, list) and jurusan not in daftar:
-        saran.append(f"- Jurusan Anda ({jurusan}) tidak termasuk dalam daftar yang diterima.")
+    if isinstance(daftar, list) and daftar:
+        semua_jurusan = any(j.strip().lower() == "semua jurusan" for j in daftar)
+        if not semua_jurusan and jurusan not in daftar:
+            saran.append(f"- Jurusan Anda ({jurusan}) tidak termasuk dalam daftar yang diterima.")
 
-    if target_beasiswa.get("wajib_organisasi") and not data_profil.get("organisasi"):
+    wajib_org = target_beasiswa.get("wajib_organisasi", False)
+    punya_org = bool(data_profil.get("organisasi") or data_profil.get("aktif_organisasi"))
+    if wajib_org and not punya_org:
         saran.append("- Beasiswa ini mewajibkan pengalaman organisasi.")
 
     if not saran:
@@ -159,11 +169,12 @@ def ambil_profil_untuk_rekomendasi(profil_id: int) -> dict:
         return {}
     profil = dict(row)
     return {
-        "jurusan":          profil.get("jurusan", ""),
-        "ipk":              profil.get("ip", 0.0) or 0.0,
-        "semester":         profil.get("semester", 1) or 1,
-        # Default: belum ada kolom organisasi & penghasilan di DB,
-        # fallback ke nilai konservatif sampai kolom ditambahkan
-        "organisasi":       profil.get("aktif_organisasi", False),
-        "penghasilan_ortu": profil.get("penghasilan_ortu", 5_000_000),
+        "jurusan":           profil.get("jurusan", ""),
+        "ipk":               profil.get("ip", 0.0) or 0.0,
+        "semester":          profil.get("semester", 1) or 1,
+        # aktif_organisasi: 1 = ya, 0 = tidak
+        "organisasi":        bool(profil.get("aktif_organisasi", 0)),
+        "aktif_organisasi":  bool(profil.get("aktif_organisasi", 0)),
+        # penghasilan_ortu: belum ada kolom di DB, pakai default konservatif
+        "penghasilan_ortu":  profil.get("penghasilan_ortu", 5_000_000),
     }

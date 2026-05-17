@@ -32,6 +32,7 @@ def init_profil_db():
             jenjang         TEXT    NOT NULL,
             jenis_kelamin   TEXT    NOT NULL,
             status_kip      INTEGER DEFAULT 0,
+            aktif_organisasi INTEGER DEFAULT 0,
             skor_ielts      REAL,
             skor_toefl      INTEGER,
             skor_duolingo   INTEGER,
@@ -58,6 +59,19 @@ def init_profil_db():
     """)
 
     conn.commit()
+
+    # ── Migration: tambah kolom baru ke tabel lama ────────────
+    # Dijalankan setiap startup; IF NOT EXISTS-equivalent via try/except
+    migrations = [
+        "ALTER TABLE profil ADD COLUMN aktif_organisasi INTEGER DEFAULT 0",
+    ]
+    for sql in migrations:
+        try:
+            conn.execute(sql)
+            conn.commit()
+        except Exception:
+            pass  # Kolom sudah ada — skip
+
     conn.close()
 
 
@@ -76,7 +90,8 @@ def simpan_profil_db(data: dict) -> tuple[bool, str, int]:
         cols = [
             "user_id", "nama", "tanggal_lahir", "email", "jurusan",
             "kampus", "semester", "ip", "jenjang", "jenis_kelamin",
-            "status_kip", "skor_ielts", "skor_toefl", "skor_duolingo",
+            "status_kip", "aktif_organisasi",
+            "skor_ielts", "skor_toefl", "skor_duolingo",
             "skor_sat", "skor_act", "skor_gre", "skor_gmat",
             "skor_hsk", "level_jlpt",
         ]
