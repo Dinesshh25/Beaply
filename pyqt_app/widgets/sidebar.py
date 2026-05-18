@@ -57,7 +57,7 @@ class SidebarWidget(QFrame):
             logo_path = os.path.abspath(os.path.join(
                 os.path.dirname(__file__), "..", "..", "assets", "logo_beaply.png"))
             pix = QPixmap(logo_path).scaled(
-                110, 55, Qt.AspectRatioMode.KeepAspectRatio,
+                160, 80, Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation)
             logo_lbl = QLabel()
             logo_lbl.setPixmap(pix)

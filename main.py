@@ -205,6 +205,16 @@ class BeaplyMainWindow(QMainWindow):
 
         # Sidebar
         self._sidebar = SidebarWidget(_t, self._bhs)
+        
+        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+        from PyQt6.QtGui import QColor
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setXOffset(2)
+        shadow.setYOffset(0)
+        shadow.setColor(QColor(0, 0, 0, 15))
+        self._sidebar.setGraphicsEffect(shadow)
+        
         self._sidebar.navigate.connect(self._navigate)
         main_lay.addWidget(self._sidebar)
 
