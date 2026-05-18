@@ -93,7 +93,7 @@ class DashboardView(QWidget):
                 dl3 = QLabel(str(day) if day else "")
                 dl3.setAlignment(Qt.AlignmentFlag.AlignCenter); dl3.setFixedSize(32,28)
                 if day == today.day and self._cal_date.year == today.year and self._cal_date.month == today.month:
-                    dl3.setStyleSheet(f"background:#FDE08B;color:#000000;border-radius:14px;font-weight:bold;font-size:11px;")
+                    dl3.setStyleSheet(f"background:#a8c5b0;color:#000000;border-radius:14px;font-weight:bold;font-size:11px;")
                 elif day:
                     dl3.setStyleSheet(f"color:{c['text_dark']};font-size:11px;background:transparent;")
                 else:
@@ -108,6 +108,16 @@ class DashboardView(QWidget):
                 vsb.setValue(vsb.maximum())
         elif self._nav:
             self._nav(target)
+
+    def _apply_card_shadow(self, widget):
+        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+        from PyQt6.QtGui import QColor
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setXOffset(2)
+        shadow.setYOffset(0)
+        shadow.setColor(QColor(0, 0, 0, 15))
+        widget.setGraphicsEffect(shadow)
 
     def _build(self):
         c = palette(self._mode)
@@ -126,6 +136,7 @@ class DashboardView(QWidget):
 
         # ━━ GREETING with illustration ━━
         greet = QFrame(); greet.setObjectName("greetCard")
+        self._apply_card_shadow(greet)
         greet.setFixedHeight(180)
         greet.setStyleSheet(f"""
             #greetCard {{
@@ -177,41 +188,56 @@ class DashboardView(QWidget):
         bc = len(ambil_semua_beasiswa()); bmc = len(ambil_bookmark_user(self._pid))
         dlc = stats_data.get("total", 0)
         stats = [
-            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", "#E8EBE4", "eksplorasi"),
-            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  "#F4EFE6", "bookmarks"),
-            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    "#F6E6E4", "kalender"),
-            ("7",      "Smart Tips\nFor You",       "smart.png",       "#E8EEE4", "scroll_faq"),
+            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", "#F6F8F3", "eksplorasi"),
+            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  "#FBF8F2", "bookmarks"),
+            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    "#FDF3F1", "kalender"),
+            ("7",      "Smart Tips\nFor You",       "smart.png",       "#F6F9F3", "scroll_faq"),
         ]
         sw = QWidget(); sw.setStyleSheet("background:transparent;")
         sl = QHBoxLayout(sw); sl.setContentsMargins(0,0,0,0); sl.setSpacing(10)
         for i,(v,lb,ic_file,bg,nav_target) in enumerate(stats):
             f = QPushButton(); f.setObjectName(f"st{i}"); f.setFixedHeight(88)
             f.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-            f.setStyleSheet(f"#{f.objectName()}{{background:{bg};border-radius:14px;border:none;}}")
+            f.setStyleSheet(f"#{f.objectName()}{{background:{bg};border-radius:14px;border:1px solid {c['border']};}}")
+            self._apply_card_shadow(f)
             f.clicked.connect(lambda _, tgt=nav_target: self._handle_stats_click(tgt))
-            fl = QVBoxLayout(f); fl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            fl.setContentsMargins(8,8,8,8)
-            r = QWidget(); r.setStyleSheet("background:transparent;")
-            r.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            rl = QHBoxLayout(r); rl.setContentsMargins(0,0,0,0)
-            rl.setAlignment(Qt.AlignmentFlag.AlignCenter); rl.setSpacing(6)
-            il = QLabel()
-            il.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+            fl = QHBoxLayout(f)
+            fl.setContentsMargins(14,10,10,10); fl.setSpacing(10)
+
+            # Icon with peach circular shadow
+            icon_wrap = QLabel()
+            icon_wrap.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+            icon_wrap.setFixedSize(54, 54)
+            icon_wrap.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            icon_wrap.setStyleSheet("background:transparent;")
             ic_path = os.path.join(ASSETS, ic_file)
             if os.path.exists(ic_path):
-                px = QPixmap(ic_path).scaled(32, 32, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                il.setPixmap(px)
-            else:
-                il.setText("?"); il.setFont(QFont(FONT_FAMILY,16))
-            il.setStyleSheet("background:transparent;"); rl.addWidget(il)
-            vl = QLabel(v); vl.setFont(QFont(FONT_FAMILY,22,QFont.Weight.Bold))
+                px = QPixmap(ic_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                icon_wrap.setPixmap(px)
+            from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+            from PyQt6.QtGui import QColor
+            icon_shadow = QGraphicsDropShadowEffect()
+            icon_shadow.setBlurRadius(20)
+            icon_shadow.setXOffset(0)
+            icon_shadow.setYOffset(0)
+            icon_shadow.setColor(QColor(255, 255, 255))
+            icon_wrap.setGraphicsEffect(icon_shadow)
+            fl.addWidget(icon_wrap)
+
+            # Right side: number + label stacked
+            right_w = QWidget(); right_w.setStyleSheet("background:transparent;")
+            right_w.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+            right_l = QVBoxLayout(right_w); right_l.setContentsMargins(0,0,0,0); right_l.setSpacing(0)
+            vl = QLabel(v); vl.setFont(QFont(FONT_FAMILY, 22, QFont.Weight.Bold))
             vl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            vl.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); rl.addWidget(vl)
-            fl.addWidget(r)
-            ll2 = QLabel(lb); ll2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            vl.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+            right_l.addWidget(vl)
+            ll2 = QLabel(lb)
             ll2.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            ll2.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
-            fl.addWidget(ll2)
+            ll2.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.DemiBold))
+            ll2.setStyleSheet(f"color:{c['text_muted']};background:transparent;")
+            right_l.addWidget(ll2)
+            fl.addWidget(right_w, 1)
             sl.addWidget(f)
         ll.addWidget(sw)
 
@@ -220,6 +246,7 @@ class DashboardView(QWidget):
         all_bea = ambil_semua_beasiswa()[:8]
         table = QTableWidget(len(all_bea), 5)
         table.setHorizontalHeaderLabels(["Name", "Funding", "Degree", "Country", "Deadline"])
+        table.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         table.horizontalHeader().setStretchLastSection(True)
         table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         for i in range(1, 5):
@@ -229,6 +256,7 @@ class DashboardView(QWidget):
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         table.setAlternatingRowColors(True)
         table.setShowGrid(False)
+        self._apply_card_shadow(table)
         table.setMinimumHeight(min(len(all_bea) * 44 + 36, 380))
         table.setStyleSheet(f"""
             QTableWidget {{
@@ -289,6 +317,7 @@ class DashboardView(QWidget):
         # ━━ PROFILE COMPLETENESS ━━
         comp = self._calc_completeness(profil)
         pc = QFrame(); pc.setObjectName("pcCard")
+        self._apply_card_shadow(pc)
         pc.setStyleSheet(f"#pcCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         pcl = QVBoxLayout(pc); pcl.setContentsMargins(18,16,18,16); pcl.setSpacing(8)
         pch = QLabel("Profile\nCompleteness"); pch.setFont(QFont(FONT_FAMILY,13,QFont.Weight.Bold))
@@ -320,6 +349,7 @@ class DashboardView(QWidget):
 
         # ━━ UPCOMING DEADLINES ━━
         dc = QFrame(); dc.setObjectName("dlCard")
+        self._apply_card_shadow(dc)
         dc.setStyleSheet(f"#dlCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         dcl = QVBoxLayout(dc); dcl.setContentsMargins(18,16,18,16); dcl.setSpacing(6)
         dcl.addWidget(self._header("Upcoming Deadlines", c))
@@ -347,6 +377,7 @@ class DashboardView(QWidget):
 
         # ━━ CALENDAR ━━
         cc = QFrame(); cc.setObjectName("calCard")
+        self._apply_card_shadow(cc)
         cc.setStyleSheet(f"#calCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         ccl = QVBoxLayout(cc); ccl.setContentsMargins(14,14,14,14); ccl.setSpacing(4)
         ccl.addWidget(self._header("Calendar", c))
@@ -406,6 +437,7 @@ class DashboardView(QWidget):
         """Build the analytics card with tabbed charts."""
         card = QFrame()
         card.setObjectName("analyticsCard")
+        self._apply_card_shadow(card)
         card.setStyleSheet(
             f"#analyticsCard{{background:{c['card']};border:1px solid {c['border']};"
             f"border-radius:16px;}}"
@@ -638,6 +670,7 @@ class DashboardView(QWidget):
             tc_color = tag_colors.get(ins.get("tag",""), c["text_accent"])
 
             card = QFrame(); card.setObjectName(f"insCard{i}")
+            self._apply_card_shadow(card)
             card.setStyleSheet(
                 f"#insCard{i}{{background:{bg};border-radius:14px;"
                 f"border:1px solid {c['border']};}}"
