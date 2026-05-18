@@ -125,7 +125,7 @@ class BeaplyMainWindow(QMainWindow):
         if is_admin(user_email):
             self._is_admin = True
             self._build_admin_layout()
-            self._root_stack.setCurrentIndex(3)
+            self._root_stack.setCurrentWidget(self._admin_widget)
             return
 
         self._is_admin = False
@@ -145,7 +145,7 @@ class BeaplyMainWindow(QMainWindow):
         self._home = HomeView(self._user_id)
         self._home.profile_selected.connect(self._on_profile_selected)
         self._root_stack.insertWidget(1, self._home)
-        self._root_stack.setCurrentIndex(1)
+        self._root_stack.setCurrentWidget(self._home)
 
     def _on_register(self, data: dict, profil_id: int):
         """Called when register+profile creation succeeds. Go straight to dashboard."""
@@ -159,7 +159,7 @@ class BeaplyMainWindow(QMainWindow):
         self._mode = pref.get("tema", "light")
         self._apply_theme()
         self._build_main_layout()
-        self._root_stack.setCurrentIndex(2)
+        self._root_stack.setCurrentWidget(self._main_widget)
 
     def _try_auto_login(self):
         """Check for saved session and auto-login."""
@@ -188,7 +188,7 @@ class BeaplyMainWindow(QMainWindow):
         self._apply_theme()
 
         self._build_main_layout()
-        self._root_stack.setCurrentIndex(2)
+        self._root_stack.setCurrentWidget(self._main_widget)
 
     # ── Build Main Layout (sidebar + topbar + content) ───────
     def _build_main_layout(self):
@@ -313,7 +313,7 @@ class BeaplyMainWindow(QMainWindow):
         # Index 2 = main layout (sidebar + content).
         # Previously this was index 1 (Home/profile-select), which
         # caused a blank screen after theme/language changes.
-        self._root_stack.setCurrentIndex(2)
+        self._root_stack.setCurrentWidget(self._main_widget)
 
         # Navigate back to settings so the user stays on the same page
         self._navigate("settings")
@@ -399,7 +399,7 @@ class BeaplyMainWindow(QMainWindow):
         self._apply_theme()
         QApplication.processEvents()
         self._build_admin_layout()
-        self._root_stack.setCurrentIndex(3)
+        self._root_stack.setCurrentWidget(self._admin_widget)
         self._admin_navigate("admin_settings")
 
     # ── Logout ───────────────────────────────────────────────
