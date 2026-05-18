@@ -32,18 +32,20 @@ logger = logging.getLogger(__name__)
 # ════════════════════════════════════════════════════════════
 
 def input_data_wajib(nama, tanggal_lahir, email, jurusan, kampus,
-                     semester, ip, jenjang, jenis_kelamin) -> dict:
+                     semester, ip, jenjang, jenis_kelamin,
+                     aktif_organisasi=False) -> dict:
     """Kumpulkan input data wajib dari GUI menjadi satu dict."""
     return {
-        "nama":          nama.strip(),
-        "tanggal_lahir": tanggal_lahir.strip(),
-        "email":         email.strip().lower(),
-        "jurusan":       jurusan.strip(),
-        "kampus":        kampus.strip(),
-        "semester":      parse_int_or_none(semester),
-        "ip":            parse_float_or_none(ip),
-        "jenjang":       jenjang.strip(),
-        "jenis_kelamin": jenis_kelamin.strip(),
+        "nama":              nama.strip(),
+        "tanggal_lahir":     tanggal_lahir.strip(),
+        "email":             email.strip().lower(),
+        "jurusan":           jurusan.strip(),
+        "kampus":            kampus.strip(),
+        "semester":          parse_int_or_none(semester),
+        "ip":                parse_float_or_none(ip),
+        "jenjang":           jenjang.strip(),
+        "jenis_kelamin":     jenis_kelamin.strip(),
+        "aktif_organisasi":  int(bool(aktif_organisasi)),
     }
 
 
@@ -91,31 +93,33 @@ def tampil_semua_profil(user_id=None) -> list:
 
 def edit_profil(id_profil, nama, tanggal_lahir, email, jurusan, kampus,
                 semester, ip, jenjang, jenis_kelamin, status_kip=False,
+                aktif_organisasi=False,
                 skor_ielts="", skor_toefl="", skor_duolingo="",
                 skor_sat="", skor_act="", skor_gre="", skor_gmat="",
                 skor_hsk="", level_jlpt="") -> dict:
     """Kumpulkan data baru dari GUI menjadi satu dict siap validasi."""
     return {
-        "id_profil":     id_profil,
-        "nama":          nama.strip(),
-        "tanggal_lahir": tanggal_lahir.strip(),
-        "email":         email.strip().lower(),
-        "jurusan":       jurusan.strip(),
-        "kampus":        kampus.strip(),
-        "semester":      parse_int_or_none(semester),
-        "ip":            parse_float_or_none(ip),
-        "jenjang":       jenjang.strip(),
-        "jenis_kelamin": jenis_kelamin.strip(),
-        "status_kip":    int(status_kip),
-        "skor_ielts":    parse_float_or_none(skor_ielts),
-        "skor_toefl":    parse_int_or_none(skor_toefl),
-        "skor_duolingo": parse_int_or_none(skor_duolingo),
-        "skor_sat":      parse_int_or_none(skor_sat),
-        "skor_act":      parse_int_or_none(skor_act),
-        "skor_gre":      parse_int_or_none(skor_gre),
-        "skor_gmat":     parse_int_or_none(skor_gmat),
-        "skor_hsk":      parse_int_or_none(skor_hsk),
-        "level_jlpt":    level_jlpt.strip().upper() if level_jlpt.strip() else None,
+        "id_profil":         id_profil,
+        "nama":              nama.strip(),
+        "tanggal_lahir":     tanggal_lahir.strip(),
+        "email":             email.strip().lower(),
+        "jurusan":           jurusan.strip(),
+        "kampus":            kampus.strip(),
+        "semester":          parse_int_or_none(semester),
+        "ip":                parse_float_or_none(ip),
+        "jenjang":           jenjang.strip(),
+        "jenis_kelamin":     jenis_kelamin.strip(),
+        "status_kip":        int(status_kip),
+        "aktif_organisasi":  int(bool(aktif_organisasi)),
+        "skor_ielts":        parse_float_or_none(skor_ielts),
+        "skor_toefl":        parse_int_or_none(skor_toefl),
+        "skor_duolingo":     parse_int_or_none(skor_duolingo),
+        "skor_sat":          parse_int_or_none(skor_sat),
+        "skor_act":          parse_int_or_none(skor_act),
+        "skor_gre":          parse_int_or_none(skor_gre),
+        "skor_gmat":         parse_int_or_none(skor_gmat),
+        "skor_hsk":          parse_int_or_none(skor_hsk),
+        "level_jlpt":        level_jlpt.strip().upper() if level_jlpt.strip() else None,
     }
 
 

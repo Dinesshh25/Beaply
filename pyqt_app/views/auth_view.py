@@ -269,12 +269,36 @@ class AuthView(QWidget):
         ll.addWidget(self._lbl("Email*")); self.reg_email = self._inp(); ll.addWidget(self.reg_email); ll.addSpacing(4)
         ll.addWidget(self._lbl("Password*")); self.reg_pass = self._inp("", QLineEdit.EchoMode.Password); ll.addWidget(self.reg_pass); ll.addSpacing(4)
         ll.addWidget(self._lbl("Date of Birth*")); self.reg_dob = self._inp("YYYY-MM-DD"); ll.addWidget(self.reg_dob); ll.addSpacing(4)
-        ll.addWidget(self._lbl("Major*")); self.reg_major = self._inp(); ll.addWidget(self.reg_major); ll.addSpacing(4)
+        ll.addWidget(self._lbl("Major*"))
+        self.reg_major = self._combo([
+            "Teknik Informatika", "Ilmu Komputer", "Sistem Informasi",
+            "Teknik Elektro", "Teknik Mesin", "Teknik Sipil",
+            "Teknik Kimia", "Teknik Industri", "Teknik Lingkungan",
+            "Arsitektur", "Matematika", "Fisika", "Kimia", "Biologi",
+            "Statistika", "Ekonomi", "Manajemen", "Akuntansi",
+            "Ilmu Komunikasi", "Psikologi", "Hukum", "Kedokteran",
+            "Farmasi", "Kesehatan Masyarakat", "Keperawatan",
+            "Pendidikan", "Sastra Indonesia", "Sastra Inggris",
+            "Hubungan Internasional", "Ilmu Politik", "Sosiologi",
+            "Agribisnis", "Pertanian", "Perikanan", "Kehutanan",
+            "Seni Rupa", "Desain Komunikasi Visual", "Lainnya",
+        ])
+        ll.addWidget(self.reg_major); ll.addSpacing(4)
         ll.addWidget(self._lbl("University Name*")); self.reg_univ = self._inp(); ll.addWidget(self.reg_univ); ll.addSpacing(4)
         ll.addWidget(self._lbl("Degree*")); self.reg_degree = self._combo(["D3","D4","S1","S2","S3"]); self.reg_degree.setCurrentText("S1"); ll.addWidget(self.reg_degree); ll.addSpacing(4)
         ll.addWidget(self._lbl("Semester*")); self.reg_sem = self._inp(); ll.addWidget(self.reg_sem); ll.addSpacing(4)
         ll.addWidget(self._lbl("Latest GPA (0.00-4.00)*")); self.reg_gpa = self._inp(); ll.addWidget(self.reg_gpa); ll.addSpacing(4)
-        ll.addWidget(self._lbl("Gender*")); self.reg_gender = self._combo(["Laki-laki","Perempuan"]); ll.addWidget(self.reg_gender)
+        ll.addWidget(self._lbl("Gender*")); self.reg_gender = self._combo(["Laki-laki","Perempuan"]); ll.addWidget(self.reg_gender); ll.addSpacing(4)
+
+        ll.addWidget(self._lbl("Aktif Organisasi"))
+        self.reg_organisasi = QCheckBox("Ya, saya aktif berorganisasi")
+        self.reg_organisasi.setStyleSheet(
+            f"QCheckBox {{ color: {self.TEXT_DARK}; font-size: 12px; background: transparent; }}"
+            f"QCheckBox::indicator {{ width: 18px; height: 18px; border: 2px solid {self.INPUT_BORDER};"
+            f" border-radius: 4px; background: white; }}"
+            f"QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; }}"
+        )
+        ll.addWidget(self.reg_organisasi)
         ll.addStretch()
         sl.addWidget(left)
 
@@ -380,7 +404,7 @@ class AuthView(QWidget):
         email = self.reg_email.text().strip()
         pw = self.reg_pass.text()
         dob = self.reg_dob.text().strip()
-        major = self.reg_major.text().strip()
+        major = self.reg_major.currentText().strip()
         univ = self.reg_univ.text().strip()
         sem = self.reg_sem.text().strip()
         gpa = self.reg_gpa.text().strip()
@@ -397,7 +421,8 @@ class AuthView(QWidget):
 
         # 2. Create profile
         dw = input_data_wajib(nama, dob, email, major, univ, sem, gpa,
-                              self.reg_degree.currentText(), self.reg_gender.currentText())
+                              self.reg_degree.currentText(), self.reg_gender.currentText(),
+                              self.reg_organisasi.isChecked())
         ds = input_data_spesifik(
             self.reg_kip.isChecked(),
             self.reg_ielts.text().strip(),
