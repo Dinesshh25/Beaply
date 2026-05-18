@@ -152,14 +152,31 @@ class DashboardView(QWidget):
         # Text side
         text_w = QWidget(); text_w.setStyleSheet("background:transparent;")
         tl = QVBoxLayout(text_w); tl.setContentsMargins(0,0,0,0); tl.setSpacing(2)
-        g1 = QLabel(f"Good morning, {nama}!")
+        
+        hour = datetime.datetime.now().hour
+        if 5 <= hour < 12: greeting_text = "Good morning"
+        elif 12 <= hour < 17: greeting_text = "Good afternoon"
+        elif 17 <= hour < 21: greeting_text = "Good evening"
+        else: greeting_text = "Good night"
+        
+        g1 = QLabel(f"{greeting_text}, {nama}!")
         g1.setFont(QFont(FONT_FAMILY, 13)); g1.setStyleSheet(f"color:{c['text_muted']};background:transparent;")
         tl.addWidget(g1)
         g2 = QLabel("Let's find your next")
         g2.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         g2.setMinimumHeight(42); tl.addWidget(g2)
-        g2b = QLabel(f"<b><span style='color:#A8C5B0'>life-</span><span style='color:#F4A9A0'>changing</span> opportunity</b>")
+        
+        grad_str = "life-changing"
+        grad_html = ""
+        for idx, ch in enumerate(grad_str):
+            t = idx / (len(grad_str) - 1)
+            r = int(168 + t * (244 - 168))
+            g = int(197 + t * (169 - 197))
+            b = int(176 + t * (160 - 176))
+            grad_html += f"<span style='color:rgb({r},{g},{b})'>{ch}</span>"
+
+        g2b = QLabel(f"<b>{grad_html} opportunity</b>")
         g2b.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2b.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         g2b.setMinimumHeight(42); tl.addWidget(g2b)
@@ -204,12 +221,12 @@ class DashboardView(QWidget):
             fl = QHBoxLayout(f)
             fl.setContentsMargins(14,10,10,10); fl.setSpacing(10)
 
-            # Icon with peach circular shadow
+            # Icon with white circular shadow (glow)
             icon_wrap = QLabel()
             icon_wrap.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             icon_wrap.setFixedSize(54, 54)
             icon_wrap.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            icon_wrap.setStyleSheet("background:transparent;")
+            icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:27px;")
             ic_path = os.path.join(ASSETS, ic_file)
             if os.path.exists(ic_path):
                 px = QPixmap(ic_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
@@ -217,10 +234,10 @@ class DashboardView(QWidget):
             from PyQt6.QtWidgets import QGraphicsDropShadowEffect
             from PyQt6.QtGui import QColor
             icon_shadow = QGraphicsDropShadowEffect()
-            icon_shadow.setBlurRadius(20)
+            icon_shadow.setBlurRadius(25)
             icon_shadow.setXOffset(0)
             icon_shadow.setYOffset(0)
-            icon_shadow.setColor(QColor(255, 255, 255))
+            icon_shadow.setColor(QColor(255, 255, 255, 200))
             icon_wrap.setGraphicsEffect(icon_shadow)
             fl.addWidget(icon_wrap)
 
@@ -338,7 +355,7 @@ class DashboardView(QWidget):
         for label, done in checks_data:
             ic = "\u2705" if done else "\u2B1C"
             cl = QLabel(f"{ic}  {label}")
-            cl.setStyleSheet(f"color:{c['text_dark'] if done else c['text_muted']};font-size:10px;background:transparent;")
+            cl.setStyleSheet(f"color:{c['text_dark'] if done else c['text_muted']};font-size:12px;background:transparent;")
             dwl.addWidget(cl)
         rrl.addWidget(dw); pcl.addWidget(rrow)
         cpb = QPushButton("Complete Profile \u203a"); cpb.setObjectName("cpBtn")
@@ -381,7 +398,6 @@ class DashboardView(QWidget):
         cc.setStyleSheet(f"#calCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         ccl = QVBoxLayout(cc); ccl.setContentsMargins(14,14,14,14); ccl.setSpacing(4)
         ccl.addWidget(self._header("Calendar", c))
-        import datetime
         self._cal_date = datetime.date.today()
         cal_nav = QWidget(); cal_nav.setStyleSheet("background:transparent;")
         cal_nav_l = QHBoxLayout(cal_nav); cal_nav_l.setContentsMargins(0,0,0,0)

@@ -77,6 +77,7 @@ class TopbarWidget(QFrame):
         text_lay = QVBoxLayout(text_frame)
         text_lay.setContentsMargins(0, 0, 0, 0)
         text_lay.setSpacing(0)
+        text_lay.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         name_lbl = QLabel(self._user_name)
         name_lbl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
         text_lay.addWidget(name_lbl)

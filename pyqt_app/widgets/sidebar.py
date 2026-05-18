@@ -57,14 +57,14 @@ class SidebarWidget(QFrame):
             logo_path = os.path.abspath(os.path.join(
                 os.path.dirname(__file__), "..", "..", "assets", "logo_beaply.png"))
             pix = QPixmap(logo_path).scaled(
-                160, 80, Qt.AspectRatioMode.KeepAspectRatio,
+                200, 100, Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation)
             logo_lbl = QLabel()
             logo_lbl.setPixmap(pix)
             logo_lay.addWidget(logo_lbl)
         except Exception:
             logo_lbl = QLabel("beaply")
-            logo_lbl.setFont(QFont(FONT_FAMILY, 22, QFont.Weight.Bold))
+            logo_lbl.setFont(QFont(FONT_FAMILY, 28, QFont.Weight.Bold))
             logo_lbl.setStyleSheet("color: #D4917B;")
             logo_lay.addWidget(logo_lbl)
         layout.addWidget(logo_frame)
