@@ -193,7 +193,7 @@ class AuthView(QWidget):
     def _inp(self, ph="", echo=QLineEdit.EchoMode.Normal, shadow=True):
         e = QLineEdit(); e.setPlaceholderText(ph); e.setFixedHeight(44); e.setEchoMode(echo)
         e.setFont(QFont(FONT_FAMILY, 11))
-        e.setStyleSheet(f"QLineEdit {{ background-color: {self.INPUT_BG}; color: {self.TEXT_DARK}; border: none; border-radius: 12px; padding: 10px 16px; font-size: 13px; }} QLineEdit:focus {{ border: 2px solid {self.BTN_GREEN}; }}")
+        e.setStyleSheet(f"QLineEdit {{ background-color: {self.INPUT_BG}; color: {self.TEXT_DARK}; border: 2px solid transparent; border-radius: 12px; padding: 10px 16px; font-size: 13px; }} QLineEdit:focus {{ border: 2px solid {self.BTN_GREEN}; }}")
         if shadow: self._apply_shadow(e)
         return e
 
@@ -209,24 +209,24 @@ class AuthView(QWidget):
         e.setStyleSheet(f"QLineEdit {{ background-color: transparent; color: {self.TEXT_DARK}; border: none; font-size: 13px; padding: 0px; }} QLineEdit:focus {{ border: none; }}")
         
         from PyQt6.QtWidgets import QToolButton
-        from PyQt6.QtGui import QIcon
+        from PyQt6.QtGui import QIcon, QPixmap
         import os
         btn = QToolButton()
         
-        p_closed = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "password_closed.png"))
-        p_seen = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "password_seen.png"))
+        p_closed = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "see_password.png"))
+        p_seen = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "hide_password.png"))
         
         icon_closed = QIcon(p_closed); icon_seen = QIcon(p_seen)
-        btn.setIcon(icon_seen)
+        btn.setIcon(icon_closed)
         btn.setIconSize(QSize(20, 20))
         btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         btn.setStyleSheet("QToolButton { border: none; background: transparent; }")
         
         def toggle_echo():
             if e.echoMode() == QLineEdit.EchoMode.Password:
-                e.setEchoMode(QLineEdit.EchoMode.Normal); btn.setIcon(icon_closed)
+                e.setEchoMode(QLineEdit.EchoMode.Normal); btn.setIcon(icon_seen)
             else:
-                e.setEchoMode(QLineEdit.EchoMode.Password); btn.setIcon(icon_seen)
+                e.setEchoMode(QLineEdit.EchoMode.Password); btn.setIcon(icon_closed)
                 
         btn.clicked.connect(toggle_echo)
         
@@ -382,10 +382,13 @@ class AuthView(QWidget):
 
         rl.addWidget(self._lbl("KIP Recipient"))
         self.reg_kip = QCheckBox("Yes")
-        check_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "check.svg")).replace("\\", "/")
         self.reg_kip.setStyleSheet(f"QCheckBox {{ color: {self.TEXT_DARK}; font-size: 12px; background: transparent; }} QCheckBox::indicator {{ width: 18px; height: 18px; border: 2px solid {self.INPUT_BORDER}; border-radius: 4px; background: white; }} QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; image: url('{check_path}'); }}")
         rl.addWidget(self.reg_kip); rl.addSpacing(4)
 
+        rl.addWidget(self._lbl("IELTS Score (0.0-9.0)")); self.reg_ielts = self._inp(); rl.addWidget(self.reg_ielts); rl.addSpacing(4)
+        rl.addWidget(self._lbl("TOEFL iBT Score (0-120)")); self.reg_toefl = self._inp(); rl.addWidget(self.reg_toefl); rl.addSpacing(4)
+        rl.addWidget(self._lbl("Duolingo Score (10-160)")); self.reg_duo = self._inp(); rl.addWidget(self.reg_duo); rl.addSpacing(4)
+        rl.addWidget(self._lbl("SAT Score (400-1600)")); self.reg_sat = self._inp(); rl.addWidget(self.reg_sat); rl.addSpacing(4)
         rl.addWidget(self._lbl("ACT Score (1-36)")); self.reg_act = self._inp(); rl.addWidget(self.reg_act); rl.addSpacing(4)
         rl.addWidget(self._lbl("GRE Score (260-340)")); self.reg_gre = self._inp(); rl.addWidget(self.reg_gre); rl.addSpacing(4)
         rl.addWidget(self._lbl("GMAT Score (200-800)")); self.reg_gmat = self._inp(); rl.addWidget(self.reg_gmat); rl.addSpacing(4)
