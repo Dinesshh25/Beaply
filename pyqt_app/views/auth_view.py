@@ -55,10 +55,8 @@ class GradientBackground(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         g = QLinearGradient(0, 0, self.width(), self.height())
-        g.setColorAt(0.0, QColor("#F5E6DC"))
-        g.setColorAt(0.3, QColor("#F0EBE3"))
-        g.setColorAt(0.6, QColor("#E8EDE4"))
-        g.setColorAt(1.0, QColor("#D8DFD0"))
+        g.setColorAt(0.0, QColor("#FFE0D0"))
+        g.setColorAt(1.0, QColor("#D8E0D8"))
         p.fillRect(self.rect(), QBrush(g))
         p.end()
 
@@ -98,7 +96,7 @@ class AuthView(QWidget):
         self._card.setFixedSize(480, 540)
         self._card.setStyleSheet(f"#AuthCard {{ background-color: {self.CARD_BG}; border-radius: 20px; border: none; }}")
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(40); shadow.setOffset(0, 8); shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setBlurRadius(50); shadow.setOffset(0, 10); shadow.setColor(QColor(0, 0, 0, 45))
         self._card.setGraphicsEffect(shadow)
 
         card_lay = QVBoxLayout(self._card)
@@ -120,14 +118,17 @@ class AuthView(QWidget):
         tw = QFrame()
         tw.setObjectName("TabsContainer")
         tw.setFixedHeight(38)
-        tw.setStyleSheet(f"#TabsContainer {{ background-color: {self.TAB_INACTIVE}; border: 1px solid {self.TAB_BORDER}; border-radius: 19px; }}")
+        shadow_tw = QGraphicsDropShadowEffect()
+        shadow_tw.setBlurRadius(15); shadow_tw.setOffset(0, 4); shadow_tw.setColor(QColor(0, 0, 0, 25))
+        tw.setGraphicsEffect(shadow_tw)
+        tw.setStyleSheet(f"#TabsContainer {{ background-color: {self.CARD_BG}; border: 1px solid #D0D0D0; border-radius: 19px; }}")
         tw_l = QHBoxLayout(tw)
-        tw_l.setContentsMargins(3, 3, 3, 3); tw_l.setSpacing(0)
+        tw_l.setContentsMargins(1, 1, 1, 1); tw_l.setSpacing(0)
 
         self._tab_login = QPushButton("Log in")
         self._tab_signup = QPushButton("Sign up")
         for b in (self._tab_login, self._tab_signup):
-            b.setFixedSize(90, 32)
+            b.setFixedSize(100, 34)
             b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             b.setFont(QFont(FONT_FAMILY, 10))
         tw_l.addWidget(self._tab_login); tw_l.addWidget(self._tab_signup)
@@ -159,7 +160,7 @@ class AuthView(QWidget):
         h = QHBoxLayout(c); h.setAlignment(Qt.AlignmentFlag.AlignCenter); h.setContentsMargins(0,0,0,0)
         try:
             p = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "logo_beaply.png"))
-            px = QPixmap(p).scaled(160, 75, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            px = QPixmap(p).scaled(300, 140, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             l = QLabel(); l.setPixmap(px); l.setStyleSheet("background: transparent;"); h.addWidget(l)
         except Exception:
             l = QLabel("beaply"); l.setFont(QFont(FONT_FAMILY, 28, QFont.Weight.Bold))
@@ -168,8 +169,8 @@ class AuthView(QWidget):
 
     def _switch_tab(self, idx):
         self._stack.setCurrentIndex(idx)
-        active_ss = lambda: f"QPushButton {{ background-color: {self.TAB_ACTIVE_BG}; color: {self.TEXT_DARK}; border: 1px solid {self.TAB_BORDER}; border-radius: 16px; font-weight: bold; }}"
-        inactive_ss = lambda: f"QPushButton {{ background-color: transparent; color: {self.TEXT_MUTED}; border: none; border-radius: 16px; }} QPushButton:hover {{ color: {self.TEXT_DARK}; }}"
+        active_ss = lambda: f"QPushButton {{ background-color: {self.TAB_ACTIVE_BG}; color: {self.TEXT_DARK}; border: none; border-radius: 17px; font-weight: bold; }}"
+        inactive_ss = lambda: f"QPushButton {{ background-color: transparent; color: {self.TEXT_MUTED}; border: none; border-radius: 17px; }} QPushButton:hover {{ color: {self.TEXT_DARK}; }}"
         if idx == 0:
             self._tab_login.setStyleSheet(active_ss()); self._tab_signup.setStyleSheet(inactive_ss())
             self._card.setFixedSize(480, 540)
@@ -184,22 +185,82 @@ class AuthView(QWidget):
         l = QLabel(text); l.setFont(QFont(FONT_FAMILY, 11))
         l.setStyleSheet(f"color: {self.TEXT_DARK}; background: transparent; margin-bottom: 0px;"); return l
 
-    def _inp(self, ph="", echo=QLineEdit.EchoMode.Normal):
+    def _apply_shadow(self, widget, blur=15, y_offset=4, alpha=30):
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(blur); shadow.setOffset(0, y_offset); shadow.setColor(QColor(0, 0, 0, alpha))
+        widget.setGraphicsEffect(shadow)
+
+    def _inp(self, ph="", echo=QLineEdit.EchoMode.Normal, shadow=True):
         e = QLineEdit(); e.setPlaceholderText(ph); e.setFixedHeight(44); e.setEchoMode(echo)
         e.setFont(QFont(FONT_FAMILY, 11))
-        e.setStyleSheet(f"QLineEdit {{ background-color: {self.INPUT_BG}; color: {self.TEXT_DARK}; border: none; border-radius: 12px; padding: 10px 16px; font-size: 13px; }} QLineEdit:focus {{ border: 2px solid {self.BTN_GREEN}; }}")
+        e.setStyleSheet(f"QLineEdit {{ background-color: {self.INPUT_BG}; color: {self.TEXT_DARK}; border: 2px solid transparent; border-radius: 12px; padding: 10px 16px; font-size: 13px; }} QLineEdit:focus {{ border: 2px solid {self.BTN_GREEN}; }}")
+        if shadow: self._apply_shadow(e)
         return e
+
+    def _password_inp(self, ph=""):
+        frame = QFrame(); frame.setFixedHeight(44)
+        frame.setStyleSheet(f"QFrame {{ background-color: {self.INPUT_BG}; border-radius: 12px; border: 2px solid transparent; }}")
+        self._apply_shadow(frame)
+        
+        flay = QHBoxLayout(frame); flay.setContentsMargins(16, 0, 10, 0); flay.setSpacing(4)
+        
+        e = QLineEdit(); e.setPlaceholderText(ph); e.setEchoMode(QLineEdit.EchoMode.Password)
+        e.setFont(QFont(FONT_FAMILY, 11))
+        e.setStyleSheet(f"QLineEdit {{ background-color: transparent; color: {self.TEXT_DARK}; border: none; font-size: 13px; padding: 0px; }} QLineEdit:focus {{ border: none; }}")
+        
+        from PyQt6.QtWidgets import QToolButton
+        from PyQt6.QtGui import QIcon, QPixmap
+        import os
+        btn = QToolButton()
+        
+        p_closed = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "see_password.png"))
+        p_seen = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "hide_password.png"))
+        
+        icon_closed = QIcon(p_closed); icon_seen = QIcon(p_seen)
+        btn.setIcon(icon_closed)
+        btn.setIconSize(QSize(20, 20))
+        btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        btn.setStyleSheet("QToolButton { border: none; background: transparent; }")
+        
+        def toggle_echo():
+            if e.echoMode() == QLineEdit.EchoMode.Password:
+                e.setEchoMode(QLineEdit.EchoMode.Normal); btn.setIcon(icon_seen)
+            else:
+                e.setEchoMode(QLineEdit.EchoMode.Password); btn.setIcon(icon_closed)
+                
+        btn.clicked.connect(toggle_echo)
+        
+        flay.addWidget(e); flay.addWidget(btn)
+        
+        from PyQt6.QtCore import QObject, QEvent
+        class FocusFilter(QObject):
+            def __init__(self, fr, bg, brd):
+                super().__init__(e)
+                self.fr = fr; self.bg = bg; self.brd = brd
+            def eventFilter(self, obj, event):
+                if event.type() == QEvent.Type.FocusIn:
+                    self.fr.setStyleSheet(f"QFrame {{ background-color: {self.bg}; border-radius: 12px; border: 2px solid {self.brd}; }}")
+                elif event.type() == QEvent.Type.FocusOut:
+                    self.fr.setStyleSheet(f"QFrame {{ background-color: {self.bg}; border-radius: 12px; border: 2px solid transparent; }}")
+                return False
+                
+        e._focus_filter = FocusFilter(frame, self.INPUT_BG, self.BTN_GREEN)
+        e.installEventFilter(e._focus_filter)
+        
+        return frame, e
 
     def _combo(self, items):
         c = QComboBox(); c.addItems(items); c.setFixedHeight(44)
-        c.setStyleSheet(f"QComboBox {{ background-color: {self.INPUT_BG}; color: {self.TEXT_DARK}; border: none; border-radius: 12px; padding: 10px 16px; font-size: 13px; }} QComboBox::drop-down {{ border: none; width: 30px; subcontrol-position: center right; }} QComboBox::down-arrow {{ width: 12px; height: 12px; }}")
+        c.setStyleSheet(f"QComboBox {{ background-color: {self.INPUT_BG}; color: {self.TEXT_DARK}; border: 2px solid transparent; border-radius: 12px; padding: 10px 16px; font-size: 13px; }} QComboBox:focus {{ border: 2px solid {self.BTN_GREEN}; }} QComboBox::drop-down {{ border: none; width: 30px; subcontrol-position: center right; }} QComboBox::down-arrow {{ width: 12px; height: 12px; }}")
+        self._apply_shadow(c)
         return c
 
-    def _btn(self, text):
+    def _btn(self, text, shadow=True):
         b = QPushButton(text); b.setFixedHeight(46)
         b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         b.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         b.setStyleSheet(f"QPushButton {{ background-color: {self.BTN_GREEN}; color: {self.TEXT_DARK}; border: none; border-radius: 14px; font-weight: bold; font-size: 14px; }} QPushButton:hover {{ background-color: {self.BTN_GREEN_HVR}; }} QPushButton:pressed {{ background-color: #7DAA86; }}")
+        if shadow: self._apply_shadow(b, blur=20, y_offset=6, alpha=35)
         return b
 
     def _link(self, text):
@@ -219,13 +280,19 @@ class AuthView(QWidget):
         self.login_email = self._inp(); lay.addWidget(self.login_email); lay.addSpacing(10)
 
         lay.addWidget(self._lbl("Password"))
-        self.login_pass = self._inp("", QLineEdit.EchoMode.Password); lay.addWidget(self.login_pass)
+        pw_container, self.login_pass = self._password_inp("")
+        lay.addWidget(pw_container)
 
         # Remember me + forgot row
         row = QWidget(); row.setStyleSheet("background: transparent;")
         rh = QHBoxLayout(row); rh.setContentsMargins(0,4,0,0); rh.setSpacing(0)
         self.remember_me = QCheckBox("Remember me")
-        self.remember_me.setStyleSheet(f"QCheckBox {{ color: {self.TEXT_MUTED}; font-size: 11px; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border: 2px solid {self.INPUT_BORDER}; border-radius: 4px; background: white; }} QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; }}")
+        check_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "check.svg")).replace("\\", "/")
+        self.remember_me.setStyleSheet(
+            f"QCheckBox {{ color: {self.TEXT_MUTED}; font-size: 11px; background: transparent; }} "
+            f"QCheckBox::indicator {{ width: 16px; height: 16px; border: 2px solid {self.INPUT_BORDER}; border-radius: 4px; background: white; }} "
+            f"QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; image: url('{check_path}'); }}"
+        )
         rh.addWidget(self.remember_me)
         rh.addStretch()
         forgot = self._link("Lupa Kata Sandi?")
@@ -267,7 +334,9 @@ class AuthView(QWidget):
 
         ll.addWidget(self._lbl("Full Name*")); self.reg_nama = self._inp(); ll.addWidget(self.reg_nama); ll.addSpacing(4)
         ll.addWidget(self._lbl("Email*")); self.reg_email = self._inp(); ll.addWidget(self.reg_email); ll.addSpacing(4)
-        ll.addWidget(self._lbl("Password*")); self.reg_pass = self._inp("", QLineEdit.EchoMode.Password); ll.addWidget(self.reg_pass); ll.addSpacing(4)
+        ll.addWidget(self._lbl("Password*"))
+        pw_cont, self.reg_pass = self._password_inp("")
+        ll.addWidget(pw_cont); ll.addSpacing(4)
         ll.addWidget(self._lbl("Date of Birth*")); self.reg_dob = self._inp("YYYY-MM-DD"); ll.addWidget(self.reg_dob); ll.addSpacing(4)
         ll.addWidget(self._lbl("Major*"))
         self.reg_major = self._combo([
@@ -290,15 +359,6 @@ class AuthView(QWidget):
         ll.addWidget(self._lbl("Latest GPA (0.00-4.00)*")); self.reg_gpa = self._inp(); ll.addWidget(self.reg_gpa); ll.addSpacing(4)
         ll.addWidget(self._lbl("Gender*")); self.reg_gender = self._combo(["Laki-laki","Perempuan"]); ll.addWidget(self.reg_gender); ll.addSpacing(4)
 
-        ll.addWidget(self._lbl("Aktif Organisasi"))
-        self.reg_organisasi = QCheckBox("Ya, saya aktif berorganisasi")
-        self.reg_organisasi.setStyleSheet(
-            f"QCheckBox {{ color: {self.TEXT_DARK}; font-size: 12px; background: transparent; }}"
-            f"QCheckBox::indicator {{ width: 18px; height: 18px; border: 2px solid {self.INPUT_BORDER};"
-            f" border-radius: 4px; background: white; }}"
-            f"QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; }}"
-        )
-        ll.addWidget(self.reg_organisasi)
         ll.addStretch()
         sl.addWidget(left)
 
@@ -310,9 +370,19 @@ class AuthView(QWidget):
         sec2.setStyleSheet(f"color: {self.TEXT_DARK}; background: transparent;")
         rl.addWidget(sec2); rl.addSpacing(8)
 
+        rl.addWidget(self._lbl("Aktif Organisasi"))
+        self.reg_organisasi = QCheckBox("Ya, saya aktif berorganisasi")
+        check_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "check.svg")).replace("\\", "/")
+        self.reg_organisasi.setStyleSheet(
+            f"QCheckBox {{ color: {self.TEXT_DARK}; font-size: 12px; background: transparent; }}"
+            f"QCheckBox::indicator {{ width: 18px; height: 18px; border: 2px solid {self.INPUT_BORDER}; border-radius: 4px; background: white; }}"
+            f"QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; image: url('{check_path}'); }}"
+        )
+        rl.addWidget(self.reg_organisasi); rl.addSpacing(4)
+
         rl.addWidget(self._lbl("KIP Recipient"))
         self.reg_kip = QCheckBox("Yes")
-        self.reg_kip.setStyleSheet(f"QCheckBox {{ color: {self.TEXT_DARK}; font-size: 12px; background: transparent; }} QCheckBox::indicator {{ width: 18px; height: 18px; border: 2px solid {self.INPUT_BORDER}; border-radius: 4px; background: white; }} QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; }}")
+        self.reg_kip.setStyleSheet(f"QCheckBox {{ color: {self.TEXT_DARK}; font-size: 12px; background: transparent; }} QCheckBox::indicator {{ width: 18px; height: 18px; border: 2px solid {self.INPUT_BORDER}; border-radius: 4px; background: white; }} QCheckBox::indicator:checked {{ background: {self.BTN_GREEN}; border-color: {self.BTN_GREEN}; image: url('{check_path}'); }}")
         rl.addWidget(self.reg_kip); rl.addSpacing(4)
 
         rl.addWidget(self._lbl("IELTS Score (0.0-9.0)")); self.reg_ielts = self._inp(); rl.addWidget(self.reg_ielts); rl.addSpacing(4)
@@ -381,8 +451,12 @@ class AuthView(QWidget):
         self._clear_forgot(); lay = self._forgot_lay
         t = QLabel("Password Baru"); t.setFont(QFont(FONT_FAMILY, 18, QFont.Weight.Bold))
         t.setAlignment(Qt.AlignmentFlag.AlignCenter); t.setStyleSheet(f"color: {self.TEXT_DARK}; background: transparent;"); lay.addWidget(t); lay.addSpacing(12)
-        lay.addWidget(self._lbl("Password Baru")); self.new_pw = self._inp("", QLineEdit.EchoMode.Password); lay.addWidget(self.new_pw); lay.addSpacing(6)
-        lay.addWidget(self._lbl("Konfirmasi Password")); self.conf_pw = self._inp("", QLineEdit.EchoMode.Password); lay.addWidget(self.conf_pw)
+        lay.addWidget(self._lbl("Password Baru"))
+        pw_cont1, self.new_pw = self._password_inp("")
+        lay.addWidget(pw_cont1); lay.addSpacing(6)
+        lay.addWidget(self._lbl("Konfirmasi Password"))
+        pw_cont2, self.conf_pw = self._password_inp("")
+        lay.addWidget(pw_cont2)
         self.forgot_err = self._err_lbl(); lay.addWidget(self.forgot_err); lay.addSpacing(8)
         btn = self._btn("Reset Password"); btn.clicked.connect(self._do_reset); lay.addWidget(btn); lay.addStretch()
 
