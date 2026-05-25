@@ -31,7 +31,7 @@ from datetime import datetime
 # ─── Path ke database yang sama dengan beaply.db ─────────────────────────────
 # Sesuaikan path ini jika lokasi beaply.db berbeda
 DB_PATH = os.path.join(
-    r"c:\PROYEK1\Beaply",
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "beaply.db"
 )
 
@@ -66,8 +66,8 @@ def init_beasiswa_db():
             id                INTEGER  PRIMARY KEY AUTOINCREMENT,
 
             -- Identitas & sumber
-            nama_beasiswa     TEXT     NOT NULL,
-            url_sumber        TEXT     UNIQUE,          -- key deduplikasi
+            nama              TEXT     NOT NULL,
+            url               TEXT     UNIQUE,          -- key deduplikasi
             url_resmi         TEXT     DEFAULT NULL,    -- link pendaftaran resmi
             sumber_website    TEXT     DEFAULT NULL,    -- 'indbeasiswa.com' | 'beasiswa.id' | 'scholarship.or.id'
 
@@ -169,7 +169,7 @@ def init_beasiswa_db():
     # ── Migrasi: tambah kolom baru jika tabel sudah ada tapi kolom belum ada ──
     # (backward compatible — aman dijalankan berulang kali)
     migrasi_kolom = [
-        "ALTER TABLE beasiswa ADD COLUMN url_sumber      TEXT UNIQUE",
+        "ALTER TABLE beasiswa ADD COLUMN url             TEXT UNIQUE",
         "ALTER TABLE beasiswa ADD COLUMN url_resmi       TEXT DEFAULT NULL",
         "ALTER TABLE beasiswa ADD COLUMN sumber_website  TEXT DEFAULT NULL",
         "ALTER TABLE beasiswa ADD COLUMN tipe_beasiswa   TEXT DEFAULT NULL",
@@ -261,8 +261,10 @@ def _serialize_entry(entry: dict) -> dict:
     content_hash = hashlib.sha256(hash_input.encode('utf-8')).hexdigest()
 
     return {
-        'nama_beasiswa':    str(entry.get('nama_beasiswa', '')).strip()[:500],
-        'url_sumber':       str(entry.get('url_sumber', '')).strip() or None,
+        'nama':             str(entry.get('nama_beasiswa', '')).strip()[:500],
+        'nama_beasiswa':    str(entry.get('nama_beasiswa', '')).strip()[:500], # Keep for dedup tracking
+        'url':              str(entry.get('url_sumber', '')).strip() or None,
+        'url_sumber':       str(entry.get('url_sumber', '')).strip() or None, # Keep for dedup tracking
         'url_resmi':        str(entry.get('url_resmi', '')).strip() or None,
         'sumber_website':   str(entry.get('sumber_website', '')).strip() or None,
         'penyelenggara':    str(entry.get('penyelenggara', '')).strip()[:300] or None,
@@ -358,7 +360,7 @@ def restore_user_bookmarks(backup_data: dict, progress_callback=None) -> tuple[i
                     if not cur.fetchone():
                         # Ambil data beasiswa untuk backup
                         cur.execute("""
-                            SELECT id, url_sumber, nama_beasiswa
+                            SELECT id, url, nama
                             FROM beasiswa WHERE id = ?
                         """, (beasiswa_id,))
                         bea = cur.fetchone()
@@ -517,7 +519,7 @@ def simpan_beasiswa_batch(
             # Cek apakah url_sumber sudah ada
             url = row.get('url_sumber')
             if url:
-                cur.execute("SELECT id FROM beasiswa WHERE url_sumber = ?", (url,))
+                cur.execute("SELECT id FROM beasiswa WHERE url = ?", (url,))
                 existing = cur.fetchone()
             else:
                 existing = None
@@ -526,7 +528,7 @@ def simpan_beasiswa_batch(
                 # UPDATE: perbarui semua field kecuali id & dibuat_pada
                 cur.execute("""
                     UPDATE beasiswa SET
-                        nama_beasiswa    = :nama_beasiswa,
+                        nama             = :nama,
                         url_resmi        = :url_resmi,
                         sumber_website   = :sumber_website,
                         penyelenggara    = :penyelenggara,
@@ -542,19 +544,19 @@ def simpan_beasiswa_batch(
                         kategori_raw     = :kategori_raw,
                         data_json        = :data_json,
                         diupdate_pada    = datetime('now','localtime')
-                    WHERE url_sumber = :url_sumber
+                    WHERE url = :url
                 """, row)
                 update += 1
             else:
                 # INSERT baru
                 cur.execute("""
                     INSERT INTO beasiswa (
-                        nama_beasiswa, url_sumber, url_resmi, sumber_website,
+                        nama, url, url_resmi, sumber_website,
                         penyelenggara, jenjang, jurusan, lokasi, tipe_beasiswa,
                         deadline, deadline_text, cakupan_beasiswa, syarat_utama,
                         ipk_minimal, kategori_raw, data_json
                     ) VALUES (
-                        :nama_beasiswa, :url_sumber, :url_resmi, :sumber_website,
+                        :nama, :url, :url_resmi, :sumber_website,
                         :penyelenggara, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
                         :deadline, :deadline_text, :cakupan_beasiswa, :syarat_utama,
                         :ipk_minimal, :kategori_raw, :data_json
@@ -697,11 +699,11 @@ def safe_update_beasiswa_batch(
             existing_by_hash = None
 
             if url:
-                cur.execute("SELECT id, content_hash FROM beasiswa WHERE url_sumber = ?", (url,))
+                cur.execute("SELECT id, content_hash FROM beasiswa WHERE url = ?", (url,))
                 existing_by_url = cur.fetchone()
 
             if hash_val:
-                cur.execute("SELECT id, url_sumber FROM beasiswa WHERE content_hash = ?", (hash_val,))
+                cur.execute("SELECT id, url FROM beasiswa WHERE content_hash = ?", (hash_val,))
                 existing_by_hash = cur.fetchone()
 
             # Tentukan action
@@ -709,7 +711,7 @@ def safe_update_beasiswa_batch(
                 # URL match -> UPDATE existing
                 cur.execute("""
                     UPDATE beasiswa SET
-                        nama_beasiswa    = :nama_beasiswa,
+                        nama             = :nama,
                         url_resmi        = :url_resmi,
                         sumber_website   = :sumber_website,
                         penyelenggara    = :penyelenggara,
@@ -726,7 +728,7 @@ def safe_update_beasiswa_batch(
                         content_hash     = :content_hash,
                         data_json        = :data_json,
                         diupdate_pada    = datetime('now','localtime')
-                    WHERE url_sumber = :url_sumber
+                    WHERE url = :url
                 """, row)
                 update += 1
                 dedup_stats['url_match'] += 1
@@ -770,12 +772,12 @@ def safe_update_beasiswa_batch(
                 # INSERT baru
                 cur.execute("""
                     INSERT INTO beasiswa (
-                        nama_beasiswa, url_sumber, url_resmi, sumber_website,
+                        nama, url, url_resmi, sumber_website,
                         penyelenggara, jenjang, jurusan, lokasi, tipe_beasiswa,
                         deadline, deadline_text, cakupan_beasiswa, syarat_utama,
                         ipk_minimal, kategori_raw, content_hash, data_json
                     ) VALUES (
-                        :nama_beasiswa, :url_sumber, :url_resmi, :sumber_website,
+                        :nama, :url, :url_resmi, :sumber_website,
                         :penyelenggara, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
                         :deadline, :deadline_text, :cakupan_beasiswa, :syarat_utama,
                         :ipk_minimal, :kategori_raw, :content_hash, :data_json
