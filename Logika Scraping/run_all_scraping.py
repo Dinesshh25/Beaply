@@ -1,6 +1,6 @@
 """
 run_all_scraping.py (dijalankan dari folder 'Logika Scraping')
-Script runner utama — ketiga scraper dijalankan berurutan lalu disimpan ke DB dengan safe update workflow.
+Script runner utama — kedua scraper dijalankan berurutan lalu disimpan ke DB dengan safe update workflow.
 
 Safe Update Workflow:
 1. Backup admin database
@@ -30,7 +30,6 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from scrapping_indBeasiswa    import jalankan_scraper_beasiswa
 from scrapping_beasiswaid     import jalankan_scraper_beasiswaid
-from scrapping_scholarshiporid import jalankan_scraper_scholarshiporid
 from database_beasiswa        import (
     safe_update_beasiswa_batch,
     hitung_beasiswa,
@@ -53,12 +52,6 @@ CONFIG = {
         'scrape_details'        : True,
         'max_pages_per_category': 2,
         'max_entries'           : 50,
-    },
-    'scholarshiporid': {
-        'aktif'         : True,
-        'categories'    : ['internasional', 'pemerintah', 'swasta'],
-        'scrape_details': True,
-        'max_entries'   : 50,
     },
 }
 
@@ -97,7 +90,7 @@ def jalankan_semua(auto_sync: bool = True):
 
     # ── STEP 1: indbeasiswa.com ────────────────────────────────────────
     if CONFIG['indbeasiswa']['aktif']:
-        log("\n[1/3] Scraping indbeasiswa.com...")
+        log("\n[1/2] Scraping indbeasiswa.com...")
         cfg = CONFIG['indbeasiswa']
         start = time.time()
         try:
@@ -116,7 +109,7 @@ def jalankan_semua(auto_sync: bool = True):
 
     # ── STEP 2: beasiswa.id ────────────────────────────────────────────
     if CONFIG['beasiswaid']['aktif']:
-        log("\n[2/3] Scraping beasiswa.id...")
+        log("\n[2/2] Scraping beasiswa.id...")
         cfg = CONFIG['beasiswaid']
         start = time.time()
         try:
@@ -135,27 +128,7 @@ def jalankan_semua(auto_sync: bool = True):
             log(f"  ❌ ERROR: {e}")
             hasil_per_sumber['beasiswa.id'] = dict(error=str(e), total=0)
 
-    # ── STEP 3: scholarship.or.id ──────────────────────────────────────
-    if CONFIG['scholarshiporid']['aktif']:
-        log("\n[3/3] Scraping scholarship.or.id...")
-        cfg = CONFIG['scholarshiporid']
-        start = time.time()
-        try:
-            hasil = jalankan_scraper_scholarshiporid(
-                progress_callback=log,
-                categories=cfg['categories'],
-                scrape_details=cfg['scrape_details'],
-                max_entries=cfg['max_entries'],
-            )
-            durasi = time.time() - start
-            log(f"  ✓ Selesai: {len(hasil)} beasiswa ({durasi:.1f}s)")
-            all_hasil.extend(hasil)
-            hasil_per_sumber['scholarship.or.id'] = dict(total=len(hasil), durasi=f"{durasi:.1f}s")
-        except Exception as e:
-            log(f"  ❌ ERROR: {e}")
-            hasil_per_sumber['scholarship.or.id'] = dict(error=str(e), total=0)
-
-    # ── STEP 4: Safe Update Database dengan Bookmark Preservation ──────
+    # ── STEP 3: Safe Update Database dengan Bookmark Preservation ──────
     log("\n" + "=" * 70)
     log("  🔒 SAFE UPDATE DATABASE DENGAN BOOKMARK PRESERVATION")
     log("=" * 70)
@@ -239,7 +212,7 @@ def jalankan_semua(auto_sync: bool = True):
         ok, msg = sync_manager.backup_admin_database(log)
 
         # Generate sync package untuk masing-masing sumber
-        for sumber in ['indbeasiswa.com', 'beasiswa.id', 'scholarship.or.id']:
+        for sumber in ['indbeasiswa.com', 'beasiswa.id']:
             if sumber not in hasil_per_sumber or 'error' in hasil_per_sumber[sumber]:
                 continue
 

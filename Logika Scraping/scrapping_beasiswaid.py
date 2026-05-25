@@ -20,7 +20,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from normalizer import (
     parse_tanggal_indonesia, extract_deadlines, extract_ipk,
-    extract_jenjang, extract_lokasi, normalize_beasiswa
+    extract_jenjang, extract_lokasi, normalize_beasiswa,
+    is_mahasiswa_only
 )
 
 logging.basicConfig(filename='scraper.log', level=logging.INFO,
@@ -395,20 +396,32 @@ def jalankan_scraper_beasiswaid(
         if cancelled_check and cancelled_check():
             return []
 
-        # ── Filter jenjang S1/S2/D3/D4 ───────────────────────────────
+        # ── Filter: hanya beasiswa untuk mahasiswa (D3/D4/S1/S2/S3) ──
+        # Beasiswa khusus SMA/SMK sederajat ke bawah akan dibuang
         filtered = []
+        removed_count = 0
         for entry in all_raw_entries:
             jenjang = entry.get('jenjang', [])
-            # Juga cek kategori_raw dari website
-            kategori_text = ' '.join(entry.get('kategori_raw', []))
-            has_jenjang_from_kategori = any(
-                k in kategori_text for k in ['S1', 'S2', 'D3', 'D4', 'Sarjana', 'Magister', 'Diploma']
+            # Gabungkan teks untuk pengecekan lebih akurat
+            combined_text = (
+                entry.get('nama_beasiswa', '') + ' ' +
+                ' '.join(entry.get('kategori_raw', [])) + ' ' +
+                entry.get('excerpt', '')
             )
-            if jenjang or has_jenjang_from_kategori or not jenjang:
+            if is_mahasiswa_only(jenjang, combined_text):
                 filtered.append(entry)
+            else:
+                removed_count += 1
+                if progress_callback:
+                    progress_callback(
+                        f"  ⛔ Dibuang (SMA/SMK): {entry.get('nama_beasiswa', '')[:60]}"
+                    )
 
         if progress_callback:
-            progress_callback(f"Setelah filter: {len(filtered)} beasiswa.")
+            progress_callback(
+                f"Setelah filter mahasiswa: {len(filtered)} beasiswa lolos, "
+                f"{removed_count} dibuang (SMA/SMK)."
+            )
 
         # ── TAHAP 2: Scrape detail per URL ────────────────────────────
         if scrape_details:

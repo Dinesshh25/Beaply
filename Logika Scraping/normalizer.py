@@ -29,6 +29,53 @@ JENJANG_PATTERNS = {
     'SMA': [r'\bSMA\b', r'\bSMK\b', r'\bMA\b', r'\bSederajat\b', r'\bHigh[-\s]School\b'],
 }
 
+# Jenjang yang termasuk kategori mahasiswa (perguruan tinggi)
+JENJANG_MAHASISWA = {'D2', 'D3', 'D4', 'S1', 'S2', 'S3'}
+
+# Jenjang yang BUKAN mahasiswa (SMA/SMK ke bawah)
+JENJANG_NON_MAHASISWA = {'SMA'}
+
+
+def is_mahasiswa_only(jenjang_list: list[str], teks: str = '') -> bool:
+    """
+    Cek apakah beasiswa ini untuk mahasiswa (perguruan tinggi).
+
+    Aturan:
+      - Jika jenjang_list berisi minimal satu jenjang mahasiswa → True
+      - Jika jenjang_list HANYA berisi SMA/SMK → False (buang)
+      - Jika jenjang_list kosong, cek teks untuk kata kunci SMA/SMK
+        → Jika ditemukan HANYA SMA/SMK tanpa jenjang mahasiswa → False
+        → Jika tidak ditemukan apa-apa → True (benefit of the doubt)
+
+    Args:
+        jenjang_list : list jenjang yang sudah diekstrak (mis: ['S1', 'SMA'])
+        teks         : teks tambahan untuk pengecekan jika jenjang_list kosong
+
+    Returns:
+        True jika beasiswa untuk mahasiswa, False jika khusus SMA/SMK ke bawah
+    """
+    if jenjang_list:
+        # Jika ada minimal satu jenjang mahasiswa, loloskan
+        has_mahasiswa = any(j in JENJANG_MAHASISWA for j in jenjang_list)
+        if has_mahasiswa:
+            return True
+        # Jika HANYA berisi jenjang non-mahasiswa (SMA), tolak
+        all_non_mahasiswa = all(j in JENJANG_NON_MAHASISWA for j in jenjang_list)
+        if all_non_mahasiswa:
+            return False
+        # Jenjang tidak dikenali → loloskan (benefit of the doubt)
+        return True
+
+    # Jenjang kosong → cek dari teks
+    if teks:
+        detected = extract_jenjang(teks)
+        if detected:
+            return is_mahasiswa_only(detected)
+
+    # Tidak ada info jenjang sama sekali → loloskan
+    return True
+
+
 # ─── Kata kunci lokasi ────────────────────────────────────────────────────────
 LOKASI_KEYWORDS = {
     'Luar Negeri': [

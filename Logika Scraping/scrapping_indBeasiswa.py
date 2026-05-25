@@ -17,7 +17,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from normalizer import (
     parse_tanggal_indonesia, extract_deadlines, extract_ipk,
-    extract_jenjang, extract_lokasi, normalize_beasiswa
+    extract_jenjang, extract_lokasi, normalize_beasiswa,
+    is_mahasiswa_only
 )
 
 logging.basicConfig(filename='scraper.log', level=logging.INFO,
@@ -295,15 +296,27 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
         if progress_callback:
             progress_callback(f"Tahap 1 selesai: {len(all_entries)} beasiswa ditemukan.")
 
-        # Filter hanya S1 dan S2
+        # Filter: hanya beasiswa untuk mahasiswa (D3/D4/S1/S2/S3)
+        # Beasiswa khusus SMA/SMK sederajat ke bawah akan dibuang
         filtered = []
+        removed_count = 0
         for entry in all_entries:
             jenjang = entry.get('jenjang', [])
-            if any(j in ['S1', 'S2', 'D3', 'D4'] for j in jenjang) or not jenjang:
+            full_text = entry.get('full_text', '') + ' ' + entry.get('nama_beasiswa', '')
+            if is_mahasiswa_only(jenjang, full_text):
                 filtered.append(entry)
+            else:
+                removed_count += 1
+                if progress_callback:
+                    progress_callback(
+                        f"  ⛔ Dibuang (SMA/SMK): {entry.get('nama_beasiswa', '')[:60]}"
+                    )
 
         if progress_callback:
-            progress_callback(f"Setelah filter S1/S2: {len(filtered)} beasiswa.")
+            progress_callback(
+                f"Setelah filter mahasiswa: {len(filtered)} beasiswa lolos, "
+                f"{removed_count} dibuang (SMA/SMK)."
+            )
 
         # Tahap 2: Scrape detail (opsional)
         if scrape_details:
