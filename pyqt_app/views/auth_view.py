@@ -488,12 +488,7 @@ class AuthView(QWidget):
         if not validate_email_format(email):
             self.reg_err.setText("Format email tidak valid."); return
 
-        # 1. Register user
-        ok, msg, uid = _register(nama, email, pw, pw)
-        if not ok:
-            self.reg_err.setText(msg); return
-
-        # 2. Create profile
+        # 1. Validate profile data FIRST (before creating user)
         dw = input_data_wajib(nama, dob, email, major, univ, sem, gpa,
                               self.reg_degree.currentText(), self.reg_gender.currentText(),
                               self.reg_organisasi.isChecked())
@@ -509,6 +504,21 @@ class AuthView(QWidget):
             self.reg_hsk.text().strip(),
             self.reg_jlpt.currentText(),
         )
+
+        from utils import validasi_data_wajib, validasi_data_spesifik
+        ok_w, msg_w = validasi_data_wajib(dw)
+        if not ok_w:
+            self.reg_err.setText(msg_w); return
+        ok_s, msg_s = validasi_data_spesifik(ds)
+        if not ok_s:
+            self.reg_err.setText(msg_s); return
+
+        # 2. Register user (only after all validations pass)
+        ok, msg, uid = _register(nama, email, pw, pw)
+        if not ok:
+            self.reg_err.setText(msg); return
+
+        # 3. Create profile (data already validated above)
         ok2, msg2, pid = simpan_profil(dw, ds, user_id=uid)
         if not ok2:
             self.reg_err.setText(f"Akun dibuat tapi profil gagal: {msg2}"); return
