@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QMessageBox
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QCursor
 from datetime import datetime
 
@@ -15,6 +15,9 @@ from controllers.eksplorasi_controller import get_bookmarks, toggle_bookmark_bea
 
 
 class BookmarksView(QWidget):
+    # Emit ketika ada perubahan bookmark (tambah/hapus)
+    bookmark_changed = pyqtSignal()
+
     def __init__(self, profil_id, bhs="id", mode="light", parent=None):
         super().__init__(parent)
         self._pid = profil_id
@@ -134,6 +137,7 @@ class BookmarksView(QWidget):
 
     def _remove(self, bid):
         toggle_bookmark_beasiswa(self._pid, bid)
+        self.bookmark_changed.emit()  # beritahu kalender & komponen lain
         self._build()
 
     def _clear_all(self):
@@ -141,4 +145,5 @@ class BookmarksView(QWidget):
         if r == QMessageBox.StandardButton.Yes:
             for bm in get_bookmarks(self._pid):
                 toggle_bookmark_beasiswa(self._pid, bm.get("id", 0))
+            self.bookmark_changed.emit()  # beritahu kalender & komponen lain
             self._build()

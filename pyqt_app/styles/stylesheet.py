@@ -71,7 +71,7 @@ QPushButton.nav-btn:hover {{
     background-color: {c['btn_pale']};
 }}
 QPushButton.nav-btn[active="true"] {{
-    background-color: {c['sidebar_active_bg']};
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['sidebar_active_bg']}, stop:1 {c['greet_bg']});
     color: {c['sidebar_active_tx']};
     font-weight: bold;
 }}
@@ -88,7 +88,7 @@ QPushButton.nav-btn-bottom:hover {{
     background-color: {c['btn_pale']};
 }}
 QPushButton.nav-btn-bottom[active="true"] {{
-    background-color: {c['sidebar_active_bg']};
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['sidebar_active_bg']}, stop:1 {c['greet_bg']});
     color: {c['sidebar_active_tx']};
     font-weight: bold;
 }}

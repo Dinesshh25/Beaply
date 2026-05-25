@@ -6,9 +6,9 @@ Matches the existing CustomTkinter design_tokens.py.
 
 # ── Colour Palettes ──────────────────────────────────────────
 LIGHT = {
-    "bg":               "#FDF6F0",
+    "bg":               "#FCF4EC",
     "card":             "#FFFFFF",
-    "sidebar_bg":       "#FDF6F0",
+    "sidebar_bg":       "#FDFDFD",
     "sidebar_active_bg":"#D6EAD8",
     "sidebar_active_tx":"#2D6A4F",
     "btn_primary":      "#A8C5B0",
