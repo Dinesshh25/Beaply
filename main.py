@@ -15,6 +15,17 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QStackedWidget, QFrame
 )
+# Mock QGraphicsDropShadowEffect to prevent 'Aborted (core dumped)' on Linux
+import PyQt6.QtWidgets
+class DummyShadow(PyQt6.QtWidgets.QGraphicsEffect):
+    def draw(self, painter): pass
+    def setBlurRadius(self, *a): pass
+    def setOffset(self, *a): pass
+    def setXOffset(self, *a): pass
+    def setYOffset(self, *a): pass
+    def setColor(self, *a): pass
+PyQt6.QtWidgets.QGraphicsDropShadowEffect = DummyShadow
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon
 

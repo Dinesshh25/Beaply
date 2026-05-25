@@ -43,15 +43,15 @@ from scraping_sync import setup_sync_manager
 CONFIG = {
     'indbeasiswa': {
         'aktif'         : True,
-        'scrape_details': True,
-        'max_entries'   : 50,
+        'scrape_details': False,
+        'max_entries'   : 5,
     },
     'beasiswaid': {
         'aktif'                 : True,
-        'categories'            : ['beasiswa_s1', 'beasiswa_s2', 'beasiswa_d3'],
-        'scrape_details'        : True,
-        'max_pages_per_category': 2,
-        'max_entries'           : 50,
+        'categories'            : ['beasiswa_s1'],
+        'scrape_details'        : False,
+        'max_pages_per_category': 1,
+        'max_entries'           : 5,
     },
 }
 

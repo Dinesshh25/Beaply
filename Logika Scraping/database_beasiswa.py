@@ -185,6 +185,7 @@ def init_beasiswa_db():
         "ALTER TABLE beasiswa ADD COLUMN penyelenggara   TEXT DEFAULT NULL",
         "ALTER TABLE beasiswa ADD COLUMN deadline        TEXT DEFAULT NULL",
         "ALTER TABLE beasiswa ADD COLUMN content_hash    TEXT DEFAULT NULL",
+        "ALTER TABLE beasiswa ADD COLUMN data_json       TEXT DEFAULT NULL",
     ]
     for sql in migrasi_kolom:
         try:
@@ -266,8 +267,9 @@ def _serialize_entry(entry: dict) -> dict:
         'url':              str(entry.get('url_sumber', '')).strip() or None,
         'url_sumber':       str(entry.get('url_sumber', '')).strip() or None, # Keep for dedup tracking
         'url_resmi':        str(entry.get('url_resmi', '')).strip() or None,
-        'sumber_website':   str(entry.get('sumber_website', '')).strip() or None,
-        'penyelenggara':    str(entry.get('penyelenggara', '')).strip()[:300] or None,
+        'sumber_website':   str(entry.get('sumber_website', '')).strip() or "Internet",
+        'penyelenggara':    str(entry.get('penyelenggara', '')).strip()[:300] or "Tidak diketahui",
+        'kategori':         "swasta",
         'jenjang':          _to_json(jenjang),
         'jurusan':          _to_json(jurusan),
         'lokasi':           str(entry.get('lokasi', '')).strip()[:200] or None,
@@ -532,6 +534,7 @@ def simpan_beasiswa_batch(
                         url_resmi        = :url_resmi,
                         sumber_website   = :sumber_website,
                         penyelenggara    = :penyelenggara,
+                        kategori         = :kategori,
                         jenjang          = :jenjang,
                         jurusan          = :jurusan,
                         lokasi           = :lokasi,
@@ -552,12 +555,12 @@ def simpan_beasiswa_batch(
                 cur.execute("""
                     INSERT INTO beasiswa (
                         nama, url, url_resmi, sumber_website,
-                        penyelenggara, jenjang, jurusan, lokasi, tipe_beasiswa,
+                        penyelenggara, kategori, jenjang, jurusan, lokasi, tipe_beasiswa,
                         deadline, deadline_text, cakupan_beasiswa, syarat_utama,
                         ipk_minimal, kategori_raw, data_json
                     ) VALUES (
                         :nama, :url, :url_resmi, :sumber_website,
-                        :penyelenggara, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
+                        :penyelenggara, :kategori, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
                         :deadline, :deadline_text, :cakupan_beasiswa, :syarat_utama,
                         :ipk_minimal, :kategori_raw, :data_json
                     )
@@ -715,6 +718,7 @@ def safe_update_beasiswa_batch(
                         url_resmi        = :url_resmi,
                         sumber_website   = :sumber_website,
                         penyelenggara    = :penyelenggara,
+                        kategori         = :kategori,
                         jenjang          = :jenjang,
                         jurusan          = :jurusan,
                         lokasi           = :lokasi,
@@ -773,12 +777,12 @@ def safe_update_beasiswa_batch(
                 cur.execute("""
                     INSERT INTO beasiswa (
                         nama, url, url_resmi, sumber_website,
-                        penyelenggara, jenjang, jurusan, lokasi, tipe_beasiswa,
+                        penyelenggara, kategori, jenjang, jurusan, lokasi, tipe_beasiswa,
                         deadline, deadline_text, cakupan_beasiswa, syarat_utama,
                         ipk_minimal, kategori_raw, content_hash, data_json
                     ) VALUES (
                         :nama, :url, :url_resmi, :sumber_website,
-                        :penyelenggara, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
+                        :penyelenggara, :kategori, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
                         :deadline, :deadline_text, :cakupan_beasiswa, :syarat_utama,
                         :ipk_minimal, :kategori_raw, :content_hash, :data_json
                     )

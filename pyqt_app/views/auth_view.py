@@ -186,6 +186,7 @@ class AuthView(QWidget):
         l.setStyleSheet(f"color: {self.TEXT_DARK}; background: transparent; margin-bottom: 0px;"); return l
 
     def _apply_shadow(self, widget, blur=15, y_offset=4, alpha=30):
+        return  # Disable shadow to prevent core dump on some Linux setups
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(blur); shadow.setOffset(0, y_offset); shadow.setColor(QColor(0, 0, 0, alpha))
         widget.setGraphicsEffect(shadow)
@@ -231,21 +232,6 @@ class AuthView(QWidget):
         btn.clicked.connect(toggle_echo)
         
         flay.addWidget(e); flay.addWidget(btn)
-        
-        from PyQt6.QtCore import QObject, QEvent
-        class FocusFilter(QObject):
-            def __init__(self, fr, bg, brd):
-                super().__init__(e)
-                self.fr = fr; self.bg = bg; self.brd = brd
-            def eventFilter(self, obj, event):
-                if event.type() == QEvent.Type.FocusIn:
-                    self.fr.setStyleSheet(f"QFrame {{ background-color: {self.bg}; border-radius: 12px; border: 2px solid {self.brd}; }}")
-                elif event.type() == QEvent.Type.FocusOut:
-                    self.fr.setStyleSheet(f"QFrame {{ background-color: {self.bg}; border-radius: 12px; border: 2px solid transparent; }}")
-                return False
-                
-        e._focus_filter = FocusFilter(frame, self.INPUT_BG, self.BTN_GREEN)
-        e.installEventFilter(e._focus_filter)
         
         return frame, e
 
