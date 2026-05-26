@@ -186,7 +186,6 @@ class AuthView(QWidget):
         l.setStyleSheet(f"color: {self.TEXT_DARK}; background: transparent; margin-bottom: 0px;"); return l
 
     def _apply_shadow(self, widget, blur=15, y_offset=4, alpha=30):
-        return  # Disable shadow to prevent core dump on some Linux setups
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(blur); shadow.setOffset(0, y_offset); shadow.setColor(QColor(0, 0, 0, alpha))
         widget.setGraphicsEffect(shadow)
