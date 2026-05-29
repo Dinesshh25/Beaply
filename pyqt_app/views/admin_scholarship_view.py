@@ -10,12 +10,33 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QMessageBox, QDialog, QLineEdit
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QCursor
+import os
+import sys
 
 from pyqt_app.styles.theme import FONT_FAMILY, palette
 from controllers.admin_controller import get_all_beasiswa_admin, delete_beasiswa
 from models.database import get_connection
+
+
+class ScrapWorker(QThread):
+    finished_signal = pyqtSignal()
+    error_signal = pyqtSignal(str)
+
+    def run(self):
+        try:
+            # Tambahkan folder 'Logika Scraping' ke Python path agar import berfungsi
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+            scraping_dir = os.path.join(base_dir, "Logika Scraping")
+            if scraping_dir not in sys.path:
+                sys.path.insert(0, scraping_dir)
+            
+            from run_all_scraping import jalankan_semua
+            jalankan_semua(auto_sync=True)
+            self.finished_signal.emit()
+        except Exception as e:
+            self.error_signal.emit(str(e))
 
 
 class AdminScholarshipView(QWidget):
@@ -107,6 +128,13 @@ class AdminScholarshipView(QWidget):
 
         # ── Bottom buttons ───────────────────────────────────
         btn_row = QHBoxLayout()
+        
+        self.status_label = QLabel("")
+        self.status_label.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+        self.status_label.setStyleSheet(f"color: {c['text_muted']}; font-style: italic;")
+        self.status_label.hide()
+        btn_row.addWidget(self.status_label)
+        
         btn_row.addStretch()
 
         save_btn = QPushButton("Save  Changes")
@@ -127,10 +155,10 @@ class AdminScholarshipView(QWidget):
             lambda: QMessageBox.information(self, "Info", "Changes saved!"))
         btn_row.addWidget(save_btn)
 
-        scrap_btn = QPushButton("Auto Scrap")
-        scrap_btn.setFixedHeight(40)
-        scrap_btn.setFixedWidth(160)
-        scrap_btn.setStyleSheet(f"""
+        self.scrap_btn = QPushButton("Auto Scrap")
+        self.scrap_btn.setFixedHeight(40)
+        self.scrap_btn.setFixedWidth(160)
+        self.scrap_btn.setStyleSheet(f"""
             QPushButton {{
                 background: {c['btn_primary']};
                 color: {c['text_dark']};
@@ -138,12 +166,11 @@ class AdminScholarshipView(QWidget):
                 font-weight: bold; font-size: 13px;
             }}
             QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
+            QPushButton:disabled {{ background: #d3d3d3; color: #888888; }}
         """)
-        scrap_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        scrap_btn.clicked.connect(
-            lambda: QMessageBox.information(
-                self, "Info", "Auto scraping started. Please wait..."))
-        btn_row.addWidget(scrap_btn)
+        self.scrap_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.scrap_btn.clicked.connect(self._start_scraping)
+        btn_row.addWidget(self.scrap_btn)
 
         lay.addLayout(btn_row)
 
@@ -221,6 +248,38 @@ class AdminScholarshipView(QWidget):
         return card
 
     # ── Actions ──────────────────────────────────────────────
+    def _start_scraping(self):
+        self.scrap_btn.setEnabled(False)
+        self.scrap_btn.setText("Scraping...")
+        self.status_label.setText("⏳ Sedang mengambil data (Est. 10-15 menit). Mohon tunggu...")
+        self.status_label.show()
+
+        QMessageBox.information(
+            self, "Info", 
+            "Auto scraping started in the background.\nPlease check the terminal for detailed progress."
+        )
+        self.worker = ScrapWorker()
+        self.worker.finished_signal.connect(self._on_scrap_finished)
+        self.worker.error_signal.connect(self._on_scrap_error)
+        self.worker.start()
+
+    def _on_scrap_finished(self):
+        if hasattr(self, 'scrap_btn'):
+            self.scrap_btn.setEnabled(True)
+            self.scrap_btn.setText("Auto Scrap")
+        if hasattr(self, 'status_label'):
+            self.status_label.hide()
+        QMessageBox.information(self, "Success", "Auto scraping completed and database updated successfully!")
+        self._rebuild()
+
+    def _on_scrap_error(self, err):
+        if hasattr(self, 'scrap_btn'):
+            self.scrap_btn.setEnabled(True)
+            self.scrap_btn.setText("Auto Scrap")
+        if hasattr(self, 'status_label'):
+            self.status_label.hide()
+        QMessageBox.critical(self, "Error", f"Auto scraping failed:\n{err}")
+
     def _delete_beasiswa(self, bea_id):
         r = QMessageBox.question(
             self, "Delete",

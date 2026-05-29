@@ -15,6 +15,8 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QStackedWidget, QFrame
 )
+
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon
 
@@ -130,22 +132,18 @@ class BeaplyMainWindow(QMainWindow):
 
         self._is_admin = False
 
-        # Check if user already has profiles
+        # Each user has exactly 1 profile — pick it directly, no HomeView
         from controllers.profil_controller import tampil_semua_profil
         profiles = tampil_semua_profil(self._user_id)
 
-        if profiles and len(profiles) == 1:
-            # Exactly 1 profile → skip home_view, go straight to dashboard
+        if profiles:
+            # Always use the first (and only expected) profile
             self._on_profile_selected(profiles[0]["id"])
             return
 
-        # 0 or 2+ profiles → show Home page (choose / create profile)
-        self._root_stack.removeWidget(self._home)
-        self._home.deleteLater()
-        self._home = HomeView(self._user_id)
-        self._home.profile_selected.connect(self._on_profile_selected)
-        self._root_stack.insertWidget(1, self._home)
-        self._root_stack.setCurrentWidget(self._home)
+        # No profile found — session is stale/invalid, return to login
+        clear_session()
+        self._root_stack.setCurrentIndex(0)
 
     def _on_register(self, data: dict, profil_id: int):
         """Called when register+profile creation succeeds. Go straight to dashboard."""
@@ -170,10 +168,13 @@ class BeaplyMainWindow(QMainWindow):
         if not uid:
             clear_session()
             return
-        try:
-            from controllers.auth_controller import validate_session as _vs
-        except ImportError:
-            pass
+        # Validate that user still exists and has a profile before auto-login
+        from controllers.profil_controller import tampil_semua_profil
+        profiles = tampil_semua_profil(uid)
+        if not profiles:
+            # Stale session — user has no profile, force fresh login
+            clear_session()
+            return
         self._on_login(saved)
 
     # ── Profile selected callback ─────────────────────────────
