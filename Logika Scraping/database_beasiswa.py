@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 def get_connection() -> sqlite3.Connection:
     """Buka koneksi ke beaply.db dengan row_factory dict-like."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)  # retry 30s sebelum raise OperationalError
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA journal_mode = WAL")   # lebih aman untuk concurrent write
@@ -454,13 +454,21 @@ def record_dedup_log(
     hash_existing: str = None,
     similarity_score: float = None,
     action_taken: str = None,
-    sesi_scraping_id: int = None
+    sesi_scraping_id: int = None,
+    conn: sqlite3.Connection = None
 ) -> int:
     """
     Record deduplication detection & action untuk tracking & analytics.
+
+    Args:
+        conn: koneksi SQLite yang sudah ada (opsional). Jika diberikan,
+              fungsi ini akan menggunakan koneksi tersebut tanpa membuka
+              koneksi baru, sehingga tidak terjadi 'database is locked'.
     """
+    _own_conn = conn is None
     try:
-        conn = get_connection()
+        if _own_conn:
+            conn = get_connection()
         cur = conn.cursor()
 
         cur.execute("""
@@ -474,8 +482,9 @@ def record_dedup_log(
               similarity_score, action_taken))
 
         dedup_id = cur.lastrowid
-        conn.commit()
-        conn.close()
+        if _own_conn:
+            conn.commit()
+            conn.close()
 
         return dedup_id
 
@@ -737,7 +746,7 @@ def safe_update_beasiswa_batch(
                 update += 1
                 dedup_stats['url_match'] += 1
 
-                # Log dedup action
+                # Log dedup action — gunakan conn yang sama agar tidak locked
                 record_dedup_log(
                     sumber_website=sumber_website,
                     status_duplikasi='URL_MATCH',
@@ -747,7 +756,8 @@ def safe_update_beasiswa_batch(
                     hash_existing=existing_by_url[1],
                     hash_baru=hash_val,
                     action_taken='UPDATE',
-                    sesi_scraping_id=sesi_id
+                    sesi_scraping_id=sesi_id,
+                    conn=conn
                 )
 
             elif existing_by_hash and existing_by_hash[0] != (existing_by_url[0] if existing_by_url else -1):
@@ -766,7 +776,8 @@ def safe_update_beasiswa_batch(
                     hash_baru=hash_val,
                     hash_existing=hash_val,
                     action_taken='SKIP',
-                    sesi_scraping_id=sesi_id
+                    sesi_scraping_id=sesi_id,
+                    conn=conn
                 )
 
                 if progress_callback and i % 20 == 0:
@@ -797,7 +808,8 @@ def safe_update_beasiswa_batch(
                     url_sumber_baru=url,
                     hash_baru=hash_val,
                     action_taken='INSERT',
-                    sesi_scraping_id=sesi_id
+                    sesi_scraping_id=sesi_id,
+                    conn=conn
                 )
 
             # Progress report
