@@ -70,12 +70,79 @@ class DashboardView(QWidget):
     def _shift_month(self, d: int):
         m = self._cal_date.month + d
         y = self._cal_date.year
-        if m > 12: m = 1; y += 1
-        elif m < 1: m = 12; y -= 1
+        if m > 12: m -= 12; y += 1
+        elif m < 1: m += 12; y -= 1
         import datetime
         self._cal_date = datetime.date(y, m, 1)
-        self._cal_lbl.setText(self._cal_date.strftime("%B"))
+        self._cal_btn.setText(self._cal_date.strftime("%B %Y"))
         self._render_cal_grid()
+
+    def _pick_month_year(self):
+        c = palette(self._mode)
+        from PyQt6.QtWidgets import QDialog, QComboBox, QSpinBox, QGraphicsDropShadowEffect
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Select Month & Year")
+        dlg.setFixedSize(280, 180)
+        dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
+        dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        
+        main_lay = QVBoxLayout(dlg)
+        main_lay.setContentsMargins(10, 10, 10, 10)
+        bg = QFrame()
+        bg.setStyleSheet(f"QFrame {{ background: {c['card']}; border-radius: 16px; border: 1px solid {c['border']}; }}")
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15); shadow.setColor(QColor(0,0,0,30)); shadow.setOffset(0,4)
+        bg.setGraphicsEffect(shadow)
+        main_lay.addWidget(bg)
+        
+        lay = QVBoxLayout(bg)
+        lay.setContentsMargins(16, 16, 16, 16)
+        lay.setSpacing(12)
+        
+        top_lay = QHBoxLayout()
+        top_lay.addStretch(1)
+        title = QLabel("Select Month & Year")
+        title.setStyleSheet(f"font-weight:bold; color:{c['text_dark']}; font-size:12px; border:none; background:transparent;")
+        top_lay.addWidget(title)
+        top_lay.addStretch(1)
+        
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(20, 20)
+        close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        close_btn.setStyleSheet("QPushButton { background:transparent; color:#888; font-weight:bold; border:none; } QPushButton:hover { color:#333; }")
+        close_btn.clicked.connect(dlg.reject)
+        top_lay.addWidget(close_btn)
+        lay.addLayout(top_lay)
+        
+        hlay = QHBoxLayout()
+        cb_m = QComboBox()
+        import calendar
+        for i in range(1, 13): cb_m.addItem(calendar.month_name[i], i)
+        cb_m.setCurrentIndex(self._cal_date.month - 1)
+        cb_m.setStyleSheet(f"QComboBox {{ background:{c['input_bg']}; color:{c['text_dark']}; border:1px solid {c['border']}; border-radius:8px; padding:4px 8px; }}")
+        
+        sb_y = QSpinBox()
+        sb_y.setRange(1900, 2100)
+        sb_y.setValue(self._cal_date.year)
+        sb_y.setStyleSheet(f"QSpinBox {{ background:{c['input_bg']}; color:{c['text_dark']}; border:1px solid {c['border']}; border-radius:8px; padding:4px 8px; }}")
+        
+        hlay.addWidget(cb_m, 2)
+        hlay.addWidget(sb_y, 1)
+        lay.addLayout(hlay)
+        
+        btn_ok = QPushButton("Apply")
+        btn_ok.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        btn_ok.setStyleSheet(f"QPushButton {{ background:{c['btn_primary']}; color:{c['text_dark']}; border:none; border-radius:10px; font-weight:bold; padding:8px; }} QPushButton:hover {{ background:{c['btn_primary_hover']}; }}")
+        btn_ok.clicked.connect(dlg.accept)
+        lay.addWidget(btn_ok)
+        
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            m = cb_m.currentData()
+            y = sb_y.value()
+            import datetime
+            self._cal_date = datetime.date(y, m, 1)
+            self._cal_btn.setText(self._cal_date.strftime("%B %Y"))
+            self._render_cal_grid()
 
     def _render_cal_grid(self):
         c = palette(self._mode)
@@ -407,9 +474,11 @@ class DashboardView(QWidget):
         btn_prev.setStyleSheet(f"background:transparent; border: 1px solid {c['border']}; border-radius:12px; color:{c['text_muted']};")
         btn_prev.clicked.connect(lambda: self._shift_month(-1))
         
-        self._cal_lbl = QLabel(self._cal_date.strftime("%B"))
-        self._cal_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._cal_lbl.setStyleSheet(f"background:#FCEAE6; color:{c['text_dark']}; border-radius:12px; font-weight:bold; font-size:11px; padding: 4px 16px;")
+        self._cal_btn = QPushButton(self._cal_date.strftime("%B %Y"))
+        self._cal_btn.setFixedHeight(24)
+        self._cal_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self._cal_btn.setStyleSheet(f"QPushButton {{ background:#FCEAE6; color:{c['text_dark']}; border:none; border-radius:12px; font-weight:bold; font-size:11px; padding: 0px 16px; }} QPushButton:hover {{ background:#F5DED5; }}")
+        self._cal_btn.clicked.connect(self._pick_month_year)
         
         btn_next = QPushButton(">"); btn_next.setFixedSize(24, 24)
         btn_next.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -418,7 +487,7 @@ class DashboardView(QWidget):
         
         cal_nav_l.addWidget(btn_prev)
         cal_nav_l.addStretch()
-        cal_nav_l.addWidget(self._cal_lbl)
+        cal_nav_l.addWidget(self._cal_btn)
         cal_nav_l.addStretch()
         cal_nav_l.addWidget(btn_next)
         ccl.addWidget(cal_nav)
