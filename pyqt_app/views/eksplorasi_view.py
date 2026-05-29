@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QLineEdit, QGridLayout,
     QDialog, QRadioButton, QCheckBox, QButtonGroup,
-    QGraphicsDropShadowEffect, QApplication
+    QGraphicsDropShadowEffect, QApplication, QCompleter
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QSize, QUrl, QTimer
 from PyQt6.QtGui import QFont, QCursor, QColor, QPainter, QPainterPath, QPixmap, QBrush, QPen, QIcon, QFontMetrics, QLinearGradient, QDesktopServices
@@ -307,6 +307,16 @@ class EksplorasiView(QWidget):
         self._search.setPlaceholderText("🔍 Search Scholarships...")
         self._search.setFixedHeight(40)
         self._search.setStyleSheet(f"background-color: {c['card']}; border: 1px solid {c['border']}; border-radius: 12px; padding: 0 16px;")
+        
+        suggestions = list(set([b.get("nama") for b in self._all if b.get("nama")] + [b.get("penyelenggara") for b in self._all if b.get("penyelenggara")]))
+        self._completer = QCompleter(suggestions)
+        self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self._completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        
+        popup = self._completer.popup()
+        popup.setStyleSheet(f"background-color: {c['card']}; color: {c['text_dark']}; border: 1px solid {c['border']}; border-radius: 8px; outline: none;")
+        self._search.setCompleter(self._completer)
+        
         self._search.textChanged.connect(self._on_search)
         tl.addWidget(self._search, 1)
         
