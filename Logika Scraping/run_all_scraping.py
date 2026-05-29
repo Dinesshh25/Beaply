@@ -44,14 +44,14 @@ CONFIG = {
     'indbeasiswa': {
         'aktif'         : True,
         'scrape_details': False,
-        'max_entries'   : 5,
+        'max_entries'   : 150,
     },
     'beasiswaid': {
         'aktif'                 : True,
-        'categories'            : ['beasiswa_s1'],
+        'categories'            : ['beasiswa_s1', 'beasiswa_s2', 'beasiswa_s3'],
         'scrape_details'        : False,
-        'max_pages_per_category': 1,
-        'max_entries'           : 5,
+        'max_pages_per_category': 10,
+        'max_entries'           : 150,
     },
 }
 

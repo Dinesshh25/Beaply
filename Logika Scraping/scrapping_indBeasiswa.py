@@ -384,7 +384,7 @@ if __name__ == '__main__':
     hasil = jalankan_scraper_beasiswa(
         progress_callback=print_progress,
         scrape_details=False,
-        max_entries=5
+        max_entries=150
     )
 
     print(f"\n=== HASIL: {len(hasil)} beasiswa ===")
