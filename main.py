@@ -147,6 +147,7 @@ class BeaplyMainWindow(QMainWindow):
         """Called when register+profile creation succeeds. Go straight to dashboard."""
         self._user_data = data
         self._user_id = data.get("user_id") or data.get("id")
+        # pyrefly: ignore [missing-import]
         from controllers.auth_controller import set_current_user
         set_current_user(data)
         self._profil_id = profil_id
@@ -422,6 +423,7 @@ class BeaplyMainWindow(QMainWindow):
         self._is_admin = False
         self._apply_theme()
 
+        # pyrefly: ignore [missing-import]
         from controllers.auth_controller import set_current_user
         set_current_user(None)
 
