@@ -90,6 +90,26 @@ class SettingsView(QWidget):
         vb.setStyleSheet(f"background: {c['btn_primary']}; color: {c['text_dark']}; border-radius: 8px; padding: 4px 12px; font-size: 10px; font-weight: bold;")
         eml.addWidget(vb)
         secl.addWidget(em_row)
+
+        secl.addWidget(self._sep(c))
+        lo_row = QFrame()
+        lol = QHBoxLayout(lo_row)
+        lol.setContentsMargins(0,0,0,0)
+        lol_left = QFrame()
+        loll = QVBoxLayout(lol_left)
+        loll.setContentsMargins(0,0,0,0)
+        loll.setSpacing(0)
+        loll.addWidget(self._bold("Logout", 12))
+        loll.addWidget(self._muted("Sign out of your account"))
+        lol.addWidget(lol_left)
+        lol.addStretch()
+        lob = QPushButton("Logout")
+        lob.setStyleSheet(f"background: #F6D6D0; color: {c['danger']}; border: none; border-radius: 8px; padding: 6px 16px; font-size: 11px; font-weight: bold;")
+        lob.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        lob.clicked.connect(self._logout)
+        lol.addWidget(lob)
+        secl.addWidget(lo_row)
+
         sl.addWidget(sec)
 
         # ── Display ──────────────────────────────────────────
@@ -267,6 +287,20 @@ class SettingsView(QWidget):
                     self._refresh_cb()
             else:
                 QMessageBox.critical(self, "Error", msg)
+
+    def _logout(self):
+        c = palette(self._mode)
+        reply = QMessageBox(self)
+        reply.setWindowTitle("Logout" if self._bhs == "en" else "Keluar")
+        reply.setText("Are you sure you want to logout?" if self._bhs == "en" else "Apakah Anda yakin ingin keluar?")
+        reply.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        reply.setStyleSheet(f"QMessageBox {{ background-color: {c['card']}; }} QLabel {{ color: {c['text_dark']}; font-weight: bold; }} QPushButton {{ background-color: {c['btn_primary']}; color: {c['text_dark']}; padding: 6px 16px; border-radius: 6px; font-weight: bold; border: none; }}")
+        
+        res = reply.exec()
+        if res == QMessageBox.StandardButton.Yes:
+            top = self.window()
+            if hasattr(top, '_go_logout'):
+                top._go_logout()
 
     def _change_pw(self):
         dlg = QDialog(self)

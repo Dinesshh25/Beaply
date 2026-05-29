@@ -42,6 +42,7 @@ def init_profil_db():
             skor_gmat       INTEGER,
             skor_hsk        INTEGER,
             level_jlpt      TEXT,
+            avatar          TEXT,
             dibuat_pada     TEXT DEFAULT (datetime('now','localtime')),
             diupdate_pada   TEXT DEFAULT (datetime('now','localtime'))
         )
@@ -64,6 +65,7 @@ def init_profil_db():
     # Dijalankan setiap startup; IF NOT EXISTS-equivalent via try/except
     migrations = [
         "ALTER TABLE profil ADD COLUMN aktif_organisasi INTEGER DEFAULT 0",
+        "ALTER TABLE profil ADD COLUMN avatar TEXT",
     ]
     for sql in migrations:
         try:
@@ -93,7 +95,7 @@ def simpan_profil_db(data: dict) -> tuple[bool, str, int]:
             "status_kip", "aktif_organisasi",
             "skor_ielts", "skor_toefl", "skor_duolingo",
             "skor_sat", "skor_act", "skor_gre", "skor_gmat",
-            "skor_hsk", "level_jlpt",
+            "skor_hsk", "level_jlpt", "avatar",
         ]
         placeholders = ", ".join("?" for _ in cols)
         col_names = ", ".join(cols)
