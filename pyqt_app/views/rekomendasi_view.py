@@ -5,10 +5,10 @@ Recommendations page with scholarship comparison feature.
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QLineEdit, QMessageBox, QComboBox,
-    QSizePolicy, QGridLayout
+    QSizePolicy, QGridLayout, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QCursor
+from PyQt6.QtGui import QFont, QCursor, QColor
 
 from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
 from controllers.rekomendasi_controller import (
@@ -46,29 +46,15 @@ class _ComparePanel(QFrame):
         title_row.addWidget(title_lbl)
         title_row.addStretch()
         
-        gradient_style = f"""
-            QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['btn_primary']}, stop:1 #81C784);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                padding: 0 16px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #81C784, stop:1 {c['btn_primary']});
-            }}
-        """
-        
         back_style = f"""
             QPushButton {{
-                background: {c['btn_primary']}; color: white;
-                border: none; border-radius: 12px; padding: 0 20px; font-weight: bold;
+                background: {c['card']}; color: {c['text_dark']};
+                border: 1px solid {c['border']}; border-radius: 6px; padding: 6px 14px; font-weight: bold; font-size: 13px;
             }}
-            QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
+            QPushButton:hover {{ background: {c['bg']}; }}
         """
         
-        back_btn = QPushButton("Kembali")
+        back_btn = QPushButton("← Kembali" if profil.get("bhs", "id") == "id" else "← Back")
         back_btn.setFixedHeight(32)
         back_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         back_btn.setStyleSheet(back_style)
@@ -76,7 +62,7 @@ class _ComparePanel(QFrame):
         title_row.addWidget(back_btn)
         root.addLayout(title_row)
 
-        root.addWidget(_hdivider(c))
+        root.addSpacing(10)
 
         if not data:
             root.addWidget(QLabel("Gagal memuat data perbandingan."))
@@ -89,74 +75,25 @@ class _ComparePanel(QFrame):
         krit_a = data["a"]["kriteria"]
         krit_b = data["b"]["kriteria"]
 
-        # ── Score header cards ────────────────────────────────────
-        score_row = QHBoxLayout()
-        score_row.setSpacing(16)
+        # ── Side-by-side Cards ────────────────────────────────────
+        arena_lay = QHBoxLayout()
+        # ── Side-by-side Cards ────────────────────────────────────
+        arena_lay = QHBoxLayout()
+        arena_lay.setSpacing(20)
+
+        grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE1E1, stop:1 #FFCBB3)"
+        grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #D5F5E3, stop:1 #A9DFBF)"
+
+        card_a = self._build_comparison_column(bea_a, skor_a, krit_a, grad_a, c)
+        card_b = self._build_comparison_column(bea_b, skor_b, krit_b, grad_b, c)
+
+        arena_lay.addWidget(card_a)
+        arena_lay.addWidget(card_b)
+
+        root.addLayout(arena_lay)
         
-        green_grad = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #E8F5E9)" if mode == "light" else "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #2B302C, stop:1 #272E2B)"
-        pink_grad = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #FCEBE3)" if mode == "light" else "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #382928, stop:1 #332B28)"
+        root.addSpacing(10)
         
-        score_row.addWidget(self._score_card(bea_a["nama"], skor_a, green_grad, mode))
-        # VS badge
-        vs = QLabel("VS")
-        vs.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
-        vs.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        vs.setStyleSheet(f"color: {c['text_muted']}; min-width: 40px; background: transparent;")
-        score_row.addWidget(vs)
-        score_row.addWidget(self._score_card(bea_b["nama"], skor_b, pink_grad, mode))
-        root.addLayout(score_row)
-
-        root.addWidget(_hdivider(c))
-
-        # ── Criteria grid ─────────────────────────────────────────
-        grid_lbl = QLabel("Detail Kriteria")
-        grid_lbl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
-        grid_lbl.setStyleSheet(f"color: {c['text_muted']};")
-        root.addWidget(grid_lbl)
-
-        grid_card = QFrame()
-        grid_card.setStyleSheet(f"QFrame {{ background: {c['card']}; border: 1px solid {c['border']}; border-radius: 12px; }}")
-        
-        grid = QGridLayout(grid_card)
-        grid.setSpacing(0)
-        grid.setContentsMargins(0, 0, 0, 0)
-        grid.setColumnStretch(0, 2)
-        grid.setColumnStretch(1, 3)
-        grid.setColumnStretch(2, 3)
-
-        # Header row
-        for col, text in enumerate(["Kriteria",
-                                     self._short_name(bea_a["nama"]),
-                                     self._short_name(bea_b["nama"])]):
-            lbl = QLabel(text)
-            lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
-            lbl.setStyleSheet(
-                f"background: {pastel(4, mode)}; color: {c['text_dark']}; border: none; "
-                f"padding: 10px 10px; border-bottom: 1px solid {c['border']};"
-            )
-            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter if col > 0 else Qt.AlignmentFlag.AlignLeft)
-            grid.addWidget(lbl, 0, col)
-
-        for row_i, (ka, kb) in enumerate(zip(krit_a, krit_b), start=1):
-            bg = c["card"] if row_i % 2 == 0 else c["bg"]
-
-            # Kriteria label
-            lbl_kr = QLabel(ka["label"])
-            lbl_kr.setFont(QFont(FONT_FAMILY, 11))
-            lbl_kr.setStyleSheet(
-                f"background: {bg}; color: {c['text_dark']}; border: none; "
-                f"padding: 12px 10px; border-bottom: 1px solid {c['border']};"
-            )
-            grid.addWidget(lbl_kr, row_i, 0)
-
-            # Beasiswa A cell
-            grid.addWidget(self._crit_cell(ka, bg, c), row_i, 1)
-
-            # Beasiswa B cell
-            grid.addWidget(self._crit_cell(kb, bg, c), row_i, 2)
-
-        root.addWidget(grid_card)
-
         # ── Winner line ───────────────────────────────────────────
         if skor_a != skor_b:
             winner_name = bea_a["nama"] if skor_a > skor_b else bea_b["nama"]
@@ -165,8 +102,8 @@ class _ComparePanel(QFrame):
             wl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
             wl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             wl.setStyleSheet(
-                f"background: {pastel(3, mode)}; color: #2D6A4F; "
-                f"border-radius: 12px; padding: 12px 16px; margin-top: 10px;"
+                f"background: {pastel(3, self._mode)}; color: #2D6A4F; "
+                f"border-radius: 12px; padding: 12px 16px;"
             )
             root.addWidget(wl)
         else:
@@ -174,80 +111,130 @@ class _ComparePanel(QFrame):
             tie.setFont(QFont(FONT_FAMILY, 11))
             tie.setAlignment(Qt.AlignmentFlag.AlignCenter)
             tie.setStyleSheet(
-                f"background: {pastel(1, mode)}; color: {c['text_dark']}; "
+                f"background: {pastel(1, self._mode)}; color: {c['text_dark']}; "
                 f"border-radius: 10px; padding: 10px 16px;"
             )
             root.addWidget(tie)
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
-    def _score_card(self, nama: str, skor: int, gradient_str: str, mode: str) -> QFrame:
-        c = palette(mode)
+    def _get_icon(self, label: str) -> str:
+        label = label.lower()
+        if "ipk" in label: return "📖"
+        if "semester" in label: return "🕒"
+        if "jurusan" in label: return "🎓"
+        if "organisasi" in label: return "👥"
+        if "penghasilan" in label or "gaji" in label: return "💰"
+        return "📌"
+
+    def _build_comparison_column(self, bea: dict, skor: int, kriteria: list, grad: str, c: dict) -> QFrame:
         f = QFrame()
+        f.setStyleSheet(f"""
+            QFrame#compCard {{
+                background: {grad};
+                border-radius: 20px;
+            }}
+        """)
+        f.setObjectName("compCard")
+        f.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        
         from PyQt6.QtWidgets import QGraphicsDropShadowEffect
         from PyQt6.QtGui import QColor
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setXOffset(2)
-        shadow.setYOffset(0)
+        shadow.setBlurRadius(20)
         shadow.setColor(QColor(0, 0, 0, 15))
+        shadow.setOffset(0, 4)
         f.setGraphicsEffect(shadow)
-        
-        f.setStyleSheet(
-            f"QFrame {{ background: {gradient_str}; "
-            f"border-radius: 14px; border: none; }}"
-        )
-        f.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        fl = QVBoxLayout(f)
-        fl.setContentsMargins(16, 14, 16, 14)
-        fl.setSpacing(6)
 
-        name_lbl = QLabel(nama)
-        name_lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
-        name_lbl.setWordWrap(True)
+        vl = QVBoxLayout(f)
+        vl.setContentsMargins(20, 24, 20, 24)
+        vl.setSpacing(12)
+
+        name_lbl = QLabel(bea["nama"])
+        name_lbl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
         name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        fl.addWidget(name_lbl)
-
-        skor_color = c["btn_primary"] if skor >= 60 else c["text_accent"]
-        skor_lbl = QLabel(f"{skor}%")
-        skor_lbl.setFont(QFont(FONT_FAMILY, 28, QFont.Weight.Bold))
-        skor_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        skor_lbl.setStyleSheet(f"color: {skor_color};")
-        fl.addWidget(skor_lbl)
+        name_lbl.setStyleSheet("color: #333333; background: transparent;")
+        name_lbl.setStyleSheet("color: #333333; background: transparent; margin-bottom: 8px;")
+        name_lbl.setWordWrap(True)
+        vl.addWidget(name_lbl)
 
         match_txt = "Sangat Cocok" if skor >= 80 else ("Cocok" if skor >= 60 else ("Cukup" if skor >= 40 else "Kurang Cocok"))
+        
+        pr_lay = QHBoxLayout()
+        pr_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        circle = QFrame()
+        circle.setFixedSize(140, 140)
+        circle.setStyleSheet("""
+            QFrame {
+                background: rgba(255, 255, 255, 0.6);
+                border: 4px solid rgba(255, 255, 255, 0.9);
+                border-radius: 70px;
+            }
+        """)
+        
+        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
+        from PyQt6.QtGui import QColor
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 15))
+        shadow.setOffset(0, 4)
+        circle.setGraphicsEffect(shadow)
+        
+        circle_lay = QVBoxLayout(circle)
+        circle_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        circle_lay.setContentsMargins(0, 0, 0, 0)
+        circle_lay.setSpacing(2)
+        
+        skor_lbl = QLabel(f"{skor}%")
+        skor_lbl.setFont(QFont(FONT_FAMILY, 34, QFont.Weight.Black))
+        skor_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        skor_lbl.setStyleSheet("color: #1A1A1A; background: transparent; border: none;")
+        circle_lay.addWidget(skor_lbl)
+        
         match_lbl = QLabel(match_txt)
-        match_lbl.setFont(QFont(FONT_FAMILY, 10))
+        match_lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         match_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        match_lbl.setStyleSheet(f"color: {c['text_muted']};")
-        fl.addWidget(match_lbl)
+        match_col = "#2D6A4F" if skor >= 60 else "#D32F2F"
+        match_lbl.setStyleSheet(f"color: {match_col}; background: transparent; border: none;")
+        circle_lay.addWidget(match_lbl)
+        
+        pr_lay.addWidget(circle)
+        vl.addLayout(pr_lay)
+        vl.addSpacing(20)
+
+        for k in kriteria:
+            row = QFrame()
+            row.setStyleSheet("""
+                QFrame {
+                    background: rgba(255, 255, 255, 0.45);
+                    border-radius: 18px;
+                }
+            """)
+            rl = QHBoxLayout(row)
+            rl.setContentsMargins(16, 12, 16, 12)
+            rl.setSpacing(8)
+
+            icon = QLabel(self._get_icon(k["label"]))
+            icon.setStyleSheet("background: transparent;")
+            rl.addWidget(icon)
+
+            k_lbl = QLabel(k["label"])
+            k_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
+            k_lbl.setStyleSheet("color: #333333; background: transparent;")
+            rl.addWidget(k_lbl)
+
+            rl.addStretch()
+
+            v_val = k["nilai"]
+            val_lbl = QLabel(f"{v_val}")
+            val_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
+            val_col = "#222222" if k["lulus"] else "#D32F2F"
+            val_lbl.setStyleSheet(f"color: {val_col}; background: transparent;")
+            rl.addWidget(val_lbl)
+
+            vl.addWidget(row)
+
+        vl.addStretch()
         return f
-
-    def _crit_cell(self, k: dict, bg: str, c: dict) -> QFrame:
-        """Build a criteria cell showing the requirement value + user pass/fail."""
-        cell = QFrame()
-        cell.setStyleSheet(
-            f"QFrame {{ background: {bg}; padding: 0px; border: none; "
-            f"border-bottom: 1px solid {c['border']}; }}"
-        )
-        vl = QVBoxLayout(cell)
-        vl.setContentsMargins(10, 6, 10, 6)
-        vl.setSpacing(1)
-
-        val_lbl = QLabel(k["nilai"])
-        val_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
-        val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        vl.addWidget(val_lbl)
-
-        lulus = k["lulus"]
-        status_icon = "✅" if lulus else "❌"
-        status_txt = f"{status_icon} {k['user']}"
-        status_lbl = QLabel(status_txt)
-        status_lbl.setFont(QFont(FONT_FAMILY, 9))
-        status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        status_color = c["btn_primary"] if lulus else c["danger"]
-        status_lbl.setStyleSheet(f"color: {status_color};")
-        vl.addWidget(status_lbl)
-        return cell
 
     @staticmethod
     def _short_name(nama: str) -> str:
@@ -262,10 +249,11 @@ class _CompareSelectPanel(QFrame):
     Emitted via compare_requested callback(bea_a_idx, bea_b_idx).
     """
 
-    def __init__(self, hasil: list, mode: str, compare_cb, cancel_cb, parent=None):
+    def __init__(self, hasil: list, mode: str, compare_cb, cancel_cb, bhs: str = "id", parent=None):
         super().__init__(parent)
         self._hasil = hasil
         self._mode = mode
+        self._bhs = bhs
         c = palette(mode)
 
         self.setProperty("frameClass", "card")
@@ -273,29 +261,30 @@ class _CompareSelectPanel(QFrame):
         root.setContentsMargins(24, 20, 24, 20)
         root.setSpacing(12)
 
-        # Title row with Back button
-        title_row = QHBoxLayout()
-        t = QLabel("Pilih Dua Beasiswa untuk Dibandingkan")
-        t.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
-        title_row.addWidget(t)
-        title_row.addStretch()
-        
+        # Back button row
+        back_row = QHBoxLayout()
         back_style = f"""
             QPushButton {{
-                background: {c['btn_primary']}; color: white;
-                border: none; border-radius: 12px; padding: 0 20px; font-weight: bold;
+                background: {c['card']}; color: {c['text_dark']};
+                border: 1px solid {c['border']}; border-radius: 6px; padding: 6px 14px; font-weight: bold; font-size: 13px;
             }}
-            QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
+            QPushButton:hover {{ background: {c['bg']}; }}
         """
-        cancel_btn = QPushButton("Kembali")
-        cancel_btn.setFixedHeight(32)
+        cancel_btn = QPushButton("← Kembali" if self._bhs == "id" else "← Back")
         cancel_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         cancel_btn.setStyleSheet(back_style)
         cancel_btn.clicked.connect(cancel_cb)
-        title_row.addWidget(cancel_btn)
-        root.addLayout(title_row)
+        back_row.addWidget(cancel_btn)
+        back_row.addStretch()
+        root.addLayout(back_row)
+        
+        root.addSpacing(16)
 
-        sub = QLabel("Pilih dua beasiswa yang berbeda dari hasil rekomendasi Anda.")
+        t = QLabel("Pilih Dua Beasiswa untuk Dibandingkan" if self._bhs == "id" else "Select Two Scholarships to Compare")
+        t.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
+        root.addWidget(t)
+
+        sub = QLabel("Pilih dua beasiswa yang berbeda dari hasil rekomendasi Anda." if self._bhs == "id" else "Select two different scholarships from your recommendations.")
         sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 13px;")
         root.addWidget(sub)
 
@@ -307,22 +296,42 @@ class _CompareSelectPanel(QFrame):
         arena_lay = QHBoxLayout()
         arena_lay.setSpacing(20)
 
-        # Card A (Pink gradient border style)
+        # Card A (Pink-orange gradient)
         card_a = QFrame()
-        card_a.setStyleSheet(f"QFrame {{ background: {pastel(2, mode)}; border-radius: 16px; padding: 20px; }}")
-        card_a.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        card_a.setStyleSheet(f"""
+            QFrame {{ 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFFFFF, stop:1 #FAD6D0); 
+                border-radius: 20px; padding: 20px; 
+            }}
+        """)
+        
+        shadow_a = QGraphicsDropShadowEffect()
+        shadow_a.setBlurRadius(20)
+        shadow_a.setColor(QColor(0, 0, 0, 15))
+        shadow_a.setOffset(2, 6)
+        card_a.setGraphicsEffect(shadow_a)
+        card_a.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        card_a.setMinimumHeight(180)
+        
         lay_a = QVBoxLayout(card_a)
         lay_a.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_a = QLabel("Beasiswa Pertama")
-        lbl_a.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
-        lbl_a.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lay_a.addWidget(lbl_a)
-        lay_a.addSpacing(10)
         self._combo_a = QComboBox()
         for n in names:
             self._combo_a.addItem(n)
-        self._combo_a.setFixedHeight(40)
-        self._combo_a.setStyleSheet(f"QComboBox {{ background: {c['card']}; border-radius: 8px; border: 1px solid {c['border']}; padding: 0 12px; font-weight: bold; font-size: 13px; }}")
+        self._combo_a.setFixedHeight(46)
+        self._combo_a.setStyleSheet(f"""
+            QComboBox {{ 
+                background: {c['card']}; border-radius: 23px; border: none; 
+                padding: 0 20px; font-weight: bold; font-size: 13px; color: {c['text_muted']};
+            }}
+            QComboBox::drop-down {{ border: none; }}
+        """)
+        
+        shadow_ca = QGraphicsDropShadowEffect()
+        shadow_ca.setBlurRadius(10)
+        shadow_ca.setColor(QColor(0, 0, 0, 10))
+        shadow_ca.setOffset(0, 3)
+        self._combo_a.setGraphicsEffect(shadow_ca)
         lay_a.addWidget(self._combo_a)
         arena_lay.addWidget(card_a)
 
@@ -331,27 +340,53 @@ class _CompareSelectPanel(QFrame):
         vs_badge.setFont(QFont(FONT_FAMILY, 18, QFont.Weight.Black))
         vs_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vs_badge.setFixedSize(60, 60)
-        vs_badge.setStyleSheet(f"background: {c['card']}; color: {c['text_dark']}; border-radius: 30px; border: 2px solid {c['border']};")
+        vs_badge.setStyleSheet(f"background: #FFFFFF; color: #E0CACA; border-radius: 30px; border: none;")
+        
+        shadow_vs = QGraphicsDropShadowEffect()
+        shadow_vs.setBlurRadius(25)
+        shadow_vs.setColor(QColor(168, 220, 185, 180)) # Glowing green shadow
+        shadow_vs.setOffset(0, 0)
+        vs_badge.setGraphicsEffect(shadow_vs)
         arena_lay.addWidget(vs_badge)
 
-        # Card B (Green gradient border style)
+        # Card B (Mint-green gradient)
         card_b = QFrame()
-        card_b.setStyleSheet(f"QFrame {{ background: {pastel(3, mode)}; border-radius: 16px; padding: 20px; }}")
-        card_b.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        card_b.setStyleSheet(f"""
+            QFrame {{ 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFFFFF, stop:1 #C8E6D3); 
+                border-radius: 20px; padding: 20px; 
+            }}
+        """)
+        
+        shadow_b = QGraphicsDropShadowEffect()
+        shadow_b.setBlurRadius(20)
+        shadow_b.setColor(QColor(0, 0, 0, 15))
+        shadow_b.setOffset(-2, 6)
+        card_b.setGraphicsEffect(shadow_b)
+        card_b.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        card_b.setMinimumHeight(180)
+        
         lay_b = QVBoxLayout(card_b)
         lay_b.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_b = QLabel("Beasiswa Kedua")
-        lbl_b.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
-        lbl_b.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lay_b.addWidget(lbl_b)
-        lay_b.addSpacing(10)
         self._combo_b = QComboBox()
         for n in names:
             self._combo_b.addItem(n)
         if len(names) > 1:
             self._combo_b.setCurrentIndex(1)
-        self._combo_b.setFixedHeight(40)
-        self._combo_b.setStyleSheet(f"QComboBox {{ background: {c['card']}; border-radius: 8px; border: 1px solid {c['border']}; padding: 0 12px; font-weight: bold; font-size: 13px; }}")
+        self._combo_b.setFixedHeight(46)
+        self._combo_b.setStyleSheet(f"""
+            QComboBox {{ 
+                background: {c['card']}; border-radius: 23px; border: none; 
+                padding: 0 20px; font-weight: bold; font-size: 13px; color: {c['text_muted']};
+            }}
+            QComboBox::drop-down {{ border: none; }}
+        """)
+        
+        shadow_cb = QGraphicsDropShadowEffect()
+        shadow_cb.setBlurRadius(10)
+        shadow_cb.setColor(QColor(0, 0, 0, 10))
+        shadow_cb.setOffset(0, 3)
+        self._combo_b.setGraphicsEffect(shadow_cb)
         lay_b.addWidget(self._combo_b)
         arena_lay.addWidget(card_b)
 
@@ -364,26 +399,34 @@ class _CompareSelectPanel(QFrame):
 
         gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['btn_primary']}, stop:1 #81C784);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B6CCBC, stop:1 #97B79E);
                 color: white;
-                border: none;
-                border-radius: 14px;
+                border: 2px solid #E6EFE8;
+                border-radius: 20px;
                 padding: 0 40px;
                 font-weight: bold;
-                font-size: 15px;
+                font-size: 14px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #81C784, stop:1 {c['btn_primary']});
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #97B79E, stop:1 #B6CCBC);
             }}
         """
 
         compare_btn = QPushButton("Bandingkan Sekarang")
-        compare_btn.setFixedHeight(46)
-        compare_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        compare_btn.setFixedHeight(40)
+        compare_btn.setMinimumWidth(300)
         compare_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         compare_btn.setStyleSheet(gradient_style)
         compare_btn.clicked.connect(self._on_compare)
+        
+        shadow_btn = QGraphicsDropShadowEffect()
+        shadow_btn.setBlurRadius(15)
+        shadow_btn.setColor(QColor(0, 0, 0, 20))
+        shadow_btn.setOffset(0, 4)
+        compare_btn.setGraphicsEffect(shadow_btn)
+        
         btn_row.addWidget(compare_btn)
+        btn_row.addStretch()
         
         root.addLayout(btn_row)
 
@@ -458,8 +501,8 @@ class RekomendasiView(QWidget):
         
         hdr.setStyleSheet(f"""
             #heroCard {{
-                background: {c['greet_bg']};
-                border-radius: 18px; border: 1px solid {c['greet_border']};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9);
+                border-radius: 18px; border: 1px solid #FADED7;
             }}
         """)
         
@@ -503,33 +546,31 @@ class RekomendasiView(QWidget):
         
         green_gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #EAF5EC, stop:1 #D9ECDF);
-                background-color: #E6F0E8;
+                background-color: #DFEADC;
                 color: {c['text_dark']};
-                border: 1px solid #D9EADF;
+                border: none;
                 border-radius: 20px;
                 padding: 0 20px;
                 font-weight: bold;
                 font-size: 14px;
             }}
             QPushButton:hover {{
-                background-color: #D9EADF;
+                background-color: #CBE0CC;
             }}
         """
         
         pink_gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FDF2F0, stop:1 #F7E4DF);
-                background-color: #FCECE9;
+                background-color: #FCDDCE;
                 color: {c['text_dark']};
-                border: 1px solid #F7E4DF;
+                border: none;
                 border-radius: 20px;
                 padding: 0 20px;
                 font-weight: bold;
                 font-size: 14px;
             }}
             QPushButton:hover {{
-                background-color: #F7E4DF;
+                background-color: #F5C2B6;
             }}
         """
         
@@ -541,7 +582,7 @@ class RekomendasiView(QWidget):
         gb.clicked.connect(self._do_calc)
         btn_lay.addWidget(gb)
         
-        cmp_btn = QPushButton("Bandingkan Beasiswa" if self._bhs == "id" else "Compare Scholarships")
+        cmp_btn = QPushButton("🔀 Bandingkan Beasiswa" if self._bhs == "id" else "🔀 Compare Scholarships")
         cmp_btn.setFixedHeight(40)
         cmp_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         cmp_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -560,7 +601,13 @@ class RekomendasiView(QWidget):
         
         # Empty state
         info = QFrame()
-        info.setProperty("frameClass", "card")
+        info.setObjectName("emptyCard")
+        info.setStyleSheet(f"""
+            #emptyCard {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9);
+                border-radius: 18px; border: 1px solid #FADED7;
+            }}
+        """)
         self._apply_card_shadow(info)
         il = QVBoxLayout(info)
         il.setContentsMargins(24, 40, 24, 40)
@@ -572,7 +619,7 @@ class RekomendasiView(QWidget):
         il.addWidget(icon)
         
         it = QLabel("Belum ada rekomendasi yang ditampilkan.\nKlik tombol 'Dapatkan Rekomendasi' di atas untuk memulai!" if self._bhs == "id" else "No recommendations yet.\nClick 'Get Recommendations' above to start!")
-        it.setStyleSheet(f"color: {c['text_muted']}; font-size: 13px; background: transparent;")
+        it.setStyleSheet(f"color: {c['text_dark']}; font-size: 13px; background: transparent;")
         it.setAlignment(Qt.AlignmentFlag.AlignCenter)
         il.addWidget(it)
         
@@ -583,7 +630,17 @@ class RekomendasiView(QWidget):
     # ── Calculate recommendations ──────────────────────────────────────────────
     def _do_calc(self):
         if not self._profil:
-            QMessageBox.warning(self, "Profil Belum Lengkap" if self._bhs == "id" else "Profile Incomplete", "Silakan lengkapi data profil Anda di menu Profil terlebih dahulu." if self._bhs == "id" else "Please complete your profile data first.")
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Profil Belum Lengkap" if self._bhs == "id" else "Profile Incomplete")
+            msg.setText("Silakan lengkapi data profil Anda di menu Profil terlebih dahulu." if self._bhs == "id" else "Please complete your profile data first.")
+            c = palette(self._mode)
+            msg.setStyleSheet(f"""
+                QMessageBox {{ background-color: {c['bg']}; }} 
+                QLabel {{ color: {c['text_dark']}; }}
+                QPushButton {{ background-color: {c['btn_primary']}; color: white; padding: 6px 16px; border-radius: 4px; border: none; font-weight: bold; }}
+            """)
+            msg.exec()
             return
         self._results = hitung_rekomendasi(self._profil)
         self._build_results()
@@ -611,7 +668,14 @@ class RekomendasiView(QWidget):
             
             # Highlight #1 match
             if i == 0:
-                card.setStyleSheet(f"QFrame {{ background: {pastel(3, self._mode)}; border: 2px solid {c['btn_primary']}; border-radius: 14px; }}")
+                bg_col = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #EAF5EC, stop:1 #DFF0E2)" if self._mode == "light" else c['sidebar_active_bg']
+                card.setStyleSheet(f"QFrame {{ background: {bg_col}; border: none; border-radius: 14px; }}")
+                
+                shadow_c1 = QGraphicsDropShadowEffect()
+                shadow_c1.setBlurRadius(15)
+                shadow_c1.setColor(QColor(168, 197, 176, 150)) # soft green glow
+                shadow_c1.setOffset(0, 4)
+                card.setGraphicsEffect(shadow_c1)
             else:
                 card.setProperty("frameClass", "card")
                 
@@ -621,50 +685,48 @@ class RekomendasiView(QWidget):
             left = QFrame()
             ll = QVBoxLayout(left)
             ll.setContentsMargins(0, 0, 0, 0)
-            ll.setSpacing(2)
+            ll.setSpacing(4)
 
             title_lay = QHBoxLayout()
             title_lay.setSpacing(10)
             
             rk = QLabel(f"#{i+1}")
-            rk_font = 26 if i == 0 else 18
+            rk_font = 22 if i == 0 else 16
             rk.setFont(QFont(FONT_FAMILY, rk_font, QFont.Weight.Black, italic=True))
             rk.setStyleSheet(f"color: {c['text_accent']};")
             title_lay.addWidget(rk)
 
             n = QLabel(bea["nama"])
             n.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
+            n.setWordWrap(False)
             title_lay.addWidget(n)
             
-            if i == 0:
-                bm = QLabel(" Best Match")
-                bm.setStyleSheet(f"color: {c['btn_primary']}; font-weight: bold; font-size: 12px; padding-left: 10px;")
-                title_lay.addWidget(bm)
-                
             title_lay.addStretch()
             ll.addLayout(title_lay)
-
-            info = QLabel(f"Min IPK: {bea['min_ipk']}  |  Max Sem: {bea['max_semester']}")
-            info.setStyleSheet(f"color: {c['text_muted']}; font-size: 12px;")
-            ll.addWidget(info)
 
             cl.addWidget(left)
             cl.addStretch()
 
-            badge = QFrame()
-            badge.setFixedSize(80, 50)
-            badge.setStyleSheet(
-                f"QFrame {{ background: {pastel(i, self._mode)}; border-radius: 12px; }}"
-            )
-            bc = c["btn_primary"] if skor >= 60 else c["text_accent"]
-            bl = QLabel(f"{skor}%")
-            bl.setFont(QFont(FONT_FAMILY, 16, QFont.Weight.Bold))
-            bl.setStyleSheet(f"color: {bc};")
-            bl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            blv = QVBoxLayout(badge)
-            blv.setContentsMargins(0, 0, 0, 0)
-            blv.addWidget(bl)
-            cl.addWidget(badge)
+            right = QFrame()
+            rl = QVBoxLayout(right)
+            rl.setContentsMargins(0, 0, 0, 0)
+            rl.setSpacing(6)
+            rl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            from pyqt_app.widgets.progress_ring import ProgressRing
+            subt = "Kecocokan" if self._bhs == "id" else "Match"
+            
+            if i == 0:
+                badge = QLabel(f"{skor}%\n{subt}")
+                badge.setFixedSize(70, 70)
+                badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                badge.setStyleSheet(f"background: {c['btn_primary']}; color: white; border-radius: 35px; font-weight: bold; font-size: 10px;")
+                rl.addWidget(badge, alignment=Qt.AlignmentFlag.AlignCenter)
+            else:
+                ring = ProgressRing(skor, 70, 5, bg_color=c['border'], fg_color=c['text_accent'], text_color=c['text_dark'], subtitle=subt)
+                rl.addWidget(ring, alignment=Qt.AlignmentFlag.AlignCenter)
+
+            cl.addWidget(right)
             sl.addWidget(card)
 
         # Smart tips
@@ -691,7 +753,17 @@ class RekomendasiView(QWidget):
     # ── Compare: selection panel ───────────────────────────────────────────────
     def _show_compare_select(self):
         if not getattr(self, '_results', None) or len(self._results) < 2:
-            QMessageBox.warning(self, "Belum Ada Hasil" if self._bhs == "id" else "No Results", "Dapatkan rekomendasi terlebih dahulu, minimal 2 beasiswa diperlukan untuk membandingkan." if self._bhs == "id" else "Get recommendations first, at least 2 scholarships are required to compare.")
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Belum Ada Hasil" if self._bhs == "id" else "No Results")
+            msg.setText("Dapatkan rekomendasi terlebih dahulu, minimal 2 beasiswa diperlukan untuk membandingkan." if self._bhs == "id" else "Get recommendations first, at least 2 scholarships are required to compare.")
+            c = palette(self._mode)
+            msg.setStyleSheet(f"""
+                QMessageBox {{ background-color: {c['bg']}; }} 
+                QLabel {{ color: {c['text_dark']}; }}
+                QPushButton {{ background-color: {c['btn_primary']}; color: white; padding: 6px 16px; border-radius: 4px; border: none; font-weight: bold; }}
+            """)
+            msg.exec()
             return
 
         """Replace scroll content with the scholarship-picker panel."""
@@ -703,6 +775,7 @@ class RekomendasiView(QWidget):
             mode=self._mode,
             compare_cb=self._run_compare,
             cancel_cb=self._build_results,
+            bhs=self._bhs,
         )
         sl.addWidget(panel)
         sl.addStretch()

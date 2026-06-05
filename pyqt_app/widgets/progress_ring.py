@@ -13,8 +13,9 @@ class ProgressRing(QWidget):
     def __init__(self, value: int = 0, size: int = 80,
                  ring_width: int = 7, parent=None,
                  bg_color="#DFE6E1", fg_color="#F4B3AD",
-                 text_color="#555555"):
+                 text_color="#555555", subtitle: str = ""):
         super().__init__(parent)
+        self._subtitle = subtitle
         self._value = value
         self._size = size
         self._ring_width = ring_width
@@ -55,8 +56,20 @@ class ProgressRing(QWidget):
 
         # Center text
         painter.setPen(QColor(self._text_color))
-        font = QFont("Segoe UI", 14)
+        font = QFont("Segoe UI", 10)
         font.setBold(True)
         painter.setFont(font)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self._value}%")
+        
+        if self._subtitle:
+            # Draw percentage a bit higher
+            rect_top = QRectF(rect.x(), rect.y(), rect.width(), rect.height() * 0.55)
+            painter.drawText(rect_top, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter, f"{self._value}%")
+            
+            font_sub = QFont("Segoe UI", 7)
+            painter.setFont(font_sub)
+            rect_bot = QRectF(rect.x(), rect.y() + rect.height() * 0.55, rect.width(), rect.height() * 0.45)
+            painter.drawText(rect_bot, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter, self._subtitle)
+        else:
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self._value}%")
+            
         painter.end()

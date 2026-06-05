@@ -358,9 +358,11 @@ class EksplorasiView(QWidget):
         c = palette(self._mode)
         w = QWidget()
         grid = QGridLayout(w)
-        grid.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        grid.setAlignment(Qt.AlignmentFlag.AlignTop)
         grid.setSpacing(12)
         cols = 4
+        for col in range(cols):
+            grid.setColumnStretch(col, 1)
         card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
         
         for i, bea in enumerate(self._filtered):
@@ -373,7 +375,7 @@ class EksplorasiView(QWidget):
             card.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             card.clicked.connect(self._show_detail)
             card.setObjectName(f"beaCard{i}")
-            card.setFixedSize(220, 240)
+            card.setFixedHeight(240)
             border = f"2px solid {dl_clr}" if dl_clr else "none"
             card.setStyleSheet(f"#beaCard{i} {{ background: {bg}; border-radius: 14px; border: {border}; }}")
             
