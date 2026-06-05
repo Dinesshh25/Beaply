@@ -10,6 +10,7 @@ from PyQt6.QtGui import QFont, QPixmap, QCursor
 import os
 
 from pyqt_app.styles.theme import FONT_FAMILY
+from pyqt_app.widgets.avatar_widget import AvatarWidget
 
 
 class TopbarWidget(QFrame):
@@ -18,11 +19,12 @@ class TopbarWidget(QFrame):
     bell_clicked = pyqtSignal()
     avatar_clicked = pyqtSignal()
 
-    def __init__(self, user_name: str = "Guest", parent=None):
+    def __init__(self, user_name: str = "Guest", avatar_path: str = None, parent=None):
         super().__init__(parent)
         self.setObjectName("topbar")
         self.setFixedHeight(60)
         self._user_name = user_name
+        self._avatar_path = avatar_path
         self._build()
 
     def _build(self):
@@ -57,21 +59,16 @@ class TopbarWidget(QFrame):
         ava_lay = QHBoxLayout(ava_frame)
         ava_lay.setContentsMargins(8, 0, 0, 0)
         ava_lay.setSpacing(8)
-        try:
-            ava_path = os.path.abspath(os.path.join(
+        
+        self.ava_lbl = AvatarWidget(40)
+        p = self._avatar_path
+        if not p or not os.path.exists(p):
+            p = os.path.abspath(os.path.join(
                 os.path.dirname(__file__), "..", "..", "assets", "default_avatar.png"))
-            pix = QPixmap(ava_path).scaled(
-                40, 40, Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation)
-            ava_lbl = QLabel()
-            ava_lbl.setPixmap(pix)
-            ava_lbl.setFixedSize(40, 40)
-        except Exception:
-            ava_lbl = QLabel("O")
-            ava_lbl.setFont(QFont(FONT_FAMILY, 20))
-            ava_lbl.setFixedSize(40, 40)
-            ava_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ava_lay.addWidget(ava_lbl)
+        if p and os.path.exists(p):
+            self.ava_lbl.set_avatar(QPixmap(p))
+            
+        ava_lay.addWidget(self.ava_lbl)
 
         text_frame = QFrame()
         text_lay = QVBoxLayout(text_frame)

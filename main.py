@@ -227,7 +227,8 @@ class BeaplyMainWindow(QMainWindow):
 
         profil = tampil_profil(self._profil_id)
         user_name = profil["nama"] if profil and profil.get("nama") else "Guest"
-        self._topbar = TopbarWidget(user_name)
+        avatar_path = profil.get("avatar") if profil else None
+        self._topbar = TopbarWidget(user_name, avatar_path)
         self._topbar.bell_clicked.connect(lambda: self._navigate("notifikasi"))
         self._topbar.avatar_clicked.connect(lambda: self._navigate("profil"))
         right_lay.addWidget(self._topbar)

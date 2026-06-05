@@ -161,6 +161,20 @@ def simpan_data_opsional(profil_id: int, updates: dict) -> tuple:
         return False, str(e)
 
 
+def update_avatar(profil_id: int, avatar_path: str) -> tuple:
+    """Update path avatar untuk profil pengguna."""
+    from models.database import get_connection
+    try:
+        conn = get_connection()
+        conn.execute("UPDATE profil SET avatar = ?, diupdate_pada = datetime('now','localtime') WHERE id = ?", (avatar_path, profil_id))
+        conn.commit()
+        conn.close()
+        return True, "Avatar berhasil diupdate."
+    except Exception as e:
+        logger.error("update_avatar gagal (profil_id=%s): %s", profil_id, e)
+        return False, str(e)
+
+
 # ════════════════════════════════════════════════════════════
 # PREFERENSI / SETTINGS
 # ════════════════════════════════════════════════════════════
