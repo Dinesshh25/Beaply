@@ -63,68 +63,48 @@ class AdminScholarshipView(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(16)
 
-        # ── Two columns ──────────────────────────────────────
-        cols = QHBoxLayout()
-        cols.setSpacing(20)
+        # ── Single scroll area wrapping both columns ────────
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setStyleSheet(
+            "QScrollArea { border: none; background: transparent; }"
+            " QScrollArea > QWidget > QWidget { background: transparent; }")
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet("background: transparent;")
+        scroll_lay = QVBoxLayout(scroll_content)
+        scroll_lay.setContentsMargins(0, 0, 0, 0)
+        scroll_lay.setSpacing(0)
 
-        # ── Left: Current Data ───────────────────────────────
-        left_frame = QFrame()
-        left_lay = QVBoxLayout(left_frame)
-        left_lay.setContentsMargins(0, 0, 0, 0)
-        left_lay.setSpacing(8)
+        # ── Column titles row ────────────────────────────────
+        titles_row = QHBoxLayout()
+        titles_row.setSpacing(20)
 
         left_title = QLabel("Current Data")
         left_title.setFont(QFont(FONT_FAMILY, 16, QFont.Weight.Bold))
-        left_lay.addWidget(left_title)
-
-        left_scroll = QScrollArea()
-        left_scroll.setWidgetResizable(True)
-        left_scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        left_scroll.setStyleSheet(
-            "QScrollArea { border: none; background: transparent; }")
-        lsw = QWidget()
-        ll = QVBoxLayout(lsw)
-        ll.setContentsMargins(0, 0, 0, 0)
-        ll.setSpacing(6)
-
-        beasiswa_list = get_all_beasiswa_admin()
-        for bea in beasiswa_list:
-            ll.addWidget(self._make_card(bea, c, is_current=True))
-        ll.addStretch()
-        left_scroll.setWidget(lsw)
-        left_lay.addWidget(left_scroll)
-        cols.addWidget(left_frame, 1)
-
-        # ── Right: Incoming Data ─────────────────────────────
-        right_frame = QFrame()
-        right_lay = QVBoxLayout(right_frame)
-        right_lay.setContentsMargins(0, 0, 0, 0)
-        right_lay.setSpacing(8)
+        titles_row.addWidget(left_title, 1)
 
         right_title = QLabel("Incoming Data")
         right_title.setFont(QFont(FONT_FAMILY, 16, QFont.Weight.Bold))
-        right_lay.addWidget(right_title)
+        titles_row.addWidget(right_title, 1)
 
-        right_scroll = QScrollArea()
-        right_scroll.setWidgetResizable(True)
-        right_scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        right_scroll.setStyleSheet(
-            "QScrollArea { border: none; background: transparent; }")
-        rsw = QWidget()
-        rl = QVBoxLayout(rsw)
-        rl.setContentsMargins(0, 0, 0, 0)
-        rl.setSpacing(6)
+        scroll_lay.addLayout(titles_row)
+        scroll_lay.addSpacing(8)
 
+        # ── Paired rows (current + incoming side by side) ────
+        beasiswa_list = get_all_beasiswa_admin()
         for bea in beasiswa_list:
-            rl.addWidget(self._make_card(bea, c, is_current=False))
-        rl.addStretch()
-        right_scroll.setWidget(rsw)
-        right_lay.addWidget(right_scroll)
-        cols.addWidget(right_frame, 1)
+            row = QHBoxLayout()
+            row.setSpacing(20)
+            row.addWidget(self._make_card(bea, c, is_current=True), 1)
+            row.addWidget(self._make_card(bea, c, is_current=False), 1)
+            scroll_lay.addLayout(row)
+            scroll_lay.addSpacing(6)
 
-        lay.addLayout(cols, 1)
+        scroll_lay.addStretch()
+        scroll.setWidget(scroll_content)
+        lay.addWidget(scroll, 1)
 
         # ── Bottom buttons ───────────────────────────────────
         btn_row = QHBoxLayout()
