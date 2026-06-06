@@ -46,7 +46,8 @@ class NotifikasiView(QWidget):
         tl.setContentsMargins(0, 0, 0, 0)
 
         tab_frame = QFrame()
-        tab_frame.setStyleSheet(f"QFrame {{ background: {c['btn_pale']}; border-radius: 20px; }}")
+        bg_pink = "#FADBD8" if self._mode == "light" else c['bg']
+        tab_frame.setStyleSheet(f"QFrame {{ background: {bg_pink}; border-radius: 18px; }}")
         tab_frame.setFixedHeight(36)
         tab_lay = QHBoxLayout(tab_frame)
         tab_lay.setContentsMargins(2, 2, 2, 2)
@@ -57,9 +58,10 @@ class NotifikasiView(QWidget):
             btn.setFixedSize(80, 32)
             bg = c['card'] if is_active else "transparent"
             fw = "bold" if is_active else "normal"
+            shadow = f"border: 1px solid {c['border']};" if is_active else "border: none;"
             btn.setStyleSheet(f"""
                 QPushButton {{ background: {bg}; color: {c['text_dark']};
-                               border: none; border-radius: 16px; font-size: 12px; font-weight: {fw}; }}
+                               {shadow} border-radius: 16px; font-size: 13px; font-weight: {fw}; }}
                 QPushButton:hover {{ background: {c['card']}; }}
             """)
             btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -68,15 +70,16 @@ class NotifikasiView(QWidget):
         tl.addWidget(tab_frame)
         tl.addStretch()
 
-        mark_btn = QPushButton("Mark All as Read")
-        mark_btn.setObjectName("btn_small_primary")
-        mark_btn.setFixedHeight(32)
+        mark_btn = QPushButton("✓ Mark All as Read")
+        mark_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
+        mark_btn.setFixedHeight(40)
         mark_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         mark_btn.clicked.connect(self._mark_all)
         tl.addWidget(mark_btn)
 
-        clr_btn = QPushButton("Clear All")
-        clr_btn.setStyleSheet(f"background: {c['danger_bg']}; color: {c['danger']}; border: none; border-radius: 10px; padding: 5px 14px; font-size: 11px;")
+        clr_btn = QPushButton("🗑 Clear All")
+        clr_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
+        clr_btn.setFixedHeight(40)
         clr_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         clr_btn.clicked.connect(self._clear_all)
         tl.addWidget(clr_btn)
@@ -93,7 +96,7 @@ class NotifikasiView(QWidget):
         sw = QWidget()
         sl = QVBoxLayout(sw)
         sl.setContentsMargins(0, 0, 0, 0)
-        sl.setSpacing(4)
+        sl.setSpacing(12)
 
         if not notifs:
             el = QLabel("No notifications yet.")
@@ -123,8 +126,9 @@ class NotifikasiView(QWidget):
                 for n in items:
                     unread = not n.get("dibaca", 0)
                     card = QFrame()
-                    bg = c['card'] if unread else c['btn_pale']
-                    card.setStyleSheet(f"QFrame {{ background: {bg}; border-radius: 12px; border: 1px solid {c['border']}; }}")
+                    bg = c['card']
+                    bdr = "2px solid #A8C5B0" if unread else f"1px solid {c['border']}"
+                    card.setStyleSheet(f"QFrame {{ background: {bg}; border-radius: 16px; border: {bdr}; }}")
                     cl = QVBoxLayout(card)
                     cl.setContentsMargins(16, 12, 16, 12)
 

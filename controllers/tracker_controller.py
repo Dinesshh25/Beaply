@@ -37,7 +37,8 @@ def _bookmark_deadline_color(deadline_str: str) -> str:
         days = (datetime.strptime(deadline_str, "%Y-%m-%d").date()
                 - datetime.now().date()).days
         if days < 0:   return "#9AA0A6"
-        if days <= 7:  return "#EF4444"
+        if days == 0:  return "#A8C5B0"
+        if days < 7:   return "#EF4444"
         if days <= 14: return "#F59E0B"
         return "#22C55E"
     except Exception:
@@ -144,8 +145,9 @@ def tampilan_kalender(profil_id: int, bulan: int = None,
 def _prioritas_warna(hex_color: str) -> int:
     """Semakin tinggi semakin mendesak."""
     prio = {
-        "#991B1B": 5, "#EF4444": 4, "#EAB308": 3,
-        "#3B82F6": 2, "#22C55E": 1, "#6B7280": 0,
+        "#EF4444": 4, "#F59E0B": 3,
+        "#22C55E": 2, "#9AA0A6": 1, "#6B7280": 0,
+        "#A8C5B0": 5, # Hari ini
     }
     return prio.get(hex_color, 0)
 

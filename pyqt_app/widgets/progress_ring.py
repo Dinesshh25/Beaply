@@ -70,6 +70,9 @@ class ProgressRing(QWidget):
             rect_bot = QRectF(rect.x(), rect.y() + rect.height() * 0.55, rect.width(), rect.height() * 0.45)
             painter.drawText(rect_bot, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter, self._subtitle)
         else:
+            font.setPointSize(15)
+            font.setWeight(QFont.Weight.Black)
+            painter.setFont(font)
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self._value}%")
             
         painter.end()
