@@ -10,7 +10,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor
 from datetime import datetime
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette
+from pyqt_app.styles.theme import FONT_FAMILY, palette, grad_green, grad_peach
 from controllers.notifikasi_controller import (
     ambil_riwayat, tandai_dibaca, tandai_semua_dibaca, hapus_notifikasi,
 )
@@ -46,7 +46,7 @@ class NotifikasiView(QWidget):
         tl.setContentsMargins(0, 0, 0, 0)
 
         tab_frame = QFrame()
-        bg_pink = "#FADBD8" if self._mode == "light" else c['bg']
+        bg_pink = c['tab_pill_bg']
         tab_frame.setStyleSheet(f"QFrame {{ background: {bg_pink}; border-radius: 18px; }}")
         tab_frame.setFixedHeight(36)
         tab_lay = QHBoxLayout(tab_frame)
@@ -71,14 +71,14 @@ class NotifikasiView(QWidget):
         tl.addStretch()
 
         mark_btn = QPushButton("✓ Mark All as Read")
-        mark_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
+        mark_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
         mark_btn.setFixedHeight(40)
         mark_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         mark_btn.clicked.connect(self._mark_all)
         tl.addWidget(mark_btn)
 
         clr_btn = QPushButton("🗑 Clear All")
-        clr_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
+        clr_btn.setStyleSheet(f"background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
         clr_btn.setFixedHeight(40)
         clr_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         clr_btn.clicked.connect(self._clear_all)

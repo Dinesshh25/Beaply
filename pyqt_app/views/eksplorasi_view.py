@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QSize, QUrl, QTimer
 from PyQt6.QtGui import QFont, QCursor, QColor, QPainter, QPainterPath, QPixmap, QBrush, QPen, QIcon, QFontMetrics, QLinearGradient, QDesktopServices
 from datetime import datetime
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
+from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel, grad_green, grad_peach, grad_peach_hover
 from controllers.eksplorasi_controller import (
     get_semua_beasiswa, get_bookmarks, check_bookmarked, toggle_bookmark_beasiswa,
 )
@@ -80,7 +80,8 @@ class DetailDialog(QDialog):
         main_lay.setContentsMargins(20, 20, 20, 20)
         
         self.content_frame = QFrame()
-        self.content_frame.setStyleSheet(f"QFrame {{ background-color: rgba(255, 255, 255, 0.85); border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
+        _content_bg = 'rgba(255, 255, 255, 0.85)' if self._mode == 'light' else f'rgba(41, 42, 45, 0.95)'
+        self.content_frame.setStyleSheet(f"QFrame {{ background-color: {_content_bg}; border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
         
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
@@ -177,10 +178,10 @@ class DetailDialog(QDialog):
         self.btn_visit.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.btn_visit.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         if link:
-            self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: #A8C5B0; color: {self._c['text_dark']}; border-radius: 14px; }} QPushButton:hover {{ background-color: #8FB898; }}")
+            self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: {self._c['btn_primary']}; color: {self._c['text_dark']}; border-radius: 14px; }} QPushButton:hover {{ background-color: {self._c['btn_primary_hover']}; }}")
             self.btn_visit.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(link)))
         else:
-            self.btn_visit.setStyleSheet("QPushButton { background-color: #E0E0E0; color: #999999; border-radius: 14px; }")
+            self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: {self._c['btn_pale']}; color: {self._c['text_muted']}; border-radius: 14px; }}")
             self.btn_visit.setText("Link Tidak Tersedia")
             self.btn_visit.setEnabled(False)
             
@@ -191,8 +192,8 @@ class DetailDialog(QDialog):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         grad = QLinearGradient(0, 0, self.width(), self.height())
-        grad.setColorAt(0.0, QColor("#FFE0D0"))
-        grad.setColorAt(1.0, QColor("#D8E0D8"))
+        grad.setColorAt(0.0, QColor(self._c['grad_peach_start']))
+        grad.setColorAt(1.0, QColor(self._c['grad_green_start']))
         painter.fillRect(self.rect(), grad)
         painter.end()
         super().paintEvent(event)
@@ -322,14 +323,14 @@ class EksplorasiView(QWidget):
         tl.addWidget(self._search, 1)
         
         sort_btn = QPushButton("\u21C5 Sort by")
-        sort_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
+        sort_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         sort_btn.setFixedSize(110, 40)
         sort_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         sort_btn.clicked.connect(self._show_sort)
         tl.addWidget(sort_btn)
         
         filt_btn = QPushButton("\u2699 Filters")
-        filt_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
+        filt_btn.setStyleSheet(f"background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         filt_btn.setFixedSize(110, 40)
         filt_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         filt_btn.clicked.connect(self._show_filter)
@@ -372,7 +373,10 @@ class EksplorasiView(QWidget):
         cols = 4
         for col in range(cols):
             grid.setColumnStretch(col, 1)
-        card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
+        if self._mode == 'dark':
+            card_colors = ["#2B302C", "#36322C", "#382928"]
+        else:
+            card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
 
         # Batch-load all bookmark IDs once (instead of 1 query per card)
         bm_ids = {b.get("id") for b in get_bookmarks(self._pid)}
@@ -483,7 +487,7 @@ class EksplorasiView(QWidget):
         main_lay.setContentsMargins(10, 10, 10, 10)
         
         bg_frame = QFrame()
-        bg_frame.setStyleSheet(f"QFrame {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE0D1, stop:1 #D8E0D8); border-radius: 20px; }}")
+        bg_frame.setStyleSheet(f"QFrame {{ background: {grad_peach(c)}; border-radius: 20px; }}")
         main_lay.addWidget(bg_frame)
         
         shadow = QGraphicsDropShadowEffect()
@@ -517,9 +521,9 @@ class EksplorasiView(QWidget):
                             ("Deadline ↓","deadline_desc"),("Name A→Z","name_asc"),("Name Z→A","name_desc")]:
             b = QPushButton(label)
             if self._sort_mode == mode:
-                b.setStyleSheet(f"background-color: rgba(255,255,255,0.85); color: {c['text_dark']}; border: 2px solid #A8C5B0; border-radius: 12px; font-weight: bold;")
+                b.setStyleSheet(f"background-color: {c['card']}; color: {c['text_dark']}; border: 2px solid {c['btn_primary']}; border-radius: 12px; font-weight: bold;")
             else:
-                b.setStyleSheet(f"background-color: rgba(255,255,255,0.5); color: {c['text_dark']}; border: none; border-radius: 12px;")
+                b.setStyleSheet(f"background-color: {c['btn_pale']}; color: {c['text_dark']}; border: none; border-radius: 12px;")
             b.setFixedHeight(36)
             b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             b.clicked.connect(lambda _, m=mode: (setattr(self,'_sort_mode',m), dlg.accept(),
@@ -540,7 +544,7 @@ class EksplorasiView(QWidget):
         main_lay.setContentsMargins(10, 10, 10, 10)
         
         bg_frame = QFrame()
-        bg_frame.setStyleSheet(f"QFrame {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE0D1, stop:1 #D8E0D8); border-radius: 20px; }}")
+        bg_frame.setStyleSheet(f"QFrame {{ background: {grad_peach(c)}; border-radius: 20px; }}")
         main_lay.addWidget(bg_frame)
         
         shadow = QGraphicsDropShadowEffect()
@@ -579,7 +583,8 @@ class EksplorasiView(QWidget):
         j_lay.setSpacing(10)
         for idx, j in enumerate(["All","S1","S2","S3","D3","D4"]):
             rb = QRadioButton(j)
-            rb.setStyleSheet(f"QRadioButton {{ color: {c['text_dark']}; background: transparent; }} QRadioButton::indicator {{ width: 14px; height: 14px; border-radius: 7px; border: 2px solid #888; background: rgba(255,255,255,0.6); }} QRadioButton::indicator:checked {{ border: 2px solid #D4917B; background: #D4917B; }}")
+            _rb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
+            rb.setStyleSheet(f"QRadioButton {{ color: {c['text_dark']}; background: transparent; }} QRadioButton::indicator {{ width: 14px; height: 14px; border-radius: 7px; border: 2px solid {c['text_muted']}; background: {_rb_bg}; }} QRadioButton::indicator:checked {{ border: 2px solid {c['text_accent']}; background: {c['text_accent']}; }}")
             if (j == "All" and not self._filter_jenjang) or j == self._filter_jenjang:
                 rb.setChecked(True)
             group.addButton(rb)
@@ -591,18 +596,19 @@ class EksplorasiView(QWidget):
         dl.addWidget(lbl_t)
         
         cb_toefl = QCheckBox("Requires TOEFL")
-        cb_toefl.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid #888; background: rgba(255,255,255,0.6); }} QCheckBox::indicator:checked {{ border: 2px solid #A8C5B0; background: #A8C5B0; }}")
+        _cb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
+        cb_toefl.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_toefl.setChecked(self._filter_toefl)
         dl.addWidget(cb_toefl)
         cb_ielts = QCheckBox("Requires IELTS")
-        cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid #888; background: rgba(255,255,255,0.6); }} QCheckBox::indicator:checked {{ border: 2px solid #A8C5B0; background: #A8C5B0; }}")
+        cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_ielts.setChecked(self._filter_ielts)
         dl.addWidget(cb_ielts)
         
         dl.addStretch()
         
         btn = QPushButton("Apply Filters")
-        btn.setStyleSheet(f"QPushButton {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 14px; font-weight: bold; font-size: 13px; }} QPushButton:hover {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFD0C1, stop:1 #FFA79D); }}")
+        btn.setStyleSheet(f"QPushButton {{ background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 14px; font-weight: bold; font-size: 13px; }} QPushButton:hover {{ background: {grad_peach_hover(c)}; }}")
         btn.setFixedHeight(44)
         btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         

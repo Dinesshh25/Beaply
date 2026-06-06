@@ -205,10 +205,13 @@ class DashboardView(QWidget):
         greet = QFrame(); greet.setObjectName("greetCard")
         self._apply_card_shadow(greet)
         greet.setFixedHeight(180)
+        if self._mode == 'dark':
+            greet_gradient = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:0.4 #332A28, stop:1 #3D2E2A)"
+        else:
+            greet_gradient = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:0.4 #FDF4F2, stop:1 #FADCD2)"
         greet.setStyleSheet(f"""
             #greetCard {{
-                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
-                    stop:0 #FFFFFF, stop:0.4 #FDF4F2, stop:1 #FADCD2);
+                background: {greet_gradient};
                 border-radius: 18px; border:none;
             }}
         """)
@@ -283,11 +286,15 @@ class DashboardView(QWidget):
                         dlc += 1
                 except (ValueError, TypeError):
                     pass
+        if self._mode == 'dark':
+            stat_bgs = ["#2B302C", "#36322C", "#382928", "#2A3029"]
+        else:
+            stat_bgs = ["#F6F8F3", "#FBF8F2", "#FDF3F1", "#F6F9F3"]
         stats = [
-            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", "#F6F8F3", "eksplorasi"),
-            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  "#FBF8F2", "bookmarks"),
-            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    "#FDF3F1", "kalender"),
-            ("7",      "Smart Tips\nFor You",       "smart.png",       "#F6F9F3", "scroll_faq"),
+            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", stat_bgs[0], "eksplorasi"),
+            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  stat_bgs[1], "bookmarks"),
+            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    stat_bgs[2], "kalender"),
+            ("7",      "Smart Tips\nFor You",       "smart.png",       stat_bgs[3], "scroll_faq"),
         ]
         sw = QWidget(); sw.setStyleSheet("background:transparent;")
         sl = QHBoxLayout(sw); sl.setContentsMargins(0,0,0,0); sl.setSpacing(10)
@@ -305,7 +312,10 @@ class DashboardView(QWidget):
             icon_wrap.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             icon_wrap.setFixedSize(54, 54)
             icon_wrap.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:27px;")
+            if self._mode == 'dark':
+                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(60,64,67,200), stop:0.6 rgba(60,64,67,100), stop:1 rgba(60,64,67,0)); border-radius:27px;")
+            else:
+                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:27px;")
             ic_path = os.path.join(ASSETS, ic_file)
             if os.path.exists(ic_path):
                 px = QPixmap(ic_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
@@ -354,14 +364,16 @@ class DashboardView(QWidget):
         table.setShowGrid(False)
         self._apply_card_shadow(table)
         table.setMinimumHeight(min(len(all_bea) * 44 + 36, 380))
+        alt_bg = '#2F3033' if self._mode == 'dark' else '#FDF9F5'
+        item_border = c['border']
         table.setStyleSheet(f"""
             QTableWidget {{
                 background: {c['card']}; border: none;
                 border-radius: 14px; font-size: 12px; color: {c['text_dark']};
-                alternate-background-color: #FDF9F5;
+                alternate-background-color: {alt_bg};
             }}
             QTableWidget::item {{
-                padding: 8px 6px; border-bottom: 1px solid #F0ECE8;
+                padding: 8px 6px; border-bottom: 1px solid {item_border};
             }}
             QTableWidget::item:selected {{
                 background: {c['btn_pale']}; color: {c['text_dark']};
@@ -369,7 +381,7 @@ class DashboardView(QWidget):
             QHeaderView::section {{
                 background: transparent; color: {c['text_muted']};
                 font-size: 11px; font-weight: bold; padding: 8px 6px;
-                border: none; border-bottom: 2px solid #E8E0D8;
+                border: none; border-bottom: 2px solid {c['border']};
             }}
         """)
         for i, bea in enumerate(all_bea):
@@ -420,7 +432,7 @@ class DashboardView(QWidget):
         pch.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); pcl.addWidget(pch)
         rrow = QWidget(); rrow.setStyleSheet("background:transparent;")
         rrl = QHBoxLayout(rrow); rrl.setContentsMargins(0,0,0,0); rrl.setSpacing(12)
-        ring = ProgressRing(comp, 80, 7); rrl.addWidget(ring)
+        ring = ProgressRing(comp, 80, 7, bg_color=c['border'], text_color=c['text_dark']); rrl.addWidget(ring)
         dw = QWidget(); dw.setStyleSheet("background:transparent;")
         dwl = QVBoxLayout(dw); dwl.setContentsMargins(0,0,0,0); dwl.setSpacing(3)
         p_done, e_done, c_done = False, False, False

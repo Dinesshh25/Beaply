@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor, QColor
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
+from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel, grad_green, grad_peach
 from controllers.rekomendasi_controller import (
     get_profil_user, hitung_rekomendasi, get_analisis, bandingkan_beasiswa,
 )
@@ -81,8 +81,12 @@ class _ComparePanel(QFrame):
         arena_lay = QHBoxLayout()
         arena_lay.setSpacing(12)
 
-        grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF5F5, stop:1 #FFE4D6)"
-        grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #EFFFF4, stop:1 #D4EEDC)"
+        if self._mode == 'dark':
+            grad_a = f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #3D2E28, stop:1 #4A3028)"
+            grad_b = f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2A3D2E, stop:1 #2E3830)"
+        else:
+            grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF5F5, stop:1 #FFE4D6)"
+            grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #EFFFF4, stop:1 #D4EEDC)"
 
         card_a = self._build_comparison_column(bea_a, skor_a, krit_a, grad_a, c)
         card_b = self._build_comparison_column(bea_b, skor_b, krit_b, grad_b, c)
@@ -101,8 +105,9 @@ class _ComparePanel(QFrame):
             wl = QLabel(f"{winner_name} lebih cocok untuk profil Anda  ({winner_skor}%)")
             wl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
             wl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            _win_text = c['sidebar_active_tx']
             wl.setStyleSheet(
-                f"background: {pastel(3, self._mode)}; color: #2D6A4F; "
+                f"background: {pastel(3, self._mode)}; color: {_win_text}; "
                 f"border-radius: 12px; padding: 12px 16px;"
             )
             root.addWidget(wl)
@@ -154,7 +159,7 @@ class _ComparePanel(QFrame):
         name_lbl = QLabel(nama)
         name_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
         name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        name_lbl.setStyleSheet("color: #333333; background: transparent; margin-bottom: 4px;")
+        name_lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent; margin-bottom: 4px;")
         name_lbl.setWordWrap(True)
         name_lbl.setToolTip(bea.get("nama", ""))
         vl.addWidget(name_lbl)
@@ -166,12 +171,14 @@ class _ComparePanel(QFrame):
         
         circle = QFrame()
         circle.setFixedSize(80, 80)
-        circle.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.6);
-                border: 3px solid rgba(255, 255, 255, 0.9);
+        _circle_bg = 'rgba(255, 255, 255, 0.6)' if self._mode == 'light' else 'rgba(60, 64, 67, 0.6)'
+        _circle_bd = 'rgba(255, 255, 255, 0.9)' if self._mode == 'light' else 'rgba(80, 84, 87, 0.9)'
+        circle.setStyleSheet(f"""
+            QFrame {{
+                background: {_circle_bg};
+                border: 3px solid {_circle_bd};
                 border-radius: 40px;
-            }
+            }}
         """)
         
         circle_lay = QVBoxLayout(circle)
@@ -182,13 +189,13 @@ class _ComparePanel(QFrame):
         skor_lbl = QLabel(f"{skor}%")
         skor_lbl.setFont(QFont(FONT_FAMILY, 20, QFont.Weight.Black))
         skor_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        skor_lbl.setStyleSheet("color: #1A1A1A; background: transparent; border: none;")
+        skor_lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent; border: none;")
         circle_lay.addWidget(skor_lbl)
         
         match_lbl = QLabel(match_txt)
         match_lbl.setFont(QFont(FONT_FAMILY, 8, QFont.Weight.Bold))
         match_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        match_col = "#2D6A4F" if skor >= 60 else "#D32F2F"
+        match_col = c['sidebar_active_tx'] if skor >= 60 else c['danger']
         match_lbl.setStyleSheet(f"color: {match_col}; background: transparent; border: none;")
         circle_lay.addWidget(match_lbl)
         
@@ -198,11 +205,12 @@ class _ComparePanel(QFrame):
 
         for k in kriteria:
             row = QFrame()
-            row.setStyleSheet("""
-                QFrame {
-                    background: rgba(255, 255, 255, 0.45);
+            _row_bg = 'rgba(255, 255, 255, 0.45)' if self._mode == 'light' else 'rgba(60, 64, 67, 0.35)'
+            row.setStyleSheet(f"""
+                QFrame {{
+                    background: {_row_bg};
                     border-radius: 18px;
-                }
+                }}
             """)
             rl = QHBoxLayout(row)
             rl.setContentsMargins(10, 6, 10, 6)
@@ -214,7 +222,7 @@ class _ComparePanel(QFrame):
 
             k_lbl = QLabel(k["label"])
             k_lbl.setFont(QFont(FONT_FAMILY, 9, QFont.Weight.Bold))
-            k_lbl.setStyleSheet("color: #333333; background: transparent;")
+            k_lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
             rl.addWidget(k_lbl)
 
             rl.addStretch()
@@ -222,7 +230,7 @@ class _ComparePanel(QFrame):
             v_val = k["nilai"]
             val_lbl = QLabel(f"{v_val}")
             val_lbl.setFont(QFont(FONT_FAMILY, 9, QFont.Weight.Bold))
-            val_col = "#222222" if k["lulus"] else "#D32F2F"
+            val_col = c['text_dark'] if k["lulus"] else c['danger']
             val_lbl.setStyleSheet(f"color: {val_col}; background: transparent;")
             rl.addWidget(val_lbl)
 
@@ -298,9 +306,13 @@ class _CompareSelectPanel(QFrame):
         for n in names:
             self._combo_a.addItem(n)
         self._combo_a.setFixedHeight(36)
+        if self._mode == 'dark':
+            _combo_a_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:1 #4A3028)"
+        else:
+            _combo_a_bg = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #FAD6D0)"
         self._combo_a.setStyleSheet(f"""
             QComboBox {{ 
-                background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #FAD6D0);
+                background: {_combo_a_bg};
                 border-radius: 10px; border: 1px solid {c['border']}; 
                 padding: 0 12px; font-weight: bold; font-size: 11px; color: {c['text_dark']};
             }}
@@ -315,7 +327,7 @@ class _CompareSelectPanel(QFrame):
         vs_badge.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Black))
         vs_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vs_badge.setFixedSize(36, 36)
-        vs_badge.setStyleSheet("background: #FFFFFF; color: #C0A8A8; border-radius: 18px;")
+        vs_badge.setStyleSheet(f"background: {c['card']}; color: {c['text_muted']}; border-radius: 18px;")
         vs_row.addWidget(vs_badge)
         vs_row.addStretch()
         root.addLayout(vs_row)
@@ -332,9 +344,13 @@ class _CompareSelectPanel(QFrame):
         if len(names) > 1:
             self._combo_b.setCurrentIndex(1)
         self._combo_b.setFixedHeight(36)
+        if self._mode == 'dark':
+            _combo_b_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:1 #2A3D2E)"
+        else:
+            _combo_b_bg = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #C8E6D3)"
         self._combo_b.setStyleSheet(f"""
             QComboBox {{ 
-                background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #C8E6D3);
+                background: {_combo_b_bg};
                 border-radius: 10px; border: 1px solid {c['border']}; 
                 padding: 0 12px; font-weight: bold; font-size: 11px; color: {c['text_dark']};
             }}
@@ -347,18 +363,26 @@ class _CompareSelectPanel(QFrame):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
+        if self._mode == 'dark':
+            _cmp_bg = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2E3830, stop:1 #2A3D2E)"
+            _cmp_hvr = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2A3D2E, stop:1 #2E3830)"
+            _cmp_border = c['border']
+        else:
+            _cmp_bg = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B6CCBC, stop:1 #97B79E)"
+            _cmp_hvr = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #97B79E, stop:1 #B6CCBC)"
+            _cmp_border = "#E6EFE8"
         gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B6CCBC, stop:1 #97B79E);
-                color: white;
-                border: 2px solid #E6EFE8;
+                background: {_cmp_bg};
+                color: {c['text_light']};
+                border: 2px solid {_cmp_border};
                 border-radius: 20px;
                 padding: 0 40px;
                 font-weight: bold;
                 font-size: 14px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #97B79E, stop:1 #B6CCBC);
+                background: {_cmp_hvr};
             }}
         """
 
@@ -449,10 +473,16 @@ class RekomendasiView(QWidget):
         self._apply_card_shadow(hdr)
         hdr.setFixedHeight(170)
         
+        if self._mode == 'dark':
+            _hero_grad = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['card']}, stop:1 #332A28)"
+            _hero_border = c['border']
+        else:
+            _hero_grad = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9)"
+            _hero_border = "#FADED7"
         hdr.setStyleSheet(f"""
             #heroCard {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9);
-                border-radius: 18px; border: 1px solid #FADED7;
+                background: {_hero_grad};
+                border-radius: 18px; border: 1px solid {_hero_border};
             }}
         """)
         
@@ -496,7 +526,7 @@ class RekomendasiView(QWidget):
         
         green_gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5);
+                background: {grad_green(c)};
                 color: {c['text_dark']};
                 border: none;
                 border-radius: 12px;
@@ -507,7 +537,7 @@ class RekomendasiView(QWidget):
         
         pink_gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD);
+                background: {grad_peach(c)};
                 color: {c['text_dark']};
                 border: none;
                 border-radius: 12px;
@@ -544,10 +574,16 @@ class RekomendasiView(QWidget):
         # Empty state
         info = QFrame()
         info.setObjectName("emptyCard")
+        if self._mode == 'dark':
+            _empty_grad = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['card']}, stop:1 #332A28)"
+            _empty_border = c['border']
+        else:
+            _empty_grad = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9)"
+            _empty_border = "#FADED7"
         info.setStyleSheet(f"""
             #emptyCard {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9);
-                border-radius: 18px; border: 1px solid #FADED7;
+                background: {_empty_grad};
+                border-radius: 18px; border: 1px solid {_empty_border};
             }}
         """)
         self._apply_card_shadow(info)

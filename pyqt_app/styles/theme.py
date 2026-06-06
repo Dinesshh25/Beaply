@@ -26,6 +26,14 @@ LIGHT = {
     "greet_bg":         "#FCEBE3",
     "greet_border":     "#EED5C9",
     "calendar_header":  "#F6D6D0",
+    # Gradient tokens
+    "grad_green_start": "#D8E0D8",
+    "grad_green_end":   "#D5EBD5",
+    "grad_peach_start": "#FFE0D1",
+    "grad_peach_end":   "#FFBDAD",
+    "grad_peach_hover_start": "#FFD0C1",
+    "grad_peach_hover_end":   "#FFA79D",
+    "tab_pill_bg":      "#FADBD8",
 }
 
 DARK = {
@@ -49,6 +57,14 @@ DARK = {
     "greet_bg":         "#382928",
     "greet_border":     "#4A3530",
     "calendar_header":  "#382928",
+    # Gradient tokens
+    "grad_green_start": "#2E3830",
+    "grad_green_end":   "#2A3D2E",
+    "grad_peach_start": "#3D2E28",
+    "grad_peach_end":   "#4A3028",
+    "grad_peach_hover_start": "#4A3830",
+    "grad_peach_hover_end":   "#553D35",
+    "tab_pill_bg":      "#3C2020",
 }
 
 # Pastel cards (index-based, each has light & dark variants)
@@ -72,3 +88,19 @@ def pastel(index: int, mode: str = "light") -> str:
     """Return a pastel colour by index."""
     idx = index % len(PASTEL)
     return PASTEL[idx][0] if mode == "light" else PASTEL[idx][1]
+
+def grad_green(c: dict) -> str:
+    """Return green gradient CSS string."""
+    return f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['grad_green_start']}, stop:1 {c['grad_green_end']})"
+
+def grad_peach(c: dict) -> str:
+    """Return peach gradient CSS string."""
+    return f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['grad_peach_start']}, stop:1 {c['grad_peach_end']})"
+
+def grad_peach_hover(c: dict) -> str:
+    """Return peach hover gradient CSS string."""
+    return f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['grad_peach_hover_start']}, stop:1 {c['grad_peach_hover_end']})"
+
+def grad_mixed(c: dict) -> str:
+    """Return mixed peach-to-green gradient CSS string (for dialog backgrounds)."""
+    return f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {c['grad_peach_start']}, stop:1 {c['grad_green_start']})"
