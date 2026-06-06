@@ -425,9 +425,9 @@ class DashboardView(QWidget):
             cl.setStyleSheet(f"color:{c['text_dark'] if done else c['text_muted']};font-size:12px;background:transparent;")
             dwl.addWidget(cl)
         rrl.addWidget(dw); pcl.addWidget(rrow)
-        cpb = QPushButton("Complete Profile \u203a"); cpb.setObjectName("cpBtn")
-        cpb.setFixedHeight(32); cpb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        cpb.setStyleSheet(f"#cpBtn{{background:{c['btn_primary']};color:{c['text_dark']};border:none;border-radius:10px;font-size:11px;font-weight:bold;}}#cpBtn:hover{{background:{c['btn_primary_hover']};}}")
+        cpb = QPushButton("Complete Profile >"); cpb.setObjectName("cpBtn")
+        cpb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        cpb.setStyleSheet(f"#cpBtn{{background:#889E91; color:white; border-radius:14px; padding:8px; font-size:11px; font-weight:bold;}}")
         if self._nav: cpb.clicked.connect(lambda: self._nav("profil"))
         pcl.addWidget(cpb); rl.addWidget(pc)
 
