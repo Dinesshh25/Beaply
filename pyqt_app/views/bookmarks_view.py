@@ -4,14 +4,15 @@ Saved / Bookmarked Scholarships — list view with deadline colors.
 """
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QPushButton, QScrollArea, QMessageBox
+    QPushButton, QScrollArea, QMessageBox, QDialog, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QCursor
+from PyQt6.QtGui import QFont, QCursor, QColor
 from datetime import datetime
 
 from pyqt_app.styles.theme import FONT_FAMILY, palette
 from controllers.eksplorasi_controller import get_bookmarks, toggle_bookmark_beasiswa
+from pyqt_app.views.eksplorasi_view import CardFrame, DetailDialog
 
 
 class BookmarksView(QWidget):
@@ -23,6 +24,7 @@ class BookmarksView(QWidget):
         self._pid = profil_id
         self._bhs = bhs
         self._mode = mode
+        self._sort_mode = "default"
         self._build()
 
     def _dl_info(self, dl):
@@ -47,18 +49,33 @@ class BookmarksView(QWidget):
         c = palette(self._mode)
         bm_list = get_bookmarks(self._pid)
 
+        if self._sort_mode == "deadline_asc":
+            bm_list.sort(key=lambda b: b.get("deadline") or "9999")
+        elif self._sort_mode == "deadline_desc":
+            bm_list.sort(key=lambda b: b.get("deadline") or "0000", reverse=True)
+        elif self._sort_mode == "name_asc":
+            bm_list.sort(key=lambda b: b.get("nama","").lower())
+        elif self._sort_mode == "name_desc":
+            bm_list.sort(key=lambda b: b.get("nama","").lower(), reverse=True)
+
         # Header
         hdr = QFrame()
         hl = QHBoxLayout(hdr)
         hl.setContentsMargins(0, 0, 0, 0)
         hl.addWidget(self._bold_label(f"{len(bm_list)} Bookmarks", 15))
         
+        sort_btn = QPushButton("\u21C5 Sort by")
+        sort_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
+        sort_btn.setFixedSize(110, 40)
+        sort_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        sort_btn.clicked.connect(self._show_sort)
+        
         clr = QPushButton("🗑 Clear All")
         clr.setStyleSheet(f"""
             QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFF0EA, stop:1 #FFD0C0);
                 color: #333333;
-                border: 1px solid #FFD0C0;
+                border: none;
                 border-radius: 14px;
                 padding: 6px 16px;
                 font-weight: bold;
@@ -77,9 +94,11 @@ class BookmarksView(QWidget):
         shadow.setOffset(0, 2)
         clr.setGraphicsEffect(shadow)
         
+        clr.setFixedSize(110, 40)
         clr.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         clr.clicked.connect(self._clear_all)
         hl.addStretch()
+        hl.addWidget(sort_btn)
         hl.addWidget(clr)
         lay.addWidget(hdr)
 
@@ -113,7 +132,9 @@ class BookmarksView(QWidget):
         else:
             for i, bea in enumerate(bm_list):
                 dc, dl_lbl = self._dl_info(bea.get("deadline"))
-                card = QFrame()
+                card = CardFrame(bea)
+                card.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+                card.clicked.connect(self._show_detail)
                 card.setObjectName(f"bmCard{i}")
                 
                 # Alternating gradients
@@ -194,6 +215,10 @@ class BookmarksView(QWidget):
         l.setFont(QFont(FONT_FAMILY, size, QFont.Weight.Bold))
         return l
 
+    def _show_detail(self, bea):
+        dlg = DetailDialog(bea, self._mode, self._pid, self)
+        dlg.exec()
+
     def _remove(self, bid):
         toggle_bookmark_beasiswa(self._pid, bid)
         self.bookmark_changed.emit()  # beritahu kalender & komponen lain
@@ -206,3 +231,59 @@ class BookmarksView(QWidget):
                 toggle_bookmark_beasiswa(self._pid, bm.get("id", 0))
             self.bookmark_changed.emit()  # beritahu kalender & komponen lain
             self._build()
+
+    def _show_sort(self):
+        c = palette(self._mode)
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Sort")
+        dlg.setFixedSize(300, 310)
+        dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
+        dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        dlg.setStyleSheet("QDialog { background: transparent; }")
+        
+        main_lay = QVBoxLayout(dlg)
+        main_lay.setContentsMargins(10, 10, 10, 10)
+        
+        bg_frame = QFrame()
+        bg_frame.setStyleSheet(f"QFrame {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE0D1, stop:1 #D8E0D8); border-radius: 20px; }}")
+        main_lay.addWidget(bg_frame)
+        
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        shadow.setOffset(0, 4)
+        bg_frame.setGraphicsEffect(shadow)
+        
+        dl = QVBoxLayout(bg_frame)
+        dl.setContentsMargins(20, 20, 20, 20)
+        dl.setSpacing(10)
+        
+        top_lay = QHBoxLayout()
+        top_lay.addStretch(1)
+        title = QLabel("Sort Scholarships")
+        title.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
+        title.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
+        top_lay.addWidget(title)
+        top_lay.addStretch(1)
+        
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(24, 24)
+        close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        close_btn.setStyleSheet("QPushButton { background: transparent; color: #888; font-size: 16px; font-weight: bold; border: none; } QPushButton:hover { color: #333; }")
+        close_btn.clicked.connect(dlg.reject)
+        top_lay.addWidget(close_btn)
+        
+        dl.addLayout(top_lay)
+        
+        for label, mode in [("Default","default"),("Deadline ↑","deadline_asc"),
+                            ("Deadline ↓","deadline_desc"),("Name A→Z","name_asc"),("Name Z→A","name_desc")]:
+            b = QPushButton(label)
+            if self._sort_mode == mode:
+                b.setStyleSheet(f"background-color: rgba(255,255,255,0.85); color: {c['text_dark']}; border: 2px solid #A8C5B0; border-radius: 12px; font-weight: bold;")
+            else:
+                b.setStyleSheet(f"background-color: rgba(255,255,255,0.5); color: {c['text_dark']}; border: none; border-radius: 12px;")
+            b.setFixedHeight(36)
+            b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            b.clicked.connect(lambda _, m=mode: (setattr(self,'_sort_mode',m), dlg.accept(), self._build()))
+            dl.addWidget(b)
+        dlg.exec()

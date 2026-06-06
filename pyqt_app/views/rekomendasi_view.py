@@ -81,8 +81,8 @@ class _ComparePanel(QFrame):
         arena_lay = QHBoxLayout()
         arena_lay.setSpacing(20)
 
-        grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE1E1, stop:1 #FFCBB3)"
-        grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #D5F5E3, stop:1 #A9DFBF)"
+        grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF5F5, stop:1 #FFE4D6)"
+        grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #EFFFF4, stop:1 #D4EEDC)"
 
         card_a = self._build_comparison_column(bea_a, skor_a, krit_a, grad_a, c)
         card_b = self._build_comparison_column(bea_b, skor_b, krit_b, grad_b, c)
@@ -546,31 +546,23 @@ class RekomendasiView(QWidget):
         
         green_gradient_style = f"""
             QPushButton {{
-                background-color: #DFEADC;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5);
                 color: {c['text_dark']};
                 border: none;
-                border-radius: 20px;
+                border-radius: 12px;
                 padding: 0 20px;
-                font-weight: bold;
-                font-size: 14px;
-            }}
-            QPushButton:hover {{
-                background-color: #CBE0CC;
+                font-weight: bold; font-size: 13px;
             }}
         """
         
         pink_gradient_style = f"""
             QPushButton {{
-                background-color: #FCDDCE;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD);
                 color: {c['text_dark']};
                 border: none;
-                border-radius: 20px;
+                border-radius: 12px;
                 padding: 0 20px;
-                font-weight: bold;
-                font-size: 14px;
-            }}
-            QPushButton:hover {{
-                background-color: #F5C2B6;
+                font-weight: bold; font-size: 13px;
             }}
         """
         
@@ -714,16 +706,15 @@ class RekomendasiView(QWidget):
             rl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             from pyqt_app.widgets.progress_ring import ProgressRing
-            subt = "Kecocokan" if self._bhs == "id" else "Match"
             
             if i == 0:
-                badge = QLabel(f"{skor}%\n{subt}")
+                badge = QLabel(f"{skor}%")
                 badge.setFixedSize(70, 70)
                 badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                badge.setStyleSheet(f"background: {c['btn_primary']}; color: white; border-radius: 35px; font-weight: bold; font-size: 10px;")
+                badge.setStyleSheet(f"background: {c['btn_primary']}; color: white; border-radius: 35px; font-weight: 900; font-size: 18px;")
                 rl.addWidget(badge, alignment=Qt.AlignmentFlag.AlignCenter)
             else:
-                ring = ProgressRing(skor, 70, 5, bg_color=c['border'], fg_color=c['text_accent'], text_color=c['text_dark'], subtitle=subt)
+                ring = ProgressRing(skor, 70, 5, bg_color=c['border'], fg_color=c['text_accent'], text_color=c['text_dark'], subtitle="")
                 rl.addWidget(ring, alignment=Qt.AlignmentFlag.AlignCenter)
 
             cl.addWidget(right)

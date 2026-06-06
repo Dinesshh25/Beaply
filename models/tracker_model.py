@@ -279,19 +279,19 @@ def hitung_selisih_hari(deadline_str):
 
 
 def logika_warna_tanggal(deadline_str, dibookmark=False):
-    if dibookmark:
-        return "#3B82F6"
     selisih = hitung_selisih_hari(deadline_str)
     if selisih is None:
-        return "#6B7280"
+        return "#9AA0A6"
     if selisih < 0:
-        return "#991B1B"
-    elif selisih <= 15:
-        return "#EF4444"
-    elif selisih <= 30:
-        return "#EAB308"
+        return "#9AA0A6"  # Expired
+    elif selisih == 0:
+        return "#A8C5B0"  # Hari ini
+    elif selisih < 7:
+        return "#EF4444"  # < 7 hari
+    elif selisih <= 14:
+        return "#F59E0B"  # 7-14 hari
     else:
-        return "#22C55E"
+        return "#22C55E"  # > 14 hari
 
 
 def format_status(status, bhs="id"):
