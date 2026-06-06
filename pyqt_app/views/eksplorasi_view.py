@@ -334,7 +334,7 @@ class EksplorasiView(QWidget):
         filt_btn.clicked.connect(self._show_filter)
         tl.addWidget(filt_btn)
 
-        refresh_btn = QPushButton("\U0001F504")
+        refresh_btn = QPushButton("\u21BB")
         refresh_btn.setToolTip("Refresh data beasiswa")
         refresh_btn.setStyleSheet(f"background: {c['card']}; border: 1px solid {c['border']}; border-radius: 12px; font-size: 16px;")
         refresh_btn.setFixedSize(40, 40)
