@@ -56,7 +56,7 @@ class ProgressRing(QWidget):
 
         # Center text
         painter.setPen(QColor(self._text_color))
-        font = QFont("Segoe UI", 10)
+        font = QFont("Segoe UI", max(8, int(self._size * 0.2)))
         font.setBold(True)
         painter.setFont(font)
         
@@ -70,7 +70,8 @@ class ProgressRing(QWidget):
             rect_bot = QRectF(rect.x(), rect.y() + rect.height() * 0.55, rect.width(), rect.height() * 0.45)
             painter.drawText(rect_bot, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter, self._subtitle)
         else:
-            font.setPointSize(15)
+            pt_size = max(8, int(self._size * 0.26))
+            font.setPointSize(pt_size)
             font.setWeight(QFont.Weight.Black)
             painter.setFont(font)
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"{self._value}%")

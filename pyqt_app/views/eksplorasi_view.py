@@ -59,7 +59,10 @@ class CardFrame(QFrame):
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit(self.bea_data)
-        super().mousePressEvent(event)
+        try:
+            super().mousePressEvent(event)
+        except RuntimeError:
+            pass  # C++ object already deleted — safe to ignore
 
 class DetailDialog(QDialog):
     def __init__(self, bea, mode, pid, parent=None):
@@ -195,7 +198,7 @@ class DetailDialog(QDialog):
         super().paintEvent(event)
 
     def _share_link(self):
-        link = self.bea.get("url", "")
+        link = self.bea.get("url", "") or ""
         if link:
             QApplication.clipboard().setText(link)
             self.btn_share.setText("✅ Link Disalin!")
@@ -215,11 +218,9 @@ class DetailDialog(QDialog):
         toggle_bookmark_beasiswa(self.pid, self.bea.get("id", 0))
         self.is_bm = not self.is_bm
         self._update_bm_btn()
-        if self.parent() and hasattr(self.parent(), "bookmark_changed"):
-            self.parent().bookmark_changed.emit()
-            if hasattr(self.parent(), "_apply_filters"):
-                self.parent()._apply_filters()
-                self.parent()._render_grid()
+        # Flag that parent needs refresh — do NOT call _render_grid() here
+        # because this dialog's parent CardFrame would be deleted mid-event.
+        self._bookmark_dirty = True
 
 class EksplorasiView(QWidget):
     # Emit ketika user menambah/hapus bookmark
@@ -372,11 +373,14 @@ class EksplorasiView(QWidget):
         for col in range(cols):
             grid.setColumnStretch(col, 1)
         card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
-        
+
+        # Batch-load all bookmark IDs once (instead of 1 query per card)
+        bm_ids = {b.get("id") for b in get_bookmarks(self._pid)}
+
         for i, bea in enumerate(self._filtered):
             row, col = i // cols, i % cols
             bg = card_colors[i % len(card_colors)]
-            is_bm = check_bookmarked(self._pid, bea.get("id", 0))
+            is_bm = bea.get("id", 0) in bm_ids
             dl_clr = self._deadline_color(bea.get("deadline")) if is_bm else None
 
             card = CardFrame(bea)
@@ -449,12 +453,22 @@ class EksplorasiView(QWidget):
     def _show_detail(self, bea):
         dlg = DetailDialog(bea, self._mode, self._pid, self)
         dlg.exec()
+        # Defer refresh to NEXT event loop tick — we are still inside
+        # CardFrame.mousePressEvent; calling _render_grid() now would
+        # delete the CardFrame before super().mousePressEvent() returns.
+        if getattr(dlg, '_bookmark_dirty', False):
+            QTimer.singleShot(0, self._deferred_refresh)
+
+    def _deferred_refresh(self):
+        """Called after the event loop finishes the current mouse event."""
+        self.bookmark_changed.emit()
+        self._apply_filters()
+        self._render_grid()
 
     def _toggle_bm(self, bea):
         toggle_bookmark_beasiswa(self._pid, bea.get("id", 0))
-        self.bookmark_changed.emit()  # beritahu kalender
-        self._apply_filters()
-        self._render_grid()
+        # Defer grid rebuild so the current click event finishes first
+        QTimer.singleShot(0, self._deferred_refresh)
 
     def _show_sort(self):
         c = palette(self._mode)

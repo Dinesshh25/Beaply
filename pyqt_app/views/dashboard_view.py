@@ -270,7 +270,19 @@ class DashboardView(QWidget):
         # ━━ STATS ROW ━━
         self._left_scroll = ls
         bc = len(ambil_semua_beasiswa()); bmc = len(ambil_bookmark_user(self._pid))
-        dlc = stats_data.get("total", 0)
+        # Count bookmarked scholarships with upcoming deadlines
+        _today = datetime.date.today()
+        _bm_list = ambil_bookmark_user(self._pid)
+        dlc = 0
+        for _bm in _bm_list:
+            _dl = _bm.get("deadline", "")
+            if _dl:
+                try:
+                    _dl_date = datetime.datetime.strptime(_dl[:10], "%Y-%m-%d").date()
+                    if _dl_date >= _today:
+                        dlc += 1
+                except (ValueError, TypeError):
+                    pass
         stats = [
             (str(bc),  "Opportunities\nAvailable",  "opportunity.png", "#F6F8F3", "eksplorasi"),
             (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  "#FBF8F2", "bookmarks"),
@@ -431,24 +443,46 @@ class DashboardView(QWidget):
         if self._nav: cpb.clicked.connect(lambda: self._nav("profil"))
         pcl.addWidget(cpb); rl.addWidget(pc)
 
-        # ━━ UPCOMING DEADLINES ━━
+        # ━━ UPCOMING DEADLINES (Tracker + Bookmark) ━━
         dc = QFrame(); dc.setObjectName("dlCard")
         self._apply_card_shadow(dc)
         dc.setStyleSheet(f"#dlCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         dcl = QVBoxLayout(dc); dcl.setContentsMargins(18,16,18,16); dcl.setSpacing(6)
-        dcl.addWidget(self._header("Upcoming Deadlines", c))
-        trackers = ambil_semua_tracker(self._pid); shown = 0
-        for tr in trackers[:4]:
-            if not tr.get("deadline"): continue
+        dcl.addWidget(self._header("Upcoming Deadlines", c, "kalender"))
+        # Merge deadlines from tracker AND bookmarks
+        upcoming_items = []
+        trackers = ambil_semua_tracker(self._pid)
+        for tr in trackers:
+            dl = tr.get("deadline")
+            if not dl: continue
+            try:
+                days = (datetime.datetime.strptime(dl, "%Y-%m-%d").date() - datetime.date.today()).days
+                if days >= 0:
+                    upcoming_items.append({"nama": tr["nama_beasiswa"], "deadline": dl, "days": days, "src": "tracker"})
+            except: pass
+        bookmarks = ambil_bookmark_user(self._pid)
+        bm_names_added = {u["nama"] for u in upcoming_items}
+        for bm in bookmarks:
+            dl = bm.get("deadline")
+            nm = bm.get("nama", "")
+            if not dl or nm in bm_names_added: continue
+            try:
+                days = (datetime.datetime.strptime(dl, "%Y-%m-%d").date() - datetime.date.today()).days
+                if days >= 0:
+                    upcoming_items.append({"nama": nm, "deadline": dl, "days": days, "src": "bookmark"})
+            except: pass
+        upcoming_items.sort(key=lambda x: x["days"])
+        shown = 0
+        for item in upcoming_items[:4]:
             tw2 = QWidget(); tw2.setStyleSheet("background:transparent;")
             tw2l = QVBoxLayout(tw2); tw2l.setContentsMargins(0,4,0,4); tw2l.setSpacing(2)
-            tn = QLabel(tr["nama_beasiswa"]); tn.setFont(QFont(FONT_FAMILY,11,QFont.Weight.Bold))
+            icon = "📌" if item["src"] == "tracker" else "🔖"
+            tn = QLabel(f"{icon} {item['nama']}"); tn.setFont(QFont(FONT_FAMILY,11,QFont.Weight.Bold))
+            tn.setWordWrap(True)
             tn.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); tw2l.addWidget(tn)
-            try:
-                days = (datetime.datetime.strptime(tr["deadline"],"%Y-%m-%d").date()-datetime.date.today()).days
-                clr = "#EF4444" if days<=15 else "#F59E0B" if days<=30 else "#22C55E"
-            except: clr = c['text_muted']
-            td = QLabel(f"\U0001f4c5 {fmt_deadline(tr['deadline'])}")
+            days = item["days"]
+            clr = "#EF4444" if days<=7 else "#F59E0B" if days<=14 else "#22C55E"
+            td = QLabel(f"\U0001f4c5 {fmt_deadline(item['deadline'])}")
             td.setStyleSheet(f"color:{clr};font-size:10px;background:transparent;"); tw2l.addWidget(td)
             dcl.addWidget(tw2)
             sep = QFrame(); sep.setFixedHeight(1); sep.setStyleSheet(f"background:{c['border']};")
