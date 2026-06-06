@@ -32,6 +32,7 @@ class ScrapWorker(QThread):
             if scraping_dir not in sys.path:
                 sys.path.insert(0, scraping_dir)
             
+            # pyrefly: ignore [missing-import]
             from run_all_scraping import jalankan_semua
             jalankan_semua(auto_sync=True)
             self.finished_signal.emit()
