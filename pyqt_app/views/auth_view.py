@@ -64,6 +64,7 @@ class GradientBackground(QWidget):
 class AuthView(QWidget):
     login_success = pyqtSignal(dict)
     register_success = pyqtSignal(dict, int)  # user_data, profil_id
+    admin_register_success = pyqtSignal(dict)  # admin auto-login after sign up
 
     CARD_BG = "#FFFFFF"
     INPUT_BG = "#F0ECE8"
@@ -462,16 +463,39 @@ class AuthView(QWidget):
         nama = self.reg_nama.text().strip()
         email = self.reg_email.text().strip()
         pw = self.reg_pass.text()
+
+        if not all([nama, email, pw]):
+            self.reg_err.setText("Nama, email, dan password harus diisi."); return
+        if not validate_email_format(email):
+            self.reg_err.setText("Format email tidak valid."); return
+
+        # Check if this is an admin email
+        from controllers.admin_controller import is_admin
+        if is_admin(email):
+            # Admin registration: only email + password + name
+            ok, msg, uid = _register(nama, email, pw, pw)
+            if not ok:
+                self.reg_err.setText(msg); return
+
+            # Auto-login admin
+            ok3, msg3, data = _login(email, pw)
+            if not ok3:
+                QMessageBox.information(self, "Berhasil", "Akun admin dibuat! Silakan login.")
+                self._switch_tab(0); return
+
+            save_session(data)
+            self.admin_register_success.emit(data)
+            return
+
+        # Regular user registration — needs full biodata
         dob = self.reg_dob.text().strip()
         major = self.reg_major.currentText().strip()
         univ = self.reg_univ.text().strip()
         sem = self.reg_sem.text().strip()
         gpa = self.reg_gpa.text().strip()
 
-        if not all([nama, email, pw, dob, major, univ, sem, gpa]):
+        if not all([dob, major, univ, sem, gpa]):
             self.reg_err.setText("Semua field wajib (*) harus diisi."); return
-        if not validate_email_format(email):
-            self.reg_err.setText("Format email tidak valid."); return
 
         # 1. Validate profile data FIRST (before creating user)
         dw = input_data_wajib(nama, dob, email, major, univ, sem, gpa,
@@ -508,7 +532,7 @@ class AuthView(QWidget):
         if not ok2:
             self.reg_err.setText(f"Akun dibuat tapi profil gagal: {msg2}"); return
 
-        # 3. Auto-login
+        # 4. Auto-login
         ok3, msg3, data = _login(email, pw)
         if not ok3:
             QMessageBox.information(self, "Berhasil", "Akun & profil dibuat! Silakan login.")

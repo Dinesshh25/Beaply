@@ -87,6 +87,7 @@ class BeaplyMainWindow(QMainWindow):
         self._auth = AuthView()
         self._auth.login_success.connect(self._on_login)
         self._auth.register_success.connect(self._on_register)
+        self._auth.admin_register_success.connect(self._on_login)
         self._root_stack.addWidget(self._auth)          # index 0
 
         # Home page placeholder (built after login)
@@ -353,7 +354,7 @@ class BeaplyMainWindow(QMainWindow):
         right_lay.setContentsMargins(20, 12, 20, 12)
         right_lay.setSpacing(8)
 
-        user_name = self._user_data.get("nama_lengkap", "Anonymous")
+        user_name = self._user_data.get("nama") or self._user_data.get("nama_lengkap", "Admin")
         self._admin_topbar = AdminTopbarWidget(user_name)
         right_lay.addWidget(self._admin_topbar)
 
@@ -407,7 +408,6 @@ class BeaplyMainWindow(QMainWindow):
 
     def _admin_refresh(self):
         """Refresh admin layout after settings change."""
-        self._mode = "light"  # Admin uses light mode by default
         self._apply_theme()
         QApplication.processEvents()
         self._build_admin_layout()
@@ -435,6 +435,7 @@ class BeaplyMainWindow(QMainWindow):
         self._auth = AuthView()
         self._auth.login_success.connect(self._on_login)
         self._auth.register_success.connect(self._on_register)
+        self._auth.admin_register_success.connect(self._on_login)
         self._root_stack.insertWidget(0, self._auth)
         self._root_stack.setCurrentIndex(0)
 

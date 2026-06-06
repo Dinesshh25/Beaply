@@ -85,7 +85,7 @@ class NotifikasiView(QWidget):
         # Notifications list
         notifs = ambil_riwayat(self._pid)
         if self._filter is not None:
-            notifs = [n for n in notifs if n.get("dibaca", 0) == self._filter]
+            notifs = [n for n in notifs if n.get("sudah_dibaca", 0) == self._filter]
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -121,7 +121,7 @@ class NotifikasiView(QWidget):
                 gh.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
                 sl.addWidget(gh)
                 for n in items:
-                    unread = not n.get("dibaca", 0)
+                    unread = not n.get("sudah_dibaca", 0)
                     card = QFrame()
                     bg = c['card'] if unread else c['btn_pale']
                     card.setStyleSheet(f"QFrame {{ background: {bg}; border-radius: 12px; border: 1px solid {c['border']}; }}")

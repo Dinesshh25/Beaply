@@ -16,9 +16,44 @@ from models.beasiswa_model import (
 )
 
 
+# Jenjang yang valid untuk perguruan tinggi (user-facing)
+_JENJANG_PT = {"D3", "D4", "S1", "S2", "S3"}
+
+
+def _parse_jenjang(jenjang_str: str) -> list:
+    """Parse jenjang string dari kedua format database:
+    - Comma-separated: 'S1, S2, D3'
+    - JSON array: '["S1", "D3", "D4"]'
+    """
+    if not jenjang_str:
+        return []
+    s = jenjang_str.strip()
+    # Handle JSON array format
+    if s.startswith("["):
+        import json
+        try:
+            parsed = json.loads(s)
+            if isinstance(parsed, list):
+                return [str(p).strip().upper() for p in parsed]
+        except (json.JSONDecodeError, ValueError):
+            pass
+    # Fallback: comma/slash separated
+    return [p.strip().upper() for p in s.replace("/", ",").split(",") if p.strip()]
+
+
+def _is_perguruan_tinggi(jenjang_str: str) -> bool:
+    """Check if jenjang contains at least one perguruan tinggi level."""
+    parts = _parse_jenjang(jenjang_str)
+    if not parts:
+        return False
+    return any(p in _JENJANG_PT for p in parts)
+
+
 def get_semua_beasiswa() -> list:
-    """Ambil semua beasiswa untuk ditampilkan."""
-    return ambil_semua_beasiswa()
+    """Ambil semua beasiswa perguruan tinggi untuk ditampilkan ke user."""
+    all_bea = ambil_semua_beasiswa()
+    # Filter: hanya tampilkan jenjang perguruan tinggi (D3/D4/S1/S2/S3)
+    return [b for b in all_bea if _is_perguruan_tinggi(b.get("jenjang", ""))]
 
 
 def search_beasiswa(keyword: str) -> list:
