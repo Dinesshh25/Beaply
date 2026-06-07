@@ -251,6 +251,8 @@ class EksplorasiView(QWidget):
         self._filter_jenjang = None
         self._filter_toefl = False
         self._filter_ielts = False
+        self._filter_only_active = True
+        self._apply_filters()
         self._check_deadlines()
         self._build()
 
@@ -297,6 +299,10 @@ class EksplorasiView(QWidget):
             r = [b for b in r if _to_float(b.get("syarat_toefl")) > 0]
         elif self._filter_ielts:
             r = [b for b in r if _to_float(b.get("syarat_ielts")) > 0]
+
+        if self._filter_only_active:
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            r = [b for b in r if not b.get("deadline") or b.get("deadline") >= today_str]
         if self._sort_mode == "deadline_asc":
             r.sort(key=lambda b: b.get("deadline") or "9999")
         elif self._sort_mode == "deadline_desc":
@@ -389,6 +395,7 @@ class EksplorasiView(QWidget):
         grid = QGridLayout(w)
         grid.setAlignment(Qt.AlignmentFlag.AlignTop)
         grid.setSpacing(12)
+        grid.setContentsMargins(4, 4, 18, 4)
         cols = 4
         for col in range(cols):
             grid.setColumnStretch(col, 1)
@@ -411,6 +418,7 @@ class EksplorasiView(QWidget):
             card.clicked.connect(self._show_detail)
             card.setObjectName(f"beaCard{i}")
             card.setFixedHeight(240)
+            card.setMinimumWidth(100)
             border = f"2px solid {dl_clr}" if dl_clr else "none"
             card.setStyleSheet(f"#beaCard{i} {{ background: {bg}; border-radius: 14px; border: {border}; }}")
             
@@ -431,6 +439,7 @@ class EksplorasiView(QWidget):
             n = QLabel(nama)
             n.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
             n.setWordWrap(True)
+            n.setMinimumWidth(50)
             n.setToolTip(bea.get("nama", ""))
             n.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
             cl.addWidget(n)
@@ -438,15 +447,18 @@ class EksplorasiView(QWidget):
                 p = QLabel(bea["penyelenggara"])
                 p.setStyleSheet(f"color: {c['text_muted']}; font-size: 10px; background: transparent;")
                 p.setWordWrap(True)
+                p.setMinimumWidth(50)
                 cl.addWidget(p)
             j = QLabel(f"Jenjang: {bea.get('jenjang', '-')}")
             j.setStyleSheet(f"color: {c['text_muted']}; font-size: 9px; background: transparent;")
+            j.setMinimumWidth(50)
             cl.addWidget(j)
             dl = bea.get("deadline", "")
             if dl:
                 dc = self._deadline_color(dl)
                 dlbl = QLabel(f"Deadline: {dl}")
                 dlbl.setStyleSheet(f"color: {dc or c['text_accent']}; font-size: 9px; background: transparent;")
+                dlbl.setMinimumWidth(50)
                 cl.addWidget(dlbl)
             cl.addStretch()
             # Bookmark btn
@@ -554,7 +566,7 @@ class EksplorasiView(QWidget):
         c = palette(self._mode)
         dlg = QDialog(self)
         dlg.setWindowTitle("Filter")
-        dlg.setFixedSize(340, 450)
+        dlg.setFixedSize(340, 500)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         dlg.setStyleSheet("QDialog { background: transparent; }")
@@ -623,6 +635,15 @@ class EksplorasiView(QWidget):
         cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_ielts.setChecked(self._filter_ielts)
         dl.addWidget(cb_ielts)
+
+        lbl_s = QLabel("Status Beasiswa" if self._bhs == "id" else "Scholarship Status")
+        lbl_s.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 10px;")
+        dl.addWidget(lbl_s)
+
+        cb_active = QCheckBox("Sembunyikan yang Expired" if self._bhs == "id" else "Hide Expired")
+        cb_active.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
+        cb_active.setChecked(self._filter_only_active)
+        dl.addWidget(cb_active)
         
         dl.addStretch()
         
@@ -643,6 +664,7 @@ class EksplorasiView(QWidget):
             self._filter_jenjang = None if jv == "All" else jv
             self._filter_toefl = cb_toefl.isChecked()
             self._filter_ielts = cb_ielts.isChecked()
+            self._filter_only_active = cb_active.isChecked()
             dlg.accept()
             self._apply_filters()
             self._render_grid()

@@ -22,7 +22,7 @@ from normalizer import (
     parse_tanggal_indonesia, extract_deadlines, extract_ipk,
     extract_toefl, extract_ielts,
     extract_jenjang, extract_lokasi, normalize_beasiswa,
-    is_mahasiswa_only, is_year_2026_or_later
+    is_mahasiswa_only, is_year_2026_or_later, is_deadline_active
 )
 
 logging.basicConfig(filename='scraper.log', level=logging.INFO,
@@ -42,9 +42,8 @@ SOURCES_BEASISWAID = {
 # Kategori yang ingin di-scrape (bisa dikombinasikan)
 DEFAULT_CATEGORIES = ['beasiswa_s1', 'beasiswa_s2', 'beasiswa_d3']
 
-
 def create_driver():
-    """Buat instance Chrome driver headless."""
+    """Buat instance Chrome driver headless dengan optimasi performa."""
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--log-level=3")
@@ -56,9 +55,9 @@ def create_driver():
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     )
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_options.add_experimental_option("prefs", prefs)
     return webdriver.Chrome(options=chrome_options)
-
-
 # ─── SCRAPE HALAMAN LISTING / KATEGORI ───────────────────────────────────────
 
 def scrape_category_page(driver, base_url, max_pages=5, progress_callback=None):
@@ -514,7 +513,7 @@ def jalankan_scraper_beasiswaid(
         removed_lang = 0
         
         for norm in normalized:
-            # 1. Cek tahun
+            # 1. Cek tahun (2026 ke atas)
             if not is_year_2026_or_later(norm):
                 removed_year += 1
                 if progress_callback:
@@ -530,21 +529,16 @@ def jalankan_scraper_beasiswaid(
                     progress_callback(f"  ⛔ Dibuang akhir (SMA/SMK): {norm.get('nama_beasiswa', '')[:60]}")
                 continue
             
-            # 3. Cek TOEFL/IELTS
-            if (norm.get('syarat_toefl', 0) > 0) or (norm.get('syarat_ielts', 0.0) > 0.0):
-                final_normalized.append(norm)
-            else:
-                removed_lang += 1
-                if progress_callback:
-                    progress_callback(f"  ⛔ Dibuang akhir (Tanpa TOEFL/IELTS): {norm.get('nama_beasiswa', '')[:60]}")
+            # 3. Loloskan beasiswa (tidak membatasi harus ada TOEFL/IELTS)
+            final_normalized.append(norm)
         
         normalized = final_normalized
 
         if progress_callback:
-            if removed_year > 0 or removed_level > 0 or removed_lang > 0:
+            if removed_year > 0 or removed_level > 0:
                 progress_callback(
                     f"Filter akhir: {len(normalized)} beasiswa lolos. Dibuang: "
-                    f"{removed_year} tahun lama, {removed_level} non-PT, {removed_lang} tanpa TOEFL/IELTS."
+                    f"{removed_year} tahun lama, {removed_level} non-PT."
                 )
             progress_callback(
                 f"Scraping beasiswa.id selesai! "

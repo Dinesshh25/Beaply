@@ -6,16 +6,21 @@ hasil scraping dari berbagai sumber website.
 
 import re
 from datetime import datetime
-
-# ─── Mapping bulan Indonesia ──────────────────────────────────────────────────
+# ─── Mapping bulan Indonesia & Inggris ──────────────────────────────────────────
 BULAN_ID = {
-    'januari': 1, 'february': 2, 'februari': 2, 'maret': 3,
-    'april': 4, 'mei': 5, 'juni': 6, 'juli': 7, 'agustus': 8,
-    'september': 9, 'oktober': 10, 'november': 11, 'desember': 12,
-    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'jun': 6,
-    'jul': 7, 'agu': 8, 'ags': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'des': 12,
+    'januari': 1, 'january': 1, 'jan': 1,
+    'februari': 2, 'february': 2, 'feb': 2,
+    'maret': 3, 'march': 3, 'mar': 3,
+    'april': 4, 'apr': 4,
+    'mei': 5, 'may': 5,
+    'juni': 6, 'june': 6, 'jun': 6,
+    'juli': 7, 'july': 7, 'jul': 7,
+    'agustus': 8, 'august': 8, 'aug': 8, 'agu': 8, 'ags': 8,
+    'september': 9, 'sep': 9,
+    'oktober': 10, 'october': 10, 'oct': 10, 'okt': 10,
+    'november': 11, 'nov': 11,
+    'desember': 12, 'december': 12, 'dec': 12, 'des': 12,
 }
-
 # ─── Filter tahun: hanya 2026 ke atas ─────────────────────────────────────────
 
 def is_year_2026_or_later(entry: dict) -> bool:
@@ -143,18 +148,21 @@ LOKASI_KEYWORDS = {
 }
 
 # ─── Fungsi Parsing Tanggal ───────────────────────────────────────────────────
-
 def parse_tanggal_indonesia(teks: str) -> datetime | None:
     """
-    Parse teks tanggal bahasa Indonesia menjadi objek datetime.
-    Contoh input: '31 Maret 2026', 'March 2026', '2026-03-31'
+    Parse teks tanggal bahasa Indonesia atau Inggris menjadi objek datetime.
+    Contoh input: '31 Maret 2026', '15th August 2026', 'March 2026', '2026-03-31'
     """
     if not teks:
         return None
 
+    # Bersihkan string, case-insensitive
     teks = teks.strip().lower()
+    
+    # Hapus ordinal suffix Inggris (st, nd, rd, th) di belakang angka tanggal
+    teks = re.sub(r'\b(\d+)(st|nd|rd|th)\b', r'\1', teks)
 
-    # Format: YYYY-MM-DD
+    # 1. Format: YYYY-MM-DD
     m = re.search(r'(\d{4})-(\d{1,2})-(\d{1,2})', teks)
     if m:
         try:
@@ -162,11 +170,12 @@ def parse_tanggal_indonesia(teks: str) -> datetime | None:
         except ValueError:
             pass
 
-    # Format: DD Bulan YYYY atau DD/MM/YYYY
-    m = re.search(r'(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})', teks)
-    if m:
+    # 2. Format: DD Bulan YYYY (cari semua match untuk menghindari false positive)
+    # Contoh: "10 Jun 2026"
+    for m in re.finditer(r'(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})', teks):
         day  = int(m.group(1))
-        mon  = BULAN_ID.get(m.group(2).lower()[:3])
+        mon_str = m.group(2).lower()
+        mon  = BULAN_ID.get(mon_str) or BULAN_ID.get(mon_str[:3])
         year = int(m.group(3))
         if mon:
             try:
@@ -174,10 +183,11 @@ def parse_tanggal_indonesia(teks: str) -> datetime | None:
             except ValueError:
                 pass
 
-    # Format: Bulan YYYY (tanpa hari) → pakai hari 1
-    m = re.search(r'([a-zA-Z]+)\s+(\d{4})', teks)
-    if m:
-        mon  = BULAN_ID.get(m.group(1).lower()[:3])
+    # 3. Format: Bulan YYYY (tanpa hari) → pakai hari 1
+    # Contoh: "September 2026"
+    for m in re.finditer(r'([a-zA-Z]+)\s+(\d{4})', teks):
+        mon_str = m.group(1).lower()
+        mon  = BULAN_ID.get(mon_str) or BULAN_ID.get(mon_str[:3])
         year = int(m.group(2))
         if mon:
             try:
@@ -185,7 +195,7 @@ def parse_tanggal_indonesia(teks: str) -> datetime | None:
             except ValueError:
                 pass
 
-    # Format: DD/MM/YYYY
+    # 4. Format: DD/MM/YYYY
     m = re.search(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})', teks)
     if m:
         try:
@@ -194,8 +204,6 @@ def parse_tanggal_indonesia(teks: str) -> datetime | None:
             pass
 
     return None
-
-
 def extract_deadlines(teks: str) -> str | None:
     """
     Coba parse deadline dari teks bebas.
@@ -380,6 +388,15 @@ def normalize_beasiswa(entry: dict) -> dict:
     deadline_text = str(norm.get('deadline_text') or '').strip()
     # Coba parse ke format YYYY-MM-DD
     deadline_terformat = extract_deadlines(deadline_text)
+    
+    # Jika tidak ada deadline terformat tanggal dari teks artikel, coba cari di judul (nama_beasiswa)
+    if not deadline_terformat or not re.match(r'^\d{4}-\d{2}-\d{2}$', deadline_terformat):
+        dt_title = parse_tanggal_indonesia(nama)
+        if dt_title:
+            deadline_terformat = dt_title.strftime('%Y-%m-%d')
+            if not deadline_text:
+                deadline_text = f"Mencapai {dt_title.strftime('%d %B %Y')}"
+
     norm['deadline']      = deadline_terformat
     norm['deadline_text'] = deadline_text[:300]
 
@@ -429,3 +446,20 @@ def normalize_beasiswa(entry: dict) -> dict:
     norm['full_text'] = str(norm.get('full_text') or norm.get('excerpt') or '').strip()
 
     return norm
+
+
+def is_deadline_active(entry: dict) -> bool:
+    """
+    Cek apakah beasiswa masih aktif (deadline belum terlewat).
+    Jika deadline kosong atau tidak terformat YYYY-MM-DD, dianggap masih aktif (asumsi rolling/tidak terikat).
+    """
+    deadline = entry.get('deadline')
+    if deadline:
+        try:
+            dl_date = datetime.strptime(str(deadline), '%Y-%m-%d').date()
+            if dl_date < datetime.now().date():
+                return False
+        except (ValueError, TypeError):
+            pass
+    return True
+

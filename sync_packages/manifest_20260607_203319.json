@@ -1,0 +1,23 @@
+{
+  "manifest_version": "1.0",
+  "created_at": "2026-06-07 20:33:19",
+  "package_id": "20260607_203319",
+  "package_path": "D:\\Python project\\Beaply\\sync_packages\\sync_package_20260607_203319.json",
+  "package_metadata": {
+    "package_id": "20260607_203319",
+    "timestamp": "2026-06-07 20:33:19",
+    "sumber_website": "beasiswa.id",
+    "total_beasiswa": 11,
+    "data_checksum": "7f712d4ad4164c9cd0d04a515d503ae57be7c44721dd11c901c614886405927e",
+    "format_version": "1.0",
+    "description": "Sync package berisi 11 beasiswa dari beasiswa.id"
+  },
+  "sync_destinations": [],
+  "sync_status": {
+    "total_destinations": 0,
+    "synced": 0,
+    "pending": 0,
+    "failed": 0
+  },
+  "sync_history": []
+}
