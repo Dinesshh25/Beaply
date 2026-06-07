@@ -90,6 +90,12 @@ def seed_beasiswa():
         data = json.load(f)
 
     for bea in data.get("beasiswa", []):
+        jenjang_list = bea.get("jenjang", [])
+        
+        # Filter: Jangan masukkan data SMA/SMK/MA ke dalam database
+        if jenjang_list and any(str(j).upper() in {"SMA", "SMK", "MA", "SEDERAJAT"} for j in jenjang_list):
+            continue
+
         nama = bea.get("nama_beasiswa", "")
         penyelenggara = bea.get("penyelenggara", "") or "Unknown"
         jenjang_list = bea.get("jenjang", [])

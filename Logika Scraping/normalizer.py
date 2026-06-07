@@ -38,41 +38,36 @@ JENJANG_NON_MAHASISWA = {'SMA'}
 
 def is_mahasiswa_only(jenjang_list: list[str], teks: str = '') -> bool:
     """
-    Cek apakah beasiswa ini untuk mahasiswa (perguruan tinggi).
-
-    Aturan:
-      - Jika jenjang_list berisi minimal satu jenjang mahasiswa → True
-      - Jika jenjang_list HANYA berisi SMA/SMK → False (buang)
-      - Jika jenjang_list kosong, cek teks untuk kata kunci SMA/SMK
-        → Jika ditemukan HANYA SMA/SMK tanpa jenjang mahasiswa → False
-        → Jika tidak ditemukan apa-apa → True (benefit of the doubt)
-
-    Args:
-        jenjang_list : list jenjang yang sudah diekstrak (mis: ['S1', 'SMA'])
-        teks         : teks tambahan untuk pengecekan jika jenjang_list kosong
-
-    Returns:
-        True jika beasiswa untuk mahasiswa, False jika khusus SMA/SMK ke bawah
+    Cek apakah beasiswa ini STRICTLY untuk mahasiswa (perguruan tinggi).
+    Jika mengandung kata SMA, SMK, SMP, atau SD di jenjang atau teks, LANGSUNG TOLAK.
     """
+    # 1. Pengecekan ketat teks (biasanya gabungan nama beasiswa + excerpt)
+    teks_lower = teks.lower()
+    if 'sma ' in teks_lower or 'smk ' in teks_lower or 'smp ' in teks_lower or 'sd ' in teks_lower:
+        return False
+    if 'sma/' in teks_lower or 'smk/' in teks_lower or 'smp/' in teks_lower:
+        return False
+        
+    # 2. Pengecekan jenjang_list
     if jenjang_list:
-        # Jika ada minimal satu jenjang mahasiswa, loloskan
-        has_mahasiswa = any(j in JENJANG_MAHASISWA for j in jenjang_list)
-        if has_mahasiswa:
-            return True
-        # Jika HANYA berisi jenjang non-mahasiswa (SMA), tolak
-        all_non_mahasiswa = all(j in JENJANG_NON_MAHASISWA for j in jenjang_list)
-        if all_non_mahasiswa:
+        # Jika ada SMA/SMK di list jenjang, langsung tolak
+        if any(j in JENJANG_NON_MAHASISWA for j in jenjang_list):
             return False
-        # Jenjang tidak dikenali → loloskan (benefit of the doubt)
-        return True
+            
+        # Jika ada minimal satu jenjang mahasiswa, loloskan
+        if any(j in JENJANG_MAHASISWA for j in jenjang_list):
+            return True
+            
+        return False
 
-    # Jenjang kosong → cek dari teks
+    # 3. Jenjang kosong → cek dari teks (ekstraksi jenjang)
     if teks:
         detected = extract_jenjang(teks)
         if detected:
-            return is_mahasiswa_only(detected)
+            # Rekursif dengan jenjang yang terdeteksi, tapi teks dikosongkan agar tidak infinite loop
+            return is_mahasiswa_only(detected, '')
 
-    # Tidak ada info jenjang sama sekali → loloskan
+    # Tidak ada info jenjang sama sekali, tapi sudah lolos filter teks (tidak ada kata SMA)
     return True
 
 

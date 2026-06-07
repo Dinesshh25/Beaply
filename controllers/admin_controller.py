@@ -164,6 +164,24 @@ def delete_feedback(index: int) -> tuple[bool, str]:
         return False, str(e)
 
 
+def reply_to_feedback(index: int, reply_text: str) -> tuple[bool, str]:
+    """Save admin reply to a feedback entry."""
+    try:
+        if not os.path.exists(FEEDBACK_FILE):
+            return False, "No feedback file found."
+        with open(FEEDBACK_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        if not isinstance(data, list) or index < 0 or index >= len(data):
+            return False, "Invalid feedback index."
+        data[index]["admin_reply"] = reply_text
+        data[index]["replied_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(FEEDBACK_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        return True, "Reply saved successfully."
+    except Exception as e:
+        return False, str(e)
+
+
 def get_feedback_count() -> int:
     """Get total feedback count."""
     return len(get_all_feedback())

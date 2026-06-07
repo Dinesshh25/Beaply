@@ -2,15 +2,15 @@
 pyqt_app/views/admin_scholarship_view.py
 Admin — Scholarship Data management page.
 
-Two-column layout: Current Data (left) and Incoming Data (right).
-Each scholarship shown as a text card with edit/delete buttons.
-Bottom: Save Changes + Auto Scrap buttons.
+Single-column layout showing all scholarships with edit/delete.
+Bottom: Publish to Users + Auto Scrap buttons.
 """
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QPushButton, QScrollArea, QMessageBox, QDialog, QLineEdit
+    QPushButton, QScrollArea, QMessageBox, QDialog, QLineEdit,
+    QProgressBar
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QFont, QCursor
 import os
 import sys
@@ -32,11 +32,37 @@ class ScrapWorker(QThread):
             if scraping_dir not in sys.path:
                 sys.path.insert(0, scraping_dir)
             
+            # pyrefly: ignore [missing-import]
             from run_all_scraping import jalankan_semua
             jalankan_semua(auto_sync=True)
             self.finished_signal.emit()
         except Exception as e:
             self.error_signal.emit(str(e))
+
+
+# Jenjang yang valid untuk perguruan tinggi
+JENJANG_PT = {"D3", "D4", "S1", "S2", "S3"}
+
+
+def _is_perguruan_tinggi(jenjang_str: str) -> bool:
+    """Check if jenjang string contains at least one perguruan tinggi level.
+    Handles both 'S1, S2' and '["S1", "S2"]' formats.
+    """
+    if not jenjang_str:
+        return False
+    s = jenjang_str.strip()
+    # Handle JSON array format from scraped data
+    if s.startswith("["):
+        import json
+        try:
+            parsed = json.loads(s)
+            if isinstance(parsed, list):
+                return any(str(p).strip().upper() in JENJANG_PT for p in parsed)
+        except (json.JSONDecodeError, ValueError):
+            pass
+    # Fallback: comma/slash separated
+    parts = [p.strip().upper() for p in s.replace("/", ",").split(",")]
+    return any(p in JENJANG_PT for p in parts)
 
 
 class AdminScholarshipView(QWidget):
@@ -61,101 +87,91 @@ class AdminScholarshipView(QWidget):
         c = palette(self._mode)
         lay = QVBoxLayout(self._container)
         lay.setContentsMargins(0, 0, 0, 0)
-        lay.setSpacing(16)
+        lay.setSpacing(12)
 
-        # ── Two columns ──────────────────────────────────────
-        cols = QHBoxLayout()
-        cols.setSpacing(20)
-
-        # ── Left: Current Data ───────────────────────────────
-        left_frame = QFrame()
-        left_lay = QVBoxLayout(left_frame)
-        left_lay.setContentsMargins(0, 0, 0, 0)
-        left_lay.setSpacing(8)
-
-        left_title = QLabel("Current Data")
-        left_title.setFont(QFont(FONT_FAMILY, 16, QFont.Weight.Bold))
-        left_lay.addWidget(left_title)
-
-        left_scroll = QScrollArea()
-        left_scroll.setWidgetResizable(True)
-        left_scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        left_scroll.setStyleSheet(
-            "QScrollArea { border: none; background: transparent; }")
-        lsw = QWidget()
-        ll = QVBoxLayout(lsw)
-        ll.setContentsMargins(0, 0, 0, 0)
-        ll.setSpacing(6)
-
+        # ── Stats row ────────────────────────────────────────
         beasiswa_list = get_all_beasiswa_admin()
-        for bea in beasiswa_list:
-            ll.addWidget(self._make_card(bea, c, is_current=True))
-        ll.addStretch()
-        left_scroll.setWidget(lsw)
-        left_lay.addWidget(left_scroll)
-        cols.addWidget(left_frame, 1)
+        pt_count = sum(1 for b in beasiswa_list if _is_perguruan_tinggi(b.get("jenjang", "")))
+        non_pt_count = len(beasiswa_list) - pt_count
 
-        # ── Right: Incoming Data ─────────────────────────────
-        right_frame = QFrame()
-        right_lay = QVBoxLayout(right_frame)
-        right_lay.setContentsMargins(0, 0, 0, 0)
-        right_lay.setSpacing(8)
+        stats_row = QHBoxLayout()
+        stats_row.setSpacing(12)
 
-        right_title = QLabel("Incoming Data")
-        right_title.setFont(QFont(FONT_FAMILY, 16, QFont.Weight.Bold))
-        right_lay.addWidget(right_title)
+        total_lbl = QLabel(f"📊 Total: {len(beasiswa_list)}  |  "
+                           f"🎓 Perguruan Tinggi: {pt_count}  |  "
+                           f"⚠️ Non-PT (SMA dll): {non_pt_count}")
+        total_lbl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
+        total_lbl.setStyleSheet(f"color: {c['text_dark']}; padding: 6px 0;")
+        stats_row.addWidget(total_lbl)
+        stats_row.addStretch()
+        lay.addLayout(stats_row)
 
-        right_scroll = QScrollArea()
-        right_scroll.setWidgetResizable(True)
-        right_scroll.setHorizontalScrollBarPolicy(
+        # ── Scroll area with scholarship cards ───────────────
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        right_scroll.setStyleSheet(
-            "QScrollArea { border: none; background: transparent; }")
-        rsw = QWidget()
-        rl = QVBoxLayout(rsw)
-        rl.setContentsMargins(0, 0, 0, 0)
-        rl.setSpacing(6)
+        scroll.setStyleSheet(
+            "QScrollArea { border: none; background: transparent; }"
+            " QScrollArea > QWidget > QWidget { background: transparent; }")
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet("background: transparent;")
+        scroll_lay = QVBoxLayout(scroll_content)
+        scroll_lay.setContentsMargins(0, 0, 0, 0)
+        scroll_lay.setSpacing(6)
 
         for bea in beasiswa_list:
-            rl.addWidget(self._make_card(bea, c, is_current=False))
-        rl.addStretch()
-        right_scroll.setWidget(rsw)
-        right_lay.addWidget(right_scroll)
-        cols.addWidget(right_frame, 1)
+            card = self._make_card(bea, c)
+            scroll_lay.addWidget(card)
 
-        lay.addLayout(cols, 1)
+        scroll_lay.addStretch()
+        scroll.setWidget(scroll_content)
+        lay.addWidget(scroll, 1)
 
-        # ── Bottom buttons ───────────────────────────────────
-        btn_row = QHBoxLayout()
-        
+        # ── Status label for scraping ────────────────────────
         self.status_label = QLabel("")
         self.status_label.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         self.status_label.setStyleSheet(f"color: {c['text_muted']}; font-style: italic;")
         self.status_label.hide()
-        btn_row.addWidget(self.status_label)
-        
+        lay.addWidget(self.status_label)
+
+        # ── Bottom buttons ───────────────────────────────────
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(12)
+
+        # Publish button — removes non-PT scholarships
+        publish_btn = QPushButton(f"🚀 Publish to Users (Remove {non_pt_count} non-PT)")
+        publish_btn.setFixedHeight(40)
+        publish_btn.setMinimumWidth(280)
+        publish_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: #E8B4A2;
+                color: {c['text_dark']};
+                border: none; border-radius: 10px;
+                font-weight: bold; font-size: 13px;
+                padding: 0 20px;
+            }}
+            QPushButton:hover {{ background: #D4917B; }}
+        """)
+        publish_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        publish_btn.clicked.connect(self._publish_to_users)
+        if non_pt_count == 0:
+            publish_btn.setText("✅ All data is PT-only")
+            publish_btn.setEnabled(False)
+            publish_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: #D6EAD8;
+                    color: {c['text_dark']};
+                    border: none; border-radius: 10px;
+                    font-weight: bold; font-size: 13px;
+                    padding: 0 20px;
+                }}
+            """)
+        btn_row.addWidget(publish_btn)
+
         btn_row.addStretch()
 
-        save_btn = QPushButton("Save  Changes")
-        save_btn.setFixedHeight(40)
-        save_btn.setFixedWidth(160)
-        save_btn.setStyleSheet(f"""
-            QPushButton {{
-                background: {c['card']};
-                color: {c['text_dark']};
-                border: 1px solid {c['border']};
-                border-radius: 10px;
-                font-weight: bold; font-size: 13px;
-            }}
-            QPushButton:hover {{ background: {c['btn_pale']}; }}
-        """)
-        save_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        save_btn.clicked.connect(
-            lambda: QMessageBox.information(self, "Info", "Changes saved!"))
-        btn_row.addWidget(save_btn)
-
-        self.scrap_btn = QPushButton("Auto Scrap")
+        self.scrap_btn = QPushButton("🔄 Auto Scrap")
         self.scrap_btn.setFixedHeight(40)
         self.scrap_btn.setFixedWidth(160)
         self.scrap_btn.setStyleSheet(f"""
@@ -175,9 +191,10 @@ class AdminScholarshipView(QWidget):
         lay.addLayout(btn_row)
 
     # ── Card builder ─────────────────────────────────────────
-    def _make_card(self, bea: dict, c: dict, is_current: bool) -> QFrame:
-        border_color = "#D6EAD8" if is_current else "#E8DDD4"
-        bg_color = "#F5FAF6" if is_current else "#FBF7F4"
+    def _make_card(self, bea: dict, c: dict) -> QFrame:
+        is_pt = _is_perguruan_tinggi(bea.get("jenjang", ""))
+        border_color = "#D6EAD8" if is_pt else "#F5D0D0"
+        bg_color = "#F5FAF6" if is_pt else "#FFF5F5"
 
         card = QFrame()
         card.setStyleSheet(f"""
@@ -187,7 +204,8 @@ class AdminScholarshipView(QWidget):
                 border-radius: 12px;
             }}
         """)
-        card.setFixedHeight(72)
+        # Dynamic height — no fixed height
+        card.setMinimumHeight(60)
 
         lay = QHBoxLayout(card)
         lay.setContentsMargins(16, 10, 10, 10)
@@ -205,10 +223,24 @@ class AdminScholarshipView(QWidget):
             f"color: {c['text_dark']}; border: none; background: transparent;")
         n.setWordWrap(True)
         il.addWidget(n)
-        o = QLabel(bea.get("penyelenggara", ""))
+
+        # Detail row: organizer + jenjang + deadline
+        detail_parts = []
+        if bea.get("penyelenggara"):
+            detail_parts.append(bea["penyelenggara"])
+        if bea.get("jenjang"):
+            jenjang_tag = bea["jenjang"]
+            if not is_pt:
+                jenjang_tag = f"⚠️ {jenjang_tag}"
+            detail_parts.append(f"[{jenjang_tag}]")
+        if bea.get("deadline"):
+            detail_parts.append(f"⏰ {bea['deadline']}")
+
+        o = QLabel(" • ".join(detail_parts))
         o.setStyleSheet(
             f"color: {c['text_muted']}; font-size: 10px;"
             " border: none; background: transparent;")
+        o.setWordWrap(True)
         il.addWidget(o)
         lay.addWidget(info, 1)
 
@@ -227,7 +259,6 @@ class AdminScholarshipView(QWidget):
             QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
         """)
         edit_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        bea_id = bea.get("id")
         edit_btn.clicked.connect(lambda _, b=bea: self._edit_beasiswa(b))
         bc.addWidget(edit_btn)
 
@@ -241,6 +272,7 @@ class AdminScholarshipView(QWidget):
             QPushButton:hover {{ background: #F5D0D0; }}
         """)
         del_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        bea_id = bea.get("id")
         del_btn.clicked.connect(lambda _, bid=bea_id: self._delete_beasiswa(bid))
         bc.addWidget(del_btn)
 
@@ -248,6 +280,42 @@ class AdminScholarshipView(QWidget):
         return card
 
     # ── Actions ──────────────────────────────────────────────
+    def _publish_to_users(self):
+        """Remove all non-PT (non perguruan tinggi) scholarships from database."""
+        beasiswa_list = get_all_beasiswa_admin()
+        non_pt = [b for b in beasiswa_list if not _is_perguruan_tinggi(b.get("jenjang", ""))]
+
+        if not non_pt:
+            QMessageBox.information(self, "Info", "All scholarships are already PT-level!")
+            return
+
+        r = QMessageBox.question(
+            self, "Publish to Users",
+            f"This will DELETE {len(non_pt)} non-perguruan-tinggi scholarships "
+            f"(SMA, etc.) from the database.\n\n"
+            f"Users will only see D3/D4/S1/S2/S3 scholarships.\n\n"
+            f"Continue?"
+        )
+        if r != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            conn = get_connection()
+            deleted = 0
+            for b in non_pt:
+                conn.execute("DELETE FROM beasiswa WHERE id = ?", (b["id"],))
+                deleted += 1
+            conn.commit()
+            conn.close()
+            QMessageBox.information(
+                self, "Success",
+                f"✅ Removed {deleted} non-PT scholarships.\n"
+                f"Users will now see only perguruan tinggi scholarships."
+            )
+            self._rebuild()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed: {e}")
+
     def _start_scraping(self):
         self.scrap_btn.setEnabled(False)
         self.scrap_btn.setText("Scraping...")
@@ -266,16 +334,21 @@ class AdminScholarshipView(QWidget):
     def _on_scrap_finished(self):
         if hasattr(self, 'scrap_btn'):
             self.scrap_btn.setEnabled(True)
-            self.scrap_btn.setText("Auto Scrap")
+            self.scrap_btn.setText("🔄 Auto Scrap")
         if hasattr(self, 'status_label'):
             self.status_label.hide()
-        QMessageBox.information(self, "Success", "Auto scraping completed and database updated successfully!")
+        QMessageBox.information(
+            self, "Success",
+            "Auto scraping completed and database updated!\n\n"
+            "Click 'Publish to Users' to remove non-PT scholarships\n"
+            "so users only see D3/D4/S1/S2/S3 beasiswa."
+        )
         self._rebuild()
 
     def _on_scrap_error(self, err):
         if hasattr(self, 'scrap_btn'):
             self.scrap_btn.setEnabled(True)
-            self.scrap_btn.setText("Auto Scrap")
+            self.scrap_btn.setText("🔄 Auto Scrap")
         if hasattr(self, 'status_label'):
             self.status_label.hide()
         QMessageBox.critical(self, "Error", f"Auto scraping failed:\n{err}")

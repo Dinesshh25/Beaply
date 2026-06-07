@@ -168,7 +168,7 @@ class DetailDialog(QDialog):
         lay.addLayout(btn_lay)
         lay.addSpacing(10)
         
-        link = bea.get("link", "")
+        link = bea.get("url", "")
         self.btn_visit = QPushButton("Kunjungi Website Resmi")
         self.btn_visit.setFixedHeight(48)
         self.btn_visit.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -195,7 +195,7 @@ class DetailDialog(QDialog):
         super().paintEvent(event)
 
     def _share_link(self):
-        link = self.bea.get("link", "")
+        link = self.bea.get("url", "")
         if link:
             QApplication.clipboard().setText(link)
             self.btn_share.setText("✅ Link Disalin!")
@@ -333,6 +333,14 @@ class EksplorasiView(QWidget):
         filt_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         filt_btn.clicked.connect(self._show_filter)
         tl.addWidget(filt_btn)
+
+        refresh_btn = QPushButton("\u21BB")
+        refresh_btn.setToolTip("Refresh data beasiswa")
+        refresh_btn.setStyleSheet(f"background: {c['card']}; border: 1px solid {c['border']}; border-radius: 12px; font-size: 16px;")
+        refresh_btn.setFixedSize(40, 40)
+        refresh_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        refresh_btn.clicked.connect(self._refresh_data)
+        tl.addWidget(refresh_btn)
         lay.addWidget(top)
 
         # Separator Line
@@ -427,6 +435,12 @@ class EksplorasiView(QWidget):
 
         self._scroll.setWidget(w)
         self._count.setText(f"{len(self._filtered)} Scholarships Found")
+
+    def _refresh_data(self):
+        """Reload scholarship data from database."""
+        self._all = get_semua_beasiswa()
+        self._apply_filters()
+        self._render_grid()
 
     def _on_search(self):
         self._apply_filters()
