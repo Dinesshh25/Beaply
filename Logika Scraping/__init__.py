@@ -38,6 +38,7 @@ from .database_beasiswa import (
     
     # Delete functions
     hapus_beasiswa,
+    hapus_beasiswa_expired,
     hapus_semua_by_sumber,
     
     # Logging
@@ -93,6 +94,7 @@ __all__ = [
     
     # Database - Delete
     'hapus_beasiswa',
+    'hapus_beasiswa_expired',
     'hapus_semua_by_sumber',
     
     # Database - Logging & Export
