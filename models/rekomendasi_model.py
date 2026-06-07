@@ -156,16 +156,30 @@ def hitung_skor_cocok(profil_user: dict, syarat_beasiswa: dict) -> int:
     skor_toefl_user = profil_user.get("skor_toefl", 0) or 0
     skor_ielts_user = profil_user.get("skor_ielts", 0) or 0
 
-    if min_toefl > 0 or min_ielts > 0:
-        lang_score = 0
-        if min_toefl > 0:
-            lang_score = 10 if skor_toefl_user >= min_toefl else int(10 * skor_toefl_user / min_toefl) if min_toefl > 0 else 0
-        elif min_ielts > 0:
-            lang_score = 10 if skor_ielts_user >= min_ielts else int(10 * skor_ielts_user / min_ielts) if min_ielts > 0 else 0
-        skor += lang_score
+    def to_ibt(val):
+        if val is None:
+            return 0
+        val = float(val)
+        if val <= 120:
+            return val
+        if val < 400: return 0
+        if val <= 450: return 32 + (val - 400) * 13 / 50
+        if val <= 500: return 45 + (val - 450) * 16 / 50
+        if val <= 550: return 61 + (val - 500) * 19 / 50
+        if val <= 600: return 80 + (val - 550) * 20 / 50
+        return min(100 + (val - 600) * 20 / 77, 120)
+
+    min_toefl_ibt = to_ibt(min_toefl)
+    user_toefl_ibt = to_ibt(skor_toefl_user)
+
+    if min_toefl_ibt > 0 or min_ielts > 0:
+        toefl_ratio = user_toefl_ibt / min_toefl_ibt if min_toefl_ibt > 0 else 0
+        ielts_ratio = float(skor_ielts_user) / float(min_ielts) if min_ielts > 0 else 0
+        best_ratio = max(toefl_ratio, ielts_ratio)
+        skor += int(10 * min(best_ratio, 1.0))
     else:
         # Tidak ada syarat bahasa → bonus jika punya skor
-        if skor_toefl_user > 0 or skor_ielts_user > 0:
+        if user_toefl_ibt > 0 or skor_ielts_user > 0:
             skor += 8
         else:
             skor += 5

@@ -110,11 +110,24 @@ class DetailDialog(QDialog):
         line.setFixedHeight(1)
         lay.addWidget(line)
         
+        toefl_val = bea.get("syarat_toefl")
+        ielts_val = bea.get("syarat_ielts")
+        
+        try:
+            toefl_show = f"≥ {int(toefl_val)}" if toefl_val and int(toefl_val) > 0 else "Tidak Wajib"
+        except:
+            toefl_show = "Tidak Wajib"
+            
+        try:
+            ielts_show = f"≥ {float(ielts_val)}" if ielts_val and float(ielts_val) > 0 else "Tidak Wajib"
+        except:
+            ielts_show = "Tidak Wajib"
+
         info = [
             ("🎓 Jenjang", bea.get("jenjang", "-")),
             ("⏳ Deadline", bea.get("deadline", "-")),
-            ("📝 Syarat TOEFL", "Ya" if bea.get("syarat_toefl") else "Tidak Wajib"),
-            ("📝 Syarat IELTS", "Ya" if bea.get("syarat_ielts") else "Tidak Wajib"),
+            ("📝 Syarat TOEFL", toefl_show),
+            ("📝 Syarat IELTS", ielts_show),
         ]
         
         info_lay = QGridLayout()
@@ -274,10 +287,16 @@ class EksplorasiView(QWidget):
         if self._filter_jenjang:
             fj = self._filter_jenjang.upper()
             r = [b for b in r if fj in b.get("jenjang","").upper()]
-        if self._filter_toefl:
-            r = [b for b in r if b.get("syarat_toefl")]
-        if self._filter_ielts:
-            r = [b for b in r if b.get("syarat_ielts")]
+        def _to_float(v):
+            try: return float(v) if v is not None else 0.0
+            except: return 0.0
+
+        if self._filter_toefl and self._filter_ielts:
+            r = [b for b in r if _to_float(b.get("syarat_toefl")) > 0 or _to_float(b.get("syarat_ielts")) > 0]
+        elif self._filter_toefl:
+            r = [b for b in r if _to_float(b.get("syarat_toefl")) > 0]
+        elif self._filter_ielts:
+            r = [b for b in r if _to_float(b.get("syarat_ielts")) > 0]
         if self._sort_mode == "deadline_asc":
             r.sort(key=lambda b: b.get("deadline") or "9999")
         elif self._sort_mode == "deadline_desc":

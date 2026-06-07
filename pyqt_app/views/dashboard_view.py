@@ -388,20 +388,52 @@ class DashboardView(QWidget):
             ni = QTableWidgetItem(bea.get("nama", ""))
             ni.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
             table.setItem(i, 0, ni)
-            table.setItem(i, 1, QTableWidgetItem(bea.get("pendanaan", "-")))
-            table.setItem(i, 2, QTableWidgetItem(bea.get("jenjang", "-")))
-            table.setItem(i, 3, QTableWidgetItem(bea.get("negara", "-")))
-            dl = bea.get("deadline", "-")
-            di = QTableWidgetItem(dl)
-            di.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if dl and dl != "-":
+            
+            # Funding (kategori)
+            kategori_val = bea.get("kategori", "-")
+            if kategori_val:
+                kategori_val = kategori_val.title()
+            else:
+                kategori_val = "-"
+            table.setItem(i, 1, QTableWidgetItem(kategori_val))
+            
+            # Degree (jenjang)
+            jenjang_val = bea.get("jenjang", "-")
+            if jenjang_val and jenjang_val.startswith("["):
+                import json
                 try:
-                    days = (datetime.datetime.strptime(dl, "%Y-%m-%d").date() - datetime.date.today()).days
+                    parsed = json.loads(jenjang_val)
+                    if isinstance(parsed, list):
+                        jenjang_val = ", ".join(parsed)
+                except:
+                    pass
+            elif not jenjang_val:
+                jenjang_val = "-"
+            table.setItem(i, 2, QTableWidgetItem(jenjang_val))
+            
+            # Country (lokasi)
+            lokasi_val = bea.get("lokasi", "-")
+            if not lokasi_val or lokasi_val == "None":
+                if bea.get("kategori") == "internasional":
+                    lokasi_val = "Luar Negeri"
+                else:
+                    lokasi_val = "Dalam Negeri"
+            table.setItem(i, 3, QTableWidgetItem(lokasi_val))
+            
+            # Deadline
+            dl = bea.get("deadline")
+            formatted_dl = fmt_deadline(dl) if dl else "-"
+            di = QTableWidgetItem(formatted_dl)
+            di.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if dl:
+                try:
+                    days = (datetime.datetime.strptime(dl[:10], "%Y-%m-%d").date() - datetime.date.today()).days
                     if days < 0: di.setForeground(QColor("#999"))
                     elif days <= 15: di.setForeground(QColor("#EF4444"))
                     elif days <= 30: di.setForeground(QColor("#F59E0B"))
                     else: di.setForeground(QColor("#22C55E"))
-                except: pass
+                except:
+                    pass
             table.setItem(i, 4, di)
             table.setRowHeight(i, 42)
         ll.addWidget(table)
@@ -413,8 +445,6 @@ class DashboardView(QWidget):
         # ━━ INSIGHTS / FAQ ━━
         ll.addWidget(self._header("Insight & FAQ Beasiswa", c))
         ll.addWidget(self._build_insights_section(analytics["insights"], c))
-        ll.addStretch()
-
         # ── RIGHT COLUMN ──
         rs = QScrollArea(); rs.setWidgetResizable(True); rs.setFixedWidth(280)
         rs.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -558,7 +588,7 @@ class DashboardView(QWidget):
         ccl.addWidget(btn_full)
 
         self._render_cal_grid()
-        rl.addWidget(cc); rl.addStretch()
+        rl.addWidget(cc)
 
     # ═══════════════════════════════════════════════════════════════
     # ANALYTICS SECTION
