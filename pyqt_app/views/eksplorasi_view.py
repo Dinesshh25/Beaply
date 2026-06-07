@@ -80,7 +80,7 @@ class DetailDialog(QDialog):
         main_lay.setContentsMargins(20, 20, 20, 20)
         
         self.content_frame = QFrame()
-        _content_bg = 'rgba(255, 255, 255, 0.85)' if self._mode == 'light' else f'rgba(41, 42, 45, 0.95)'
+        _content_bg = 'rgba(255, 255, 255, 0.85)' if self.mode == 'light' else f'rgba(41, 42, 45, 0.95)'
         self.content_frame.setStyleSheet(f"QFrame {{ background-color: {_content_bg}; border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
         
         shadow = QGraphicsDropShadowEffect()
