@@ -14,6 +14,46 @@ from pyqt_app.styles.theme import FONT_FAMILY, palette, grad_green, grad_peach, 
 from controllers.eksplorasi_controller import get_bookmarks, toggle_bookmark_beasiswa
 from pyqt_app.views.eksplorasi_view import CardFrame, DetailDialog
 
+TRANSLATIONS = {
+    'id': {
+        'bookmarks': 'Tersimpan',
+        'sort': '⇅ Urutkan',
+        'clear_all': '🗑 Hapus Semua',
+        'days_left': 'hari lagi',
+        'expired': 'Kedaluwarsa',
+        'no_bookmarks': 'Belum ada beasiswa yang disimpan.\nJelajahi dan simpan beasiswa yang Anda minati!',
+        'jenjang': 'Jenjang',
+        'deadline': 'Batas Waktu',
+        'remove': 'Hapus',
+        'sort_title': 'Urutkan Tersimpan',
+        'sort_default': 'Bawaan',
+        'sort_dl_asc': 'Batas Waktu ↑',
+        'sort_dl_desc': 'Batas Waktu ↓',
+        'sort_name_asc': 'Nama A→Z',
+        'sort_name_desc': 'Nama Z→A',
+        'clear_confirm': 'Hapus semua yang tersimpan?',
+        'unknown': 'Tidak Diketahui',
+    },
+    'en': {
+        'bookmarks': 'Bookmarks',
+        'sort': '⇅ Sort by',
+        'clear_all': '🗑 Clear All',
+        'days_left': 'days left',
+        'expired': 'Expired',
+        'no_bookmarks': "No bookmarked scholarships yet.\nExplore and save scholarships you're interested in!",
+        'jenjang': 'Degree',
+        'deadline': 'Deadline',
+        'remove': 'Remove',
+        'sort_title': 'Sort Bookmarks',
+        'sort_default': 'Default',
+        'sort_dl_asc': 'Deadline ↑',
+        'sort_dl_desc': 'Deadline ↓',
+        'sort_name_asc': 'Name A→Z',
+        'sort_name_desc': 'Name Z→A',
+        'clear_confirm': 'Remove all bookmarks?',
+        'unknown': 'Unknown',
+    }
+}
 
 class BookmarksView(QWidget):
     # Emit ketika ada perubahan bookmark (tambah/hapus)
@@ -24,6 +64,7 @@ class BookmarksView(QWidget):
         self._pid = profil_id
         self._bhs = bhs
         self._mode = mode
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         self._sort_mode = "default"
         self._build()
 
@@ -31,10 +72,10 @@ class BookmarksView(QWidget):
         if not dl: return None, ""
         try:
             days = (datetime.strptime(dl, "%Y-%m-%d").date() - datetime.now().date()).days
-            if days < 0: return "#999999", "Expired"
-            if days <= 7: return "#EF4444", f"{days} days left!"
-            if days <= 14: return "#F59E0B", f"{days} days left"
-            return "#22C55E", f"{days} days left"
+            if days < 0: return "#999999", self._t['expired']
+            if days <= 7: return "#EF4444", f"{days} {self._t['days_left']}!"
+            if days <= 14: return "#F59E0B", f"{days} {self._t['days_left']}"
+            return "#22C55E", f"{days} {self._t['days_left']}"
         except: return None, ""
 
     def _build(self):
@@ -47,6 +88,7 @@ class BookmarksView(QWidget):
         lay = self.layout()
         lay.setContentsMargins(0, 0, 0, 0)
         c = palette(self._mode)
+        t = self._t
         bm_list = get_bookmarks(self._pid)
 
         if self._sort_mode == "deadline_asc":
@@ -62,15 +104,15 @@ class BookmarksView(QWidget):
         hdr = QFrame()
         hl = QHBoxLayout(hdr)
         hl.setContentsMargins(0, 0, 0, 0)
-        hl.addWidget(self._bold_label(f"{len(bm_list)} Bookmarks", 15))
+        hl.addWidget(self._bold_label(f"{len(bm_list)} {t['bookmarks']}", 15))
         
-        sort_btn = QPushButton("\u21C5 Sort by")
+        sort_btn = QPushButton(t['sort'])
         sort_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         sort_btn.setFixedSize(110, 40)
         sort_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         sort_btn.clicked.connect(self._show_sort)
         
-        clr = QPushButton("🗑 Clear All")
+        clr = QPushButton(t['clear_all'])
         clr.setStyleSheet(f"""
             QPushButton {{
                 background: {grad_peach(c)};
@@ -94,7 +136,7 @@ class BookmarksView(QWidget):
         shadow.setOffset(0, 2)
         clr.setGraphicsEffect(shadow)
         
-        clr.setFixedSize(110, 40)
+        clr.setFixedSize(120, 40)
         clr.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         clr.clicked.connect(self._clear_all)
         hl.addStretch()
@@ -124,7 +166,7 @@ class BookmarksView(QWidget):
         sl.setSpacing(6)
 
         if not bm_list:
-            e = QLabel("No bookmarked scholarships yet.\nExplore and save scholarships you're interested in!")
+            e = QLabel(t['no_bookmarks'])
             e.setStyleSheet(f"color: {c['text_muted']}; font-size: 13px;")
             e.setAlignment(Qt.AlignmentFlag.AlignCenter)
             sl.addWidget(e)
@@ -178,8 +220,8 @@ class BookmarksView(QWidget):
                 cl.addLayout(tr)
                 
                 # Organizer
-                p_text = bea.get("penyelenggara", "Unknown")
-                if not p_text.strip(): p_text = "Unknown"
+                p_text = bea.get("penyelenggara", t['unknown'])
+                if not p_text.strip(): p_text = t['unknown']
                 p = QLabel(p_text)
                 p.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px; background:transparent; border: none;")
                 cl.addWidget(p)
@@ -188,16 +230,16 @@ class BookmarksView(QWidget):
                 
                 # Bottom Row: Info + Remove Button
                 br = QHBoxLayout()
-                info = f"Jenjang: {bea.get('jenjang','-')}"
+                info = f"{t['jenjang']}: {bea.get('jenjang','-')}"
                 if bea.get("deadline"):
-                    info += f"  |  Deadline: {bea['deadline']}"
+                    info += f"  |  {t['deadline']}: {bea['deadline']}"
                 il = QLabel(info)
                 il.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px; background:transparent; border: none;")
                 br.addWidget(il)
                 
                 br.addStretch()
                 
-                rm = QPushButton("Remove")
+                rm = QPushButton(t['remove'])
                 rm.setStyleSheet(f"background: #E2A499; color: white; border: none; border-radius: 12px; padding: 6px 20px; font-weight: bold; font-size: 11px;")
                 rm.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
                 rm.clicked.connect(lambda _, bid=bea.get("id",0): self._remove(bid))
@@ -216,7 +258,7 @@ class BookmarksView(QWidget):
         return l
 
     def _show_detail(self, bea):
-        dlg = DetailDialog(bea, self._mode, self._pid, self)
+        dlg = DetailDialog(bea, self._mode, self._pid, self, self._bhs)
         dlg.exec()
 
     def _remove(self, bid):
@@ -225,7 +267,7 @@ class BookmarksView(QWidget):
         self._build()
 
     def _clear_all(self):
-        r = QMessageBox.question(self, "Clear All", "Remove all bookmarks?")
+        r = QMessageBox.question(self, self._t['clear_all'], self._t['clear_confirm'])
         if r == QMessageBox.StandardButton.Yes:
             for bm in get_bookmarks(self._pid):
                 toggle_bookmark_beasiswa(self._pid, bm.get("id", 0))
@@ -234,8 +276,9 @@ class BookmarksView(QWidget):
 
     def _show_sort(self):
         c = palette(self._mode)
+        t = self._t
         dlg = QDialog(self)
-        dlg.setWindowTitle("Sort")
+        dlg.setWindowTitle(t['sort_title'])
         dlg.setFixedSize(300, 310)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -260,7 +303,7 @@ class BookmarksView(QWidget):
         
         top_lay = QHBoxLayout()
         top_lay.addStretch(1)
-        title = QLabel("Sort Scholarships")
+        title = QLabel(t['sort_title'])
         title.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         top_lay.addWidget(title)
@@ -275,8 +318,8 @@ class BookmarksView(QWidget):
         
         dl.addLayout(top_lay)
         
-        for label, mode in [("Default","default"),("Deadline ↑","deadline_asc"),
-                            ("Deadline ↓","deadline_desc"),("Name A→Z","name_asc"),("Name Z→A","name_desc")]:
+        for label, mode in [(t['sort_default'],"default"),(t['sort_dl_asc'],"deadline_asc"),
+                            (t['sort_dl_desc'],"deadline_desc"),(t['sort_name_asc'],"name_asc"),(t['sort_name_desc'],"name_desc")]:
             b = QPushButton(label)
             if self._sort_mode == mode:
                 b.setStyleSheet(f"background-color: {c['card']}; color: {c['text_dark']}; border: 2px solid {c['btn_primary']}; border-radius: 12px; font-weight: bold;")

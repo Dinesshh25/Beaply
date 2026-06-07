@@ -78,7 +78,7 @@ class TopbarWidget(QFrame):
         name_lbl = QLabel(self._user_name)
         name_lbl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
         text_lay.addWidget(name_lbl)
-        role_lbl = QLabel("Student")
+        role_lbl = QLabel("Pelajar")
         role_lbl.setObjectName("muted")
         text_lay.addWidget(role_lbl)
         ava_lay.addWidget(text_frame)

@@ -5,11 +5,13 @@ Dashboard page — 2-column layout matching Figma mockup.
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QSizePolicy, QTableWidget,
-    QTableWidgetItem, QHeaderView, QAbstractItemView, QTabWidget
+    QTableWidgetItem, QHeaderView, QAbstractItemView, QTabWidget,
+    QDialog, QComboBox, QSpinBox, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor, QPixmap, QColor
 import datetime, os, calendar
+import json
 
 from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
 from pyqt_app.widgets.progress_ring import ProgressRing
@@ -31,6 +33,96 @@ from pyqt_app.views.eksplorasi_view import DetailDialog
 ASSETS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets"))
 
 
+TRANSLATIONS = {
+    'id': {
+        'see_all': 'Lihat semua \u203a',
+        'sel_month_year': 'Pilih Bulan & Tahun',
+        'apply': 'Terapkan',
+        'g_morning': 'Selamat pagi',
+        'g_afternoon': 'Selamat siang',
+        'g_evening': 'Selamat sore',
+        'g_night': 'Selamat malam',
+        'g_anon': 'Anonim',
+        'find_next': 'Mari temukan',
+        'life_changing': 'peluang',
+        'opportunity': 'yang mengubah hidupmu',
+        'explore_desc': 'Jelajahi ribuan peluang, temukan\nbeasiswa, dan wujudkan impianmu!',
+        'opp_avail': 'Peluang\nTersedia',
+        'bm_sch': 'Beasiswa\nTersimpan',
+        'up_deadlines': 'Batas Waktu\nMendatang',
+        'smart_tips': 'Saran Cerdas\nUntukmu',
+        'trending': 'Beasiswa Populer Saat Ini',
+        'tbl_name': 'Nama',
+        'tbl_fund': 'Pendanaan',
+        'tbl_deg': 'Jenjang',
+        'tbl_loc': 'Negara',
+        'tbl_dl': 'Batas Waktu',
+        'out_country': 'Luar Negeri',
+        'in_country': 'Dalam Negeri',
+        'prof_comp': 'Kelengkapan\nProfil',
+        'p_info': 'Informasi Pribadi',
+        'edu': 'Pendidikan',
+        'cert': 'Sertifikasi',
+        'comp_prof_btn': 'Lengkapi Profil >',
+        'no_up_dl': 'Tidak ada batas waktu terdekat.\nSimpan beasiswa untuk dilacak!',
+        'calendar': 'Kalender',
+        'view_full_cal': 'Lihat Kalender Lengkap >',
+        'insight_faq': 'Insight & FAQ Beasiswa',
+        # Analytics tab
+        "an_title": "📊  Analitik Beasiswa", "an_total": "Total", "an_dl": "Berdeadline",
+        "t1": "📅 Deadline/Bulan", "t1_sub": "Distribusi deadline beasiswa sepanjang tahun per bulan",
+        "t2": "🔢 Deadline/Tanggal", "t2_sub": "Tanggal dalam sebulan yang paling banyak menjadi deadline",
+        "t2_note": "🔥 Tanggal {d} adalah yang paling sering muncul ({c} beasiswa)",
+        "t3": "🎓 Jenjang", "t3_title": "Distribusi per Jenjang",
+        "t4": "🌍 Region", "t4_title": "Distribusi Dalam vs Luar Negeri",
+        "ctx_tips": "💡 {pct}% beasiswa tersedia adalah program internasional. Persiapkan skor bahasa Inggris untuk membuka lebih banyak peluang!"
+    },
+    'en': {
+        'see_all': 'See all \u203a',
+        'sel_month_year': 'Select Month & Year',
+        'apply': 'Apply',
+        'g_morning': 'Good morning',
+        'g_afternoon': 'Good afternoon',
+        'g_evening': 'Good evening',
+        'g_night': 'Good night',
+        'g_anon': 'Anonymous',
+        'find_next': "Let's find your next",
+        'life_changing': 'life-changing',
+        'opportunity': 'opportunity',
+        'explore_desc': 'Explore thousands of opportunities, discover\nscholarships, and make your dreams happen!',
+        'opp_avail': 'Opportunities\nAvailable',
+        'bm_sch': 'Bookmarked\nScholarship',
+        'up_deadlines': 'Upcoming\nDeadlines',
+        'smart_tips': 'Smart Tips\nFor You',
+        'trending': 'Scholarships Trending Now',
+        'tbl_name': 'Name',
+        'tbl_fund': 'Funding',
+        'tbl_deg': 'Degree',
+        'tbl_loc': 'Country',
+        'tbl_dl': 'Deadline',
+        'out_country': 'International',
+        'in_country': 'Domestic',
+        'prof_comp': 'Profile\nCompleteness',
+        'p_info': 'Personal Information',
+        'edu': 'Education',
+        'cert': 'Certifications',
+        'comp_prof_btn': 'Complete Profile >',
+        'no_up_dl': 'No upcoming deadlines.\nBookmark scholarships to track!',
+        'calendar': 'Calendar',
+        'view_full_cal': 'View Full Calendar >',
+        'insight_faq': 'Insight & FAQ Scholarships',
+        # Analytics tab
+        "an_title": "📊  Scholarship Analytics", "an_total": "Total", "an_dl": "With Deadline",
+        "t1": "📅 Deadline/Month", "t1_sub": "Distribution of scholarship deadlines throughout the year by month",
+        "t2": "🔢 Deadline/Date", "t2_sub": "Dates in a month that are most frequently deadlines",
+        "t2_note": "🔥 Date {d} appears most frequently ({c} scholarships)",
+        "t3": "🎓 Degree", "t3_title": "Distribution by Degree",
+        "t4": "🌍 Region", "t4_title": "Distribution Domestic vs International",
+        "ctx_tips": "💡 {pct}% available scholarships are international programs. Prepare English scores to open more opportunities!"
+    }
+}
+
+
 class DashboardView(QWidget):
 
     def __init__(self, profil_id, bhs="id", navigate_cb=None, mode="light", parent=None):
@@ -39,6 +131,7 @@ class DashboardView(QWidget):
         self._bhs = bhs
         self._nav = navigate_cb
         self._mode = mode
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         self._build()
 
     @staticmethod
@@ -57,13 +150,14 @@ class DashboardView(QWidget):
         return pastel(idx, self._mode)
 
     def _header(self, text, c, target=None):
+        t = self._t
         w = QWidget(); w.setStyleSheet("background:transparent;")
         h = QHBoxLayout(w); h.setContentsMargins(0,0,0,0)
         l = QLabel(text); l.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
         l.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); h.addWidget(l)
         h.addStretch()
         if target and self._nav:
-            b = QPushButton("See all \u203a"); b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            b = QPushButton(t['see_all']); b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             b.setStyleSheet(f"background:transparent;border:none;color:{c['text_accent']};font-size:11px;")
             b.clicked.connect(lambda: self._nav(target)); h.addWidget(b)
         return w
@@ -75,14 +169,16 @@ class DashboardView(QWidget):
         elif m < 1: m += 12; y -= 1
         import datetime
         self._cal_date = datetime.date(y, m, 1)
+        # Use simple strftime since full localization of month names requires more logic
+        # For a truly localized experience, we can map month numbers to names here
         self._cal_btn.setText(self._cal_date.strftime("%B %Y"))
         self._render_cal_grid()
 
     def _pick_month_year(self):
         c = palette(self._mode)
-        from PyQt6.QtWidgets import QDialog, QComboBox, QSpinBox, QGraphicsDropShadowEffect
+        t = self._t
         dlg = QDialog(self)
-        dlg.setWindowTitle("Select Month & Year")
+        dlg.setWindowTitle(t['sel_month_year'])
         dlg.setFixedSize(280, 180)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -102,7 +198,7 @@ class DashboardView(QWidget):
         
         top_lay = QHBoxLayout()
         top_lay.addStretch(1)
-        title = QLabel("Select Month & Year")
+        title = QLabel(t['sel_month_year'])
         title.setStyleSheet(f"font-weight:bold; color:{c['text_dark']}; font-size:12px; border:none; background:transparent;")
         top_lay.addWidget(title)
         top_lay.addStretch(1)
@@ -131,7 +227,7 @@ class DashboardView(QWidget):
         hlay.addWidget(sb_y, 1)
         lay.addLayout(hlay)
         
-        btn_ok = QPushButton("Apply")
+        btn_ok = QPushButton(t['apply'])
         btn_ok.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         btn_ok.setStyleSheet(f"QPushButton {{ background:{c['btn_primary']}; color:{c['text_dark']}; border:none; border-radius:10px; font-weight:bold; padding:8px; }} QPushButton:hover {{ background:{c['btn_primary_hover']}; }}")
         btn_ok.clicked.connect(dlg.accept)
@@ -182,7 +278,7 @@ class DashboardView(QWidget):
             bea = self._all_bea[row]
             if 'nama' in bea and 'nama_beasiswa' not in bea:
                 bea['nama_beasiswa'] = bea['nama']
-            dlg = DetailDialog(bea, self._mode, self._pid, self)
+            dlg = DetailDialog(bea, self._mode, self._pid, self, bhs=self._bhs)
             dlg.exec()
 
     def _apply_card_shadow(self, widget):
@@ -197,8 +293,9 @@ class DashboardView(QWidget):
 
     def _build(self):
         c = palette(self._mode)
+        t = self._t
         profil = tampil_profil(self._pid)
-        nama = profil["nama"].split()[0] if profil and profil.get("nama") else "Anonymous"
+        nama = profil["nama"].split()[0] if profil and profil.get("nama") else t['g_anon']
         stats_data = hitung_statistik(self._pid)
 
         ml = QHBoxLayout(self); ml.setContentsMargins(0,0,0,0); ml.setSpacing(14)
@@ -233,34 +330,36 @@ class DashboardView(QWidget):
         tl = QVBoxLayout(text_w); tl.setContentsMargins(0,0,0,0); tl.setSpacing(2)
         
         hour = datetime.datetime.now().hour
-        if 5 <= hour < 12: greeting_text = "Good morning"
-        elif 12 <= hour < 17: greeting_text = "Good afternoon"
-        elif 17 <= hour < 21: greeting_text = "Good evening"
-        else: greeting_text = "Good night"
+        if 5 <= hour < 12: greeting_text = t['g_morning']
+        elif 12 <= hour < 17: greeting_text = t['g_afternoon']
+        elif 17 <= hour < 21: greeting_text = t['g_evening']
+        else: greeting_text = t['g_night']
         
         g1 = QLabel(f"{greeting_text}, {nama}!")
         g1.setFont(QFont(FONT_FAMILY, 13)); g1.setStyleSheet(f"color:{c['text_muted']};background:transparent;")
         tl.addWidget(g1)
-        g2 = QLabel("Let's find your next")
+        g2 = QLabel(t['find_next'])
         g2.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         g2.setMinimumHeight(42); tl.addWidget(g2)
         
-        grad_str = "life-changing"
+        grad_str = t['life_changing'] if self._bhs == 'en' else t['life_changing']
         grad_html = ""
         for idx, ch in enumerate(grad_str):
-            t = idx / (len(grad_str) - 1)
-            r = int(168 + t * (244 - 168))
-            g = int(197 + t * (169 - 197))
-            b = int(176 + t * (160 - 176))
+            frac = idx / (len(grad_str) - 1) if len(grad_str) > 1 else 0
+            r = int(168 + frac * (244 - 168))
+            g = int(197 + frac * (169 - 197))
+            b = int(176 + frac * (160 - 176))
             grad_html += f"<span style='color:rgb({r},{g},{b})'>{ch}</span>"
+            
+        b_text = f"<b>{grad_html} {t['opportunity']}</b>"
 
-        g2b = QLabel(f"<b>{grad_html} opportunity</b>")
+        g2b = QLabel(b_text)
         g2b.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2b.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         g2b.setMinimumHeight(42); tl.addWidget(g2b)
         tl.addSpacing(6)
-        g3 = QLabel("Explore thousands of opportunities, discover\nscholarships, and make your dreams happen!")
+        g3 = QLabel(t['explore_desc'])
         g3.setStyleSheet(f"color:{c['text_dark']};font-size:12px;background:transparent;"); tl.addWidget(g3)
         tl.addStretch()
         greet_lay.addWidget(text_w, 3)
@@ -300,10 +399,10 @@ class DashboardView(QWidget):
         else:
             stat_bgs = ["#F6F8F3", "#FBF8F2", "#FDF3F1", "#F6F9F3"]
         stats = [
-            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", stat_bgs[0], "eksplorasi"),
-            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  stat_bgs[1], "bookmarks"),
-            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    stat_bgs[2], "kalender"),
-            ("7",      "Smart Tips\nFor You",       "smart.png",       stat_bgs[3], "scroll_faq"),
+            (str(bc),  t['opp_avail'],  "opportunity.png", stat_bgs[0], "eksplorasi"),
+            (str(bmc), t['bm_sch'],     "bookmarked.png",  stat_bgs[1], "bookmarks"),
+            (str(dlc), t['up_deadlines'],"deadline.png",    stat_bgs[2], "kalender"),
+            ("7",      t['smart_tips'],  "smart.png",       stat_bgs[3], "scroll_faq"),
         ]
         sw = QWidget(); sw.setStyleSheet("background:transparent;")
         sl = QHBoxLayout(sw); sl.setContentsMargins(0,0,0,0); sl.setSpacing(10)
@@ -329,8 +428,6 @@ class DashboardView(QWidget):
             if os.path.exists(ic_path):
                 px = QPixmap(ic_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 icon_wrap.setPixmap(px)
-            from PyQt6.QtWidgets import QGraphicsDropShadowEffect
-            from PyQt6.QtGui import QColor
             icon_shadow = QGraphicsDropShadowEffect()
             icon_shadow.setBlurRadius(25)
             icon_shadow.setXOffset(0)
@@ -357,10 +454,10 @@ class DashboardView(QWidget):
         ll.addWidget(sw)
 
         # ━━ SCHOLARSHIPS TABLE ━━
-        ll.addWidget(self._header("Scholarships Trending Now", c, "eksplorasi"))
+        ll.addWidget(self._header(t['trending'], c, "eksplorasi"))
         self._all_bea = ambil_semua_beasiswa()[:8]
         table = QTableWidget(len(self._all_bea), 5)
-        table.setHorizontalHeaderLabels(["Name", "Funding", "Degree", "Country", "Deadline"])
+        table.setHorizontalHeaderLabels([t['tbl_name'], t['tbl_fund'], t['tbl_deg'], t['tbl_loc'], t['tbl_dl']])
         table.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         table.horizontalHeader().setStretchLastSection(True)
         table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -409,7 +506,6 @@ class DashboardView(QWidget):
             # Degree (jenjang)
             jenjang_val = bea.get("jenjang", "-")
             if jenjang_val and jenjang_val.startswith("["):
-                import json
                 try:
                     parsed = json.loads(jenjang_val)
                     if isinstance(parsed, list):
@@ -424,9 +520,9 @@ class DashboardView(QWidget):
             lokasi_val = bea.get("lokasi", "-")
             if not lokasi_val or lokasi_val == "None":
                 if bea.get("kategori") == "internasional":
-                    lokasi_val = "Luar Negeri"
+                    lokasi_val = t['out_country']
                 else:
-                    lokasi_val = "Dalam Negeri"
+                    lokasi_val = t['in_country']
             table.setItem(i, 3, QTableWidgetItem(lokasi_val))
             
             # Deadline
@@ -454,7 +550,7 @@ class DashboardView(QWidget):
         ll.addWidget(self._build_analytics_section(analytics, c))
 
         # ━━ INSIGHTS / FAQ ━━
-        ll.addWidget(self._header("Insight & FAQ Beasiswa", c))
+        ll.addWidget(self._header(t['insight_faq'], c))
         ll.addWidget(self._build_insights_section(analytics["insights"], c))
         # ── RIGHT COLUMN ──
         rs = QScrollArea(); rs.setWidgetResizable(True); rs.setFixedWidth(280)
@@ -469,7 +565,7 @@ class DashboardView(QWidget):
         self._apply_card_shadow(pc)
         pc.setStyleSheet(f"#pcCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         pcl = QVBoxLayout(pc); pcl.setContentsMargins(18,16,18,16); pcl.setSpacing(8)
-        pch = QLabel("Profile\nCompleteness"); pch.setFont(QFont(FONT_FAMILY,13,QFont.Weight.Bold))
+        pch = QLabel(t['prof_comp']); pch.setFont(QFont(FONT_FAMILY,13,QFont.Weight.Bold))
         pch.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); pcl.addWidget(pch)
         rrow = QWidget(); rrow.setStyleSheet("background:transparent;")
         rrl = QHBoxLayout(rrow); rrl.setContentsMargins(0,0,0,0); rrl.setSpacing(12)
@@ -483,16 +579,16 @@ class DashboardView(QWidget):
             e_done = all(is_valid(f) for f in ["jurusan", "kampus", "jenjang", "semester", "ip"])
             c_done = any(is_valid(f) for f in ["skor_ielts","skor_toefl","skor_duolingo","skor_sat","skor_act","skor_gre","skor_gmat","skor_hsk","level_jlpt"])
             
-        checks_data = [("Personal Information", p_done), ("Education", e_done), ("Certifications", c_done)]
+        checks_data = [(t['p_info'], p_done), (t['edu'], e_done), (t['cert'], c_done)]
         for label, done in checks_data:
             ic = "\u2705" if done else "\u2B1C"
             cl = QLabel(f"{ic}  {label}")
             cl.setStyleSheet(f"color:{c['text_dark'] if done else c['text_muted']};font-size:12px;background:transparent;")
             dwl.addWidget(cl)
         rrl.addWidget(dw); pcl.addWidget(rrow)
-        cpb = QPushButton("Complete Profile >"); cpb.setObjectName("cpBtn")
+        cpb = QPushButton(t['comp_prof_btn']); cpb.setObjectName("cpBtn")
         cpb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        cpb.setStyleSheet(f"#cpBtn{{background:#889E91; color:white; border-radius:14px; padding:8px; font-size:11px; font-weight:bold;}}")
+        cpb.setStyleSheet(f"#cpBtn{{background:#889E91; color:black; border-radius:14px; padding:8px; font-size:11px; font-weight:bold;}}")
         if self._nav: cpb.clicked.connect(lambda: self._nav("profil"))
         pcl.addWidget(cpb); rl.addWidget(pc)
 
@@ -501,7 +597,7 @@ class DashboardView(QWidget):
         self._apply_card_shadow(dc)
         dc.setStyleSheet(f"#dlCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         dcl = QVBoxLayout(dc); dcl.setContentsMargins(18,16,18,16); dcl.setSpacing(6)
-        dcl.addWidget(self._header("Upcoming Deadlines", c, "kalender"))
+        dcl.addWidget(self._header(t['up_deadlines'].replace('\n', ' '), c, "kalender"))
         # Merge deadlines from tracker AND bookmarks
         upcoming_items = []
         trackers = ambil_semua_tracker(self._pid)
@@ -541,7 +637,7 @@ class DashboardView(QWidget):
             sep = QFrame(); sep.setFixedHeight(1); sep.setStyleSheet(f"background:{c['border']};")
             dcl.addWidget(sep); shown += 1
         if not shown:
-            el = QLabel("No upcoming deadlines.\nBookmark scholarships to track!")
+            el = QLabel(t['no_up_dl'])
             el.setStyleSheet(f"color:{c['text_muted']};font-size:11px;background:transparent;")
             el.setWordWrap(True); dcl.addWidget(el)
         rl.addWidget(dc)
@@ -551,7 +647,7 @@ class DashboardView(QWidget):
         self._apply_card_shadow(cc)
         cc.setStyleSheet(f"#calCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         ccl = QVBoxLayout(cc); ccl.setContentsMargins(14,14,14,14); ccl.setSpacing(4)
-        ccl.addWidget(self._header("Calendar", c))
+        ccl.addWidget(self._header(t['calendar'], c))
         self._cal_date = datetime.date.today()
         cal_nav = QWidget(); cal_nav.setStyleSheet("background:transparent;")
         cal_nav_l = QHBoxLayout(cal_nav); cal_nav_l.setContentsMargins(0,0,0,0)
@@ -591,9 +687,9 @@ class DashboardView(QWidget):
         self._cal_grid_l = QVBoxLayout(self._cal_grid_w); self._cal_grid_l.setContentsMargins(0,0,0,0); self._cal_grid_l.setSpacing(0)
         ccl.addWidget(self._cal_grid_w)
 
-        btn_full = QPushButton("View Full Calendar >")
+        btn_full = QPushButton(t['view_full_cal'])
         btn_full.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        btn_full.setStyleSheet("background:#889E91; color:white; border-radius:14px; padding:8px; font-weight:bold; font-size:11px; margin-top:8px;")
+        btn_full.setStyleSheet("background:#889E91; color:black; border-radius:14px; padding:8px; font-weight:bold; font-size:11px; margin-top:8px;")
         if self._nav:
             btn_full.clicked.connect(lambda: self._nav("kalender"))
         ccl.addWidget(btn_full)
@@ -606,7 +702,7 @@ class DashboardView(QWidget):
     # ═══════════════════════════════════════════════════════════════
 
     def _build_analytics_section(self, analytics: dict, c: dict) -> QWidget:
-        """Build the analytics card with tabbed charts."""
+        t = self._t
         card = QFrame()
         card.setObjectName("analyticsCard")
         self._apply_card_shadow(card)
@@ -621,39 +717,16 @@ class DashboardView(QWidget):
         # Header row
         hdr_w = QWidget(); hdr_w.setStyleSheet("background:transparent;")
         hdr_l = QHBoxLayout(hdr_w); hdr_l.setContentsMargins(0,0,0,0)
-        title_lbl = QLabel("📊  Analitik Beasiswa")
+        title_lbl = QLabel(t['an_title'])
         title_lbl.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         title_lbl.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         hdr_l.addWidget(title_lbl)
         hdr_l.addStretch()
 
-        # --- Language Support ---
-        lang = getattr(self, '_bhs', 'id')
-        tx = {
-            "id": {
-                "title": "📊  Analitik Beasiswa", "total": "Total", "dl": "Berdeadline",
-                "t1": "📅 Deadline/Bulan", "t1_sub": "Distribusi deadline beasiswa sepanjang tahun per bulan",
-                "t2": "🔢 Deadline/Tanggal", "t2_sub": "Tanggal dalam sebulan yang paling banyak menjadi deadline",
-                "t2_note": "🔥 Tanggal {d} adalah yang paling sering muncul ({c} beasiswa)",
-                "t3": "🎓 Jenjang", "t3_title": "Distribusi per Jenjang",
-                "t4": "🌍 Region", "t4_title": "Distribusi Dalam vs Luar Negeri"
-            },
-            "en": {
-                "title": "📊  Scholarship Analytics", "total": "Total", "dl": "With Deadline",
-                "t1": "📅 Deadline/Month", "t1_sub": "Distribution of scholarship deadlines throughout the year by month",
-                "t2": "🔢 Deadline/Date", "t2_sub": "Dates in a month that are most frequently deadlines",
-                "t2_note": "🔥 Date {d} appears most frequently ({c} scholarships)",
-                "t3": "🎓 Degree", "t3_title": "Distribution by Degree",
-                "t4": "🌍 Region", "t4_title": "Distribution Domestic vs International"
-            }
-        }
-        _t = tx.get(lang, tx["id"])
-        title_lbl.setText(_t["title"])
-
         # Summary chips
-        total_chip = QLabel(f"{_t['total']}: {analytics['total']}")
+        total_chip = QLabel(f"{t['an_total']}: {analytics['total']}")
         total_chip.setStyleSheet("background:#f6d6d0;color:#000000;border-radius:8px;font-size:10px;font-weight:bold;padding:4px 10px;")
-        dl_chip = QLabel(f"{_t['dl']}: {analytics['with_deadline']}")
+        dl_chip = QLabel(f"{t['an_dl']}: {analytics['with_deadline']}")
         dl_chip.setStyleSheet("background:#a8c5b0;color:#000000;border-radius:8px;font-size:10px;font-weight:bold;padding:4px 10px;")
         hdr_l.addWidget(total_chip)
         hdr_l.addWidget(dl_chip)
@@ -686,7 +759,7 @@ class DashboardView(QWidget):
         # ── Tab 1: Deadline per Bulan ──
         t1 = QWidget(); t1.setStyleSheet("background:transparent;")
         t1l = QVBoxLayout(t1); t1l.setContentsMargins(0, 8, 0, 4)
-        subtitle1 = QLabel(_t["t1_sub"])
+        subtitle1 = QLabel(t["t1_sub"])
         subtitle1.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
         t1l.addWidget(subtitle1)
         chart1 = BarChartWidget(
@@ -696,17 +769,17 @@ class DashboardView(QWidget):
         )
         chart1.setMinimumHeight(200)
         t1l.addWidget(chart1)
-        tabs.addTab(t1, _t["t1"])
+        tabs.addTab(t1, t["t1"])
 
         # ── Tab 2: Deadline per Tanggal ──
         t2 = QWidget(); t2.setStyleSheet("background:transparent;")
         t2l = QVBoxLayout(t2); t2l.setContentsMargins(0, 8, 0, 4)
-        subtitle2 = QLabel(_t["t2_sub"])
+        subtitle2 = QLabel(t["t2_sub"])
         subtitle2.setStyleSheet(f"color:{c['text_muted']};font-size:10px;background:transparent;")
         t2l.addWidget(subtitle2)
 
         peak_day = analytics["peak_day"]
-        note2 = QLabel(_t["t2_note"].format(d=peak_day['day'], c=peak_day['count']))
+        note2 = QLabel(t["t2_note"].format(d=peak_day['day'], c=peak_day['count']))
         note2.setStyleSheet(
             f"color:{c['text_accent']};font-size:10px;font-weight:bold;background:transparent;"
         )
@@ -720,7 +793,7 @@ class DashboardView(QWidget):
         )
         chart2.setMinimumHeight(200)
         t2l.addWidget(chart2)
-        tabs.addTab(t2, _t["t2"])
+        tabs.addTab(t2, t["t2"])
 
         # ── Tab 3: Distribusi Jenjang ──
         t3 = QWidget(); t3.setStyleSheet("background:transparent;")
@@ -734,7 +807,7 @@ class DashboardView(QWidget):
         # Legend + numbers
         leg3_w = QWidget(); leg3_w.setStyleSheet("background:transparent;")
         leg3_l = QVBoxLayout(leg3_w); leg3_l.setContentsMargins(0,0,0,0); leg3_l.setSpacing(6)
-        title3 = QLabel(_t["t3_title"])
+        title3 = QLabel(t["t3_title"])
         title3.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         title3.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         leg3_l.addWidget(title3)
@@ -756,7 +829,7 @@ class DashboardView(QWidget):
             leg3_l.addWidget(row)
         leg3_l.addStretch()
         t3l.addWidget(leg3_w, 1)
-        tabs.addTab(t3, _t["t3"])
+        tabs.addTab(t3, t["t3"])
 
         # ── Tab 4: Distribusi Region ──
         t4 = QWidget(); t4.setStyleSheet("background:transparent;")
@@ -778,7 +851,7 @@ class DashboardView(QWidget):
 
         leg4_w = QWidget(); leg4_w.setStyleSheet("background:transparent;")
         leg4_l = QVBoxLayout(leg4_w); leg4_l.setContentsMargins(0,0,0,0); leg4_l.setSpacing(6)
-        title4 = QLabel(_t["t4_title"])
+        title4 = QLabel(t["t4_title"])
         title4.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         title4.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
         leg4_l.addWidget(title4)
@@ -791,7 +864,9 @@ class DashboardView(QWidget):
             dot = QLabel("●"); dot.setFixedWidth(12)
             dot.setStyleSheet(f"color:{dot_clr};background:transparent;font-size:10px;")
             rl3.addWidget(dot)
-            lbl_w = QLabel(lbl)
+            # Localize Region Label
+            display_lbl = t['out_country'] if lbl == "Luar Negeri" else (t['in_country'] if lbl == "Dalam Negeri" else lbl)
+            lbl_w = QLabel(display_lbl)
             lbl_w.setStyleSheet(f"color:{c['text_dark']};font-size:10px;background:transparent;")
             rl3.addWidget(lbl_w, 1)
             pct_w = QLabel(f"{int(val/total_r*100)}%  ({val})")
@@ -801,10 +876,7 @@ class DashboardView(QWidget):
 
         # Extra context
         ln_pct = int(dict(region_data).get("Luar Negeri", 0) / total_r * 100)
-        ctx = QLabel(
-            f"💡 {ln_pct}% beasiswa tersedia adalah program internasional. "
-            "Persiapkan skor bahasa Inggris untuk membuka lebih banyak peluang!"
-        )
+        ctx = QLabel(t['ctx_tips'].format(pct=ln_pct))
         ctx.setWordWrap(True)
         ctx.setStyleSheet(
             f"color:{c['text_muted']};font-size:9px;background:transparent;"
@@ -813,7 +885,7 @@ class DashboardView(QWidget):
         leg4_l.addWidget(ctx)
         leg4_l.addStretch()
         t4l.addWidget(leg4_w, 1)
-        tabs.addTab(t4, _t["t4"])
+        tabs.addTab(t4, t["t4"])
 
         card_lay.addWidget(tabs)
         return card

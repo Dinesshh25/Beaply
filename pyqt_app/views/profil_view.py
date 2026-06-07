@@ -19,9 +19,101 @@ from controllers.profil_controller import (
     tampil_profil, simpan_data_opsional, update_avatar
 )
 from utils import format_tanggal
-from pyqt_app.utils.i18n import t as _t
 
 ASSETS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets"))
+
+TRANSLATIONS = {
+    'id': {
+        'not_found': 'Profil tidak ditemukan.',
+        'guest': 'Pengguna Tamu',
+        'edit_prof': 'Edit Profil',
+        'prof_complete': 'Profil Lengkap',
+        'comp_sug': 'Lengkapi profilmu untuk\nmendapat kecocokan beasiswa!',
+        'personal_info': 'Informasi Pribadi',
+        'email': 'Email',
+        'tgl_lahir': 'Tanggal Lahir',
+        'jk': 'Jenis Kelamin',
+        'academic_info': 'Informasi Akademik',
+        'jurusan': 'Jurusan',
+        'kampus': 'Kampus',
+        'jenjang': 'Jenjang',
+        'semester': 'Semester',
+        'ip': 'IP / IPK',
+        'kip': 'Penerima KIP',
+        'org': 'Aktif Organisasi',
+        'income': 'Penghasilan Orang Tua',
+        'yes': 'Ya',
+        'no': 'Tidak',
+        'not_filled': 'Belum diisi',
+        'add_test': 'Skor Tes Tambahan',
+        'jlpt': 'Level JLPT',
+        'add_info': 'Informasi Tambahan',
+        'income_rp': 'Penghasilan Ortu (Rp)',
+        'income_ph': 'contoh: 5000000',
+        'save_prof': 'Simpan Profil',
+        'back_prof': '← Kembali ke Profil',
+        'complete_prof': 'Lengkapi Profilmu',
+        'change_ava': 'Ganti Foto Profil',
+        'req_info': 'Informasi Wajib',
+        'success': 'Sukses',
+        'success_msg': 'Profil berhasil diperbarui!',
+        'error': 'Gagal',
+        'logout': 'Keluar',
+        'logout_msg': 'Apakah Anda yakin ingin keluar?',
+        'sel_ava': 'Pilih Avatar',
+        'sel_def_ava': 'Pilih avatar bawaan:',
+        'or_upload': 'Atau upload dari komputer:',
+        'upload_file': 'Upload File Lokal',
+        'confirm_ava': 'Apakah Anda yakin ingin mengganti avatar dengan pilihan ini?',
+        'confirm': 'Konfirmasi',
+        'sel_photo': 'Pilih Foto',
+    },
+    'en': {
+        'not_found': 'Profile not found.',
+        'guest': 'Guest User',
+        'edit_prof': 'Edit Profile',
+        'prof_complete': 'Profile Complete',
+        'comp_sug': 'Complete your profile to\nget better scholarship matches!',
+        'personal_info': 'Personal Information',
+        'email': 'Email',
+        'tgl_lahir': 'Date of Birth',
+        'jk': 'Gender',
+        'academic_info': 'Academic Information',
+        'jurusan': 'Major',
+        'kampus': 'University',
+        'jenjang': 'Degree',
+        'semester': 'Semester',
+        'ip': 'GPA',
+        'kip': 'KIP Recipient',
+        'org': 'Active in Organization',
+        'income': 'Parent Income',
+        'yes': 'Yes',
+        'no': 'No',
+        'not_filled': 'Not filled',
+        'add_test': 'Additional Test Scores',
+        'jlpt': 'JLPT Level',
+        'add_info': 'Additional Info',
+        'income_rp': 'Parent Income (Rp)',
+        'income_ph': 'e.g.: 5000000',
+        'save_prof': 'Save Profile',
+        'back_prof': '← Back to Profile',
+        'complete_prof': 'Complete Your Profile',
+        'change_ava': 'Change Profile Picture',
+        'req_info': 'Required Information',
+        'success': 'Success',
+        'success_msg': 'Profile updated successfully!',
+        'error': 'Error',
+        'logout': 'Logout',
+        'logout_msg': 'Are you sure you want to logout?',
+        'sel_ava': 'Select Avatar',
+        'sel_def_ava': 'Select default avatar:',
+        'or_upload': 'Or upload from computer:',
+        'upload_file': 'Upload Local File',
+        'confirm_ava': 'Are you sure you want to change your avatar to this selection?',
+        'confirm': 'Confirm',
+        'sel_photo': 'Select Photo',
+    }
+}
 
 
 def _hitung_completeness(p):
@@ -44,6 +136,7 @@ class ProfilView(QWidget):
         self._pid = profil_id
         self._bhs = bhs
         self._mode = mode
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         self._build()
 
     def _clear(self):
@@ -67,13 +160,14 @@ class ProfilView(QWidget):
     def _build(self):
         self._clear()
         c = palette(self._mode)
+        t = self._t
         lay = self.layout()
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(12)
 
         profil = tampil_profil(self._pid)
         if not profil:
-            lay.addWidget(QLabel("Profile not found."))
+            lay.addWidget(QLabel(t['not_found']))
             return
         completeness = _hitung_completeness(profil)
 
@@ -121,16 +215,16 @@ class ProfilView(QWidget):
         info_lay.setSpacing(4)
         info_lay.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         
-        name_lbl = self._bold(profil.get("nama", "Guest User"), 18)
+        name_lbl = self._bold(profil.get("nama", t['guest']), 18)
         info_lay.addWidget(name_lbl)
         
-        desc_text = f"{profil.get('jurusan', 'Jurusan')} • {profil.get('kampus', 'Kampus')}"
+        desc_text = f"{profil.get('jurusan', t['jurusan'])} • {profil.get('kampus', t['kampus'])}"
         desc_lbl = QLabel(desc_text)
         desc_lbl.setStyleSheet(f"color: {c['text_muted']}; font-size: 13px;")
         info_lay.addWidget(desc_lbl)
         
         info_lay.addSpacing(6)
-        eb = QPushButton(_t("btn_edit_profile", self._bhs))
+        eb = QPushButton(t['edit_prof'])
         eb.setFixedWidth(120)
         eb.setFixedHeight(30)
         eb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -162,10 +256,10 @@ class ProfilView(QWidget):
         text_lay.setSpacing(4)
         text_lay.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         
-        comp_lbl = self._bold("Profil Lengkap" if self._bhs == "id" else "Completed", 12)
+        comp_lbl = self._bold(t['prof_complete'], 12)
         text_lay.addWidget(comp_lbl, alignment=Qt.AlignmentFlag.AlignLeft)
         
-        comp_sug = QLabel("Lengkapi profilmu untuk\nmendapat kecocokan beasiswa!" if self._bhs == "id" else "Complete your profile to\nget better scholarship matches!")
+        comp_sug = QLabel(t['comp_sug'])
         comp_sug.setStyleSheet(f"color: {c['text_muted']}; font-size: 10px;")
         comp_sug.setAlignment(Qt.AlignmentFlag.AlignLeft)
         text_lay.addWidget(comp_sug, alignment=Qt.AlignmentFlag.AlignLeft)
@@ -186,12 +280,12 @@ class ProfilView(QWidget):
         b_lay = QVBoxLayout(b_card)
         b_lay.setContentsMargins(24, 20, 24, 20)
         b_lay.setSpacing(12)
-        b_lay.addWidget(self._bold("Informasi Pribadi" if self._bhs == "id" else "Personal Information", 15))
+        b_lay.addWidget(self._bold(t['personal_info'], 15))
         b_lay.addSpacing(8)
         
-        for label, val in [(_t("lb_email", self._bhs), profil.get("email")),
-                           (_t("lb_tgl", self._bhs), format_tanggal(profil.get("tanggal_lahir"))),
-                           (_t("lb_jk", self._bhs), profil.get("jenis_kelamin",""))]:
+        for label, val in [(t['email'], profil.get("email")),
+                           (t['tgl_lahir'], format_tanggal(profil.get("tanggal_lahir"))),
+                           (t['jk'], profil.get("jenis_kelamin",""))]:
             self._info_row(b_lay, label, val, c)
         sl.addWidget(b_card)
         
@@ -204,19 +298,17 @@ class ProfilView(QWidget):
         a_lay = QVBoxLayout(a_card)
         a_lay.setContentsMargins(24, 20, 24, 20)
         a_lay.setSpacing(12)
-        a_lay.addWidget(self._bold("Informasi Akademik" if self._bhs == "id" else "Academic Information", 15))
+        a_lay.addWidget(self._bold(t['academic_info'], 15))
         a_lay.addSpacing(8)
         
-        for label, val in [(_t("lb_jurusan", self._bhs), profil.get("jurusan")),
-                           (_t("lb_kampus", self._bhs), profil.get("kampus")),
-                           (_t("lb_jenjang", self._bhs), profil.get("jenjang")),
-                           (_t("lb_semester", self._bhs), profil.get("semester")),
-                           (_t("lb_ip", self._bhs), f"{profil.get('ip', 0):.2f}"),
-                           (_t("lb_kip", self._bhs), _t("v_ya", self._bhs) if profil.get("status_kip") else _t("v_tidak", self._bhs)),
-                           ("Aktif Organisasi" if self._bhs == "id" else "Active in Organization",
-                            _t("v_ya", self._bhs) if profil.get("aktif_organisasi") else _t("v_tidak", self._bhs)),
-                           ("Penghasilan Orang Tua" if self._bhs == "id" else "Parent Income",
-                            f"Rp {profil.get('penghasilan_ortu', 0):,.0f}".replace(',', '.') if profil.get('penghasilan_ortu') else ("Belum diisi" if self._bhs == "id" else "Not filled"))]:
+        for label, val in [(t['jurusan'], profil.get("jurusan")),
+                           (t['kampus'], profil.get("kampus")),
+                           (t['jenjang'], profil.get("jenjang")),
+                           (t['semester'], profil.get("semester")),
+                           (t['ip'], f"{profil.get('ip', 0):.2f}"),
+                           (t['kip'], t['yes'] if profil.get("status_kip") else t['no']),
+                           (t['org'], t['yes'] if profil.get("aktif_organisasi") else t['no']),
+                           (t['income'], f"Rp {profil.get('penghasilan_ortu', 0):,.0f}".replace(',', '.') if profil.get('penghasilan_ortu') else t['not_filled'])]:
             self._info_row(a_lay, label, val, c)
         sl.addWidget(a_card)
 
@@ -231,7 +323,7 @@ class ProfilView(QWidget):
             o_lay = QVBoxLayout(o_card)
             o_lay.setContentsMargins(24, 20, 24, 20)
             o_lay.setSpacing(12)
-            o_lay.addWidget(self._bold(_t("sek_spesifik", self._bhs), 15))
+            o_lay.addWidget(self._bold(t['add_test'], 15))
             o_lay.addSpacing(8)
             
             for label, key in [("IELTS","skor_ielts"),("TOEFL iBT","skor_toefl"),
@@ -248,6 +340,7 @@ class ProfilView(QWidget):
         lay.addWidget(scroll)
 
     def _info_row(self, lay, label, val, c, muted=False):
+        t = self._t
         r = QFrame()
         rl = QHBoxLayout(r)
         rl.setContentsMargins(0, 0, 0, 0)
@@ -255,7 +348,7 @@ class ProfilView(QWidget):
         l.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         l.setFixedWidth(140)
         rl.addWidget(l)
-        v = QLabel(str(val) if val else ("Belum diisi" if self._bhs == "id" else "Not filled"))
+        v = QLabel(str(val) if val else t['not_filled'])
         v.setStyleSheet(f"color: {c['text_muted'] if muted else c['text_dark']}; font-size: 12px;")
         rl.addWidget(v)
         rl.addStretch()
@@ -269,6 +362,7 @@ class ProfilView(QWidget):
     def _show_edit(self):
         self._clear()
         c = palette(self._mode)
+        t = self._t
         lay = self.layout()
         lay.setContentsMargins(0, 0, 0, 0)
 
@@ -280,7 +374,7 @@ class ProfilView(QWidget):
         top_btn_lay = QHBoxLayout()
         top_btn_lay.setContentsMargins(0, 0, 0, 0)
         
-        back = QPushButton("← " + ("Kembali ke Profil" if self._bhs == "id" else "Back to Profile"))
+        back = QPushButton(t['back_prof'])
         back.setStyleSheet(f"background: {c['card']}; color: {c['text_dark']}; border: 1px solid {c['border']}; border-radius: 8px; padding: 8px 16px; font-weight: bold;")
         back.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         back.clicked.connect(self._build)
@@ -288,7 +382,7 @@ class ProfilView(QWidget):
         top_btn_lay.addWidget(back)
         top_btn_lay.addStretch()
         wl.addLayout(top_btn_lay)
-        wl.addWidget(self._bold("Lengkapi Profilmu" if self._bhs == "id" else "Complete Your Profile", 17))
+        wl.addWidget(self._bold(t['complete_prof'], 17))
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -314,8 +408,7 @@ class ProfilView(QWidget):
             
         ava_top_l.addWidget(self.avatar_w, alignment=Qt.AlignmentFlag.AlignCenter)
         
-        btn_ava_text = "Ganti Foto Profil" if self._bhs == "id" else "Change Profile Picture"
-        btn_ava = QPushButton(btn_ava_text)
+        btn_ava = QPushButton(t['change_ava'])
         btn_ava.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         btn_ava.setStyleSheet(f"background: {c['btn_primary']}; color: {c['text_dark']}; font-weight: bold; border: none; border-radius: 8px; padding: 6px 12px; font-size: 11px;")
         btn_ava.clicked.connect(self._change_avatar)
@@ -325,20 +418,32 @@ class ProfilView(QWidget):
 
         # Required Fields
         self._req_entries = {}
-        sl.addWidget(self._bold(_t("sek_wajib", self._bhs), 13))
+        sl.addWidget(self._bold(t['req_info'], 13))
         req_fields = [
-            ("nama", _t("f_nama", self._bhs), profil.get("nama", "")),
-            ("tanggal_lahir", _t("f_tgl", self._bhs), profil.get("tanggal_lahir", "")),
-            ("email", _t("f_email", self._bhs), profil.get("email", "")),
-            ("jurusan", _t("f_jurusan", self._bhs), profil.get("jurusan", "")),
-            ("kampus", _t("f_kampus", self._bhs), profil.get("kampus", "")),
-            ("jenjang", _t("f_jenjang", self._bhs), profil.get("jenjang", "")),
-            ("semester", _t("f_semester", self._bhs), str(profil.get("semester", ""))),
-            ("ip", _t("f_ip", self._bhs), str(profil.get("ip", ""))),
-            ("jenis_kelamin", _t("f_jk", self._bhs), profil.get("jenis_kelamin", "")),
+            ("nama", t['guest'] if not profil.get("nama") else profil.get("nama", ""), profil.get("nama", "")),
+            ("tanggal_lahir", t['tgl_lahir'], profil.get("tanggal_lahir", "")),
+            ("email", t['email'], profil.get("email", "")),
+            ("jurusan", t['jurusan'], profil.get("jurusan", "")),
+            ("kampus", t['kampus'], profil.get("kampus", "")),
+            ("jenjang", t['jenjang'], profil.get("jenjang", "")),
+            ("semester", t['semester'], str(profil.get("semester", ""))),
+            ("ip", t['ip'], str(profil.get("ip", ""))),
+            ("jenis_kelamin", t['jk'], profil.get("jenis_kelamin", "")),
+        ]
+        # Wait, the second element is the label. 
+        req_fields_actual = [
+            ("nama", "Nama" if self._bhs == "id" else "Name", profil.get("nama", "")),
+            ("tanggal_lahir", t['tgl_lahir'], profil.get("tanggal_lahir", "")),
+            ("email", t['email'], profil.get("email", "")),
+            ("jurusan", t['jurusan'], profil.get("jurusan", "")),
+            ("kampus", t['kampus'], profil.get("kampus", "")),
+            ("jenjang", t['jenjang'], profil.get("jenjang", "")),
+            ("semester", t['semester'], str(profil.get("semester", ""))),
+            ("ip", t['ip'], str(profil.get("ip", ""))),
+            ("jenis_kelamin", t['jk'], profil.get("jenis_kelamin", "")),
         ]
         
-        for key, label, current in req_fields:
+        for key, label, current in req_fields_actual:
             card = QFrame()
             card.setProperty("frameClass", "card")
             cl = QHBoxLayout(card)
@@ -353,7 +458,7 @@ class ProfilView(QWidget):
             sl.addWidget(card)
 
         sl.addSpacing(16)
-        sl.addWidget(self._bold(_t("sek_spesifik", self._bhs), 13))
+        sl.addWidget(self._bold(t['add_test'], 13))
 
         self._opt_entries = {}
         for key, label, current in [
@@ -385,7 +490,7 @@ class ProfilView(QWidget):
         card.setProperty("frameClass", "card")
         cl = QHBoxLayout(card)
         cl.setContentsMargins(16, 10, 16, 10)
-        cl.addWidget(self._bold("JLPT Level", 11))
+        cl.addWidget(self._bold(t['jlpt'], 11))
         self._jlpt_cb = QComboBox()
         self._jlpt_cb.addItems(["", "N1", "N2", "N3", "N4", "N5"])
         self._jlpt_cb.setCurrentText(profil.get("level_jlpt", "") or "")
@@ -395,16 +500,16 @@ class ProfilView(QWidget):
 
         # ── Additional Info: KIP, Organisasi, Penghasilan ──
         sl.addSpacing(16)
-        sl.addWidget(self._bold("Informasi Tambahan" if self._bhs == "id" else "Additional Info", 13))
+        sl.addWidget(self._bold(t['add_info'], 13))
 
         # Status KIP
         card_kip = QFrame()
         card_kip.setProperty("frameClass", "card")
         cl_kip = QHBoxLayout(card_kip)
         cl_kip.setContentsMargins(16, 10, 16, 10)
-        cl_kip.addWidget(self._bold("Penerima KIP" if self._bhs == "id" else "KIP Recipient", 11))
+        cl_kip.addWidget(self._bold(t['kip'], 11))
         self._kip_cb = QComboBox()
-        self._kip_cb.addItems(["Tidak", "Ya"])
+        self._kip_cb.addItems([t['no'], t['yes']])
         self._kip_cb.setCurrentIndex(1 if profil.get("status_kip") else 0)
         self._kip_cb.setFixedWidth(200)
         cl_kip.addWidget(self._kip_cb)
@@ -415,9 +520,9 @@ class ProfilView(QWidget):
         card_org.setProperty("frameClass", "card")
         cl_org = QHBoxLayout(card_org)
         cl_org.setContentsMargins(16, 10, 16, 10)
-        cl_org.addWidget(self._bold("Aktif Organisasi" if self._bhs == "id" else "Active in Organization", 11))
+        cl_org.addWidget(self._bold(t['org'], 11))
         self._org_cb = QComboBox()
-        self._org_cb.addItems(["Tidak", "Ya"])
+        self._org_cb.addItems([t['no'], t['yes']])
         self._org_cb.setCurrentIndex(1 if profil.get("aktif_organisasi") else 0)
         self._org_cb.setFixedWidth(200)
         cl_org.addWidget(self._org_cb)
@@ -428,11 +533,11 @@ class ProfilView(QWidget):
         card_peng.setProperty("frameClass", "card")
         cl_peng = QHBoxLayout(card_peng)
         cl_peng.setContentsMargins(16, 10, 16, 10)
-        cl_peng.addWidget(self._bold("Penghasilan Ortu (Rp)" if self._bhs == "id" else "Parent Income (Rp)", 11))
+        cl_peng.addWidget(self._bold(t['income_rp'], 11))
         self._peng_entry = QLineEdit()
         self._peng_entry.setFixedWidth(200)
         self._peng_entry.setMinimumHeight(46)
-        self._peng_entry.setPlaceholderText("contoh: 5000000")
+        self._peng_entry.setPlaceholderText(t['income_ph'])
         peng_val = profil.get("penghasilan_ortu", 0)
         if peng_val and peng_val > 0:
             self._peng_entry.setText(str(peng_val))
@@ -443,7 +548,7 @@ class ProfilView(QWidget):
         scroll.setWidget(sw)
         wl.addWidget(scroll)
 
-        save = QPushButton("Save Profile")
+        save = QPushButton(t['save_prof'])
         save.setObjectName("btn_primary")
         save.setFixedHeight(40)
         save.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -452,6 +557,7 @@ class ProfilView(QWidget):
         lay.addWidget(wrapper)
 
     def _save_all(self):
+        t = self._t
         from controllers.profil_controller import simpan_edit_profil
         data_baru = {"id_profil": self._pid}
         
@@ -492,14 +598,14 @@ class ProfilView(QWidget):
         
         if ok:
             msg_box.setIcon(QMessageBox.Icon.Information)
-            msg_box.setWindowTitle("Success" if self._bhs == "en" else "Sukses")
-            msg_box.setText("Profile updated successfully!" if self._bhs == "en" else "Profil berhasil diperbarui!")
+            msg_box.setWindowTitle(t['success'])
+            msg_box.setText(t['success_msg'])
             msg_box.exec()
             self._refresh_topbar()
             self._build()
         else:
             msg_box.setIcon(QMessageBox.Icon.Critical)
-            msg_box.setWindowTitle("Error" if self._bhs == "en" else "Gagal")
+            msg_box.setWindowTitle(t['error'])
             msg_box.setText(msg)
             msg_box.exec()
 
@@ -512,9 +618,10 @@ class ProfilView(QWidget):
 
     def _logout(self):
         c = palette(self._mode)
+        t = self._t
         reply = QMessageBox(self)
-        reply.setWindowTitle("Logout" if self._bhs == "en" else "Keluar")
-        reply.setText("Are you sure you want to logout?" if self._bhs == "en" else "Apakah Anda yakin ingin keluar?")
+        reply.setWindowTitle(t['logout'])
+        reply.setText(t['logout_msg'])
         reply.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         reply.setStyleSheet(f"QMessageBox {{ background-color: {c['card']}; }} QLabel {{ color: {c['text_dark']}; font-weight: bold; }} QPushButton {{ background-color: {c['btn_primary']}; color: {c['text_dark']}; padding: 6px 16px; border-radius: 6px; font-weight: bold; border: none; }}")
         
@@ -526,13 +633,14 @@ class ProfilView(QWidget):
 
     def _change_avatar(self):
         c = palette(self._mode)
+        t = self._t
         dlg = QDialog(self)
-        dlg.setWindowTitle("Pilih Avatar")
+        dlg.setWindowTitle(t['sel_ava'])
         dlg.setFixedSize(360, 360)
         dlg.setStyleSheet(f"background-color: {c['card']};")
         dl = QVBoxLayout(dlg)
         
-        lbl = QLabel("Pilih avatar bawaan:")
+        lbl = QLabel(t['sel_def_ava'])
         lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         dl.addWidget(lbl)
@@ -559,11 +667,11 @@ class ProfilView(QWidget):
         dl.addLayout(grid)
         dl.addSpacing(10)
         
-        lbl2 = QLabel("Atau upload dari komputer:")
+        lbl2 = QLabel(t['or_upload'])
         lbl2.setFont(QFont(FONT_FAMILY, 10))
         lbl2.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         dl.addWidget(lbl2)
-        btn_up = QPushButton("Upload File Lokal")
+        btn_up = QPushButton(t['upload_file'])
         btn_up.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         btn_up.setStyleSheet(f"background: {c['btn_primary']}; color: {c['text_dark']}; font-weight: bold; border: none; border-radius: 12px; padding: 10px;")
         btn_up.clicked.connect(lambda: self._upload_avatar(dlg))
@@ -573,8 +681,9 @@ class ProfilView(QWidget):
         dlg.exec()
 
     def _select_avatar(self, path, dlg):
-        msg = "Apakah Anda yakin ingin mengganti avatar dengan pilihan ini?" if self._bhs == "id" else "Are you sure you want to change your avatar to this selection?"
-        title = "Konfirmasi" if self._bhs == "id" else "Confirm"
+        t = self._t
+        msg = t['confirm_ava']
+        title = t['confirm']
         
         c = palette(self._mode)
         reply = QMessageBox(self)
@@ -591,7 +700,7 @@ class ProfilView(QWidget):
             self._build()
 
     def _upload_avatar(self, dlg):
-        path, _ = QFileDialog.getOpenFileName(self, "Pilih Foto", "", "Images (*.png *.jpg *.jpeg)")
+        path, _ = QFileDialog.getOpenFileName(self, self._t['sel_photo'], "", "Images (*.png *.jpg *.jpeg)")
         if path:
             AVATARS_DIR = os.path.join(ASSETS_DIR, "avatars")
             dest = os.path.join(AVATARS_DIR, f"user_{self._pid}_{os.path.basename(path)}")
@@ -600,3 +709,4 @@ class ProfilView(QWidget):
             dlg.accept()
             self._refresh_topbar()
             self._build()
+

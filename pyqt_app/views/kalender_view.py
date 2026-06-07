@@ -27,6 +27,69 @@ from controllers.eksplorasi_controller import get_bookmarks
 # Warna khusus bookmark deadline
 BOOKMARK_COLOR = "#3B82F6"
 
+TRANSLATIONS = {
+    'id': {
+        'months': ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+        'months_short': ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+        'days_short': ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+        'today': 'Hari ini',
+        'gt_14': '> 14 hari',
+        '7_14': '7–14 hari',
+        'lt_7': '< 7 hari',
+        'expired': 'Kedaluwarsa',
+        'upcoming': 'Acara Mendatang',
+        'tracker_dl': 'Tenggat Waktu Tracker',
+        'no_events': 'Belum ada acara.\n\nSimpan beasiswa atau tambahkan\ntenggat waktu di Tracker untuk\nmelihatnya di sini.',
+        'see_all_bm': 'Lihat Semua Tersimpan >',
+        'days_left_warn': '{} hari lagi ⚠',
+        'days_left': '{} hari lagi',
+        'today_excl': 'Hari ini!',
+        'dual_dl_title': 'Tanggal ini memiliki 2 jenis tenggat waktu',
+        'dual_dl_msg': 'Tracker:\n{}\n\nTersimpan:\n{}',
+        'see_bm': 'Lihat Tersimpan 🔖',
+        'detail_tr': 'Detail Tracker 📌',
+        'close': 'Tutup',
+        'bm_dl_title': 'Tenggat Waktu Tersimpan — {} {} {}',
+        'bm_dl_msg': 'Beasiswa yang tersimpan memiliki tenggat waktu hari ini:\n\n{}',
+        'go_bm': 'Buka Halaman Tersimpan 🔖',
+        'tr_dl_title': 'Tenggat Waktu Tracker',
+        'sel_month_year': 'Pilih Bulan & Tahun',
+        'apply': 'Terapkan',
+        'tracker_label': '📌 {} — {}',
+        'bookmark_label': '🔖 {} (Tersimpan)',
+    },
+    'en': {
+        'months': ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        'months_short': ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        'days_short': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        'today': 'Today',
+        'gt_14': '> 14 days',
+        '7_14': '7–14 days',
+        'lt_7': '< 7 days',
+        'expired': 'Expired',
+        'upcoming': 'Upcoming Events',
+        'tracker_dl': 'Tracker Deadlines',
+        'no_events': 'No events yet.\n\nBookmark scholarships or add\ndeadlines to the Tracker to\nsee them here.',
+        'see_all_bm': 'See All Bookmarks >',
+        'days_left_warn': '{} days left ⚠',
+        'days_left': '{} days left',
+        'today_excl': 'Today!',
+        'dual_dl_title': 'This date has 2 types of deadlines',
+        'dual_dl_msg': 'Tracker:\n{}\n\nBookmarks:\n{}',
+        'see_bm': 'See Bookmarks 🔖',
+        'detail_tr': 'Tracker Detail 📌',
+        'close': 'Close',
+        'bm_dl_title': 'Bookmark Deadline — {} {} {}',
+        'bm_dl_msg': 'Bookmarked scholarships with deadline on this date:\n\n{}',
+        'go_bm': 'Go to Bookmarks 🔖',
+        'tr_dl_title': 'Tracker Deadline',
+        'sel_month_year': 'Select Month & Year',
+        'apply': 'Apply',
+        'tracker_label': '📌 {} — {}',
+        'bookmark_label': '🔖 {} (Bookmark)',
+    }
+}
+
 
 class KalenderView(QWidget):
     def __init__(self, profil_id, bhs="id", mode="light",
@@ -35,6 +98,7 @@ class KalenderView(QWidget):
         self._pid  = profil_id
         self._bhs  = bhs
         self._mode = mode
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         self._nav  = navigate_cb  # callback untuk navigasi antar halaman
         now = datetime.now()
         self._bulan = now.month
@@ -56,6 +120,7 @@ class KalenderView(QWidget):
             QHBoxLayout(self)
 
         c   = palette(self._mode)
+        t   = self._t
         lay = self.layout()
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(10)
@@ -87,7 +152,7 @@ class KalenderView(QWidget):
         prev_btn.setFixedSize(32, 32)
         prev_btn.setStyleSheet(
             f"background: white; border-radius: 8px; font-size: 14px; "
-            f"font-weight: bold; color: {c['text_dark']};"
+            f"font-weight: bold; color: black;"
         )
         prev_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         prev_btn.clicked.connect(self._prev)
@@ -95,7 +160,9 @@ class KalenderView(QWidget):
         
         mhl.addSpacing(8)
 
-        mt = QPushButton(f"{data['nama_bulan']} {data['tahun']}")
+        # Use translated month name
+        month_name = t['months'][self._bulan]
+        mt = QPushButton(f"{month_name} {self._tahun}")
         mt.setFont(QFont(FONT_FAMILY, 16, QFont.Weight.Bold))
         mt.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         mt.setStyleSheet(f"QPushButton {{ background:transparent; border:none; color:{c['text_dark']}; }}")
@@ -108,7 +175,7 @@ class KalenderView(QWidget):
         next_btn.setFixedSize(32, 32)
         next_btn.setStyleSheet(
             f"background: white; border-radius: 8px; font-size: 14px; "
-            f"font-weight: bold; color: {c['text_dark']};"
+            f"font-weight: bold; color: black;"
         )
         next_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         next_btn.clicked.connect(self._next)
@@ -124,7 +191,7 @@ class KalenderView(QWidget):
         gl.setSpacing(8)
         gl.setContentsMargins(20, 20, 20, 20)
         
-        for i, d in enumerate(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]):
+        for i, d in enumerate(t['days_short']):
             lbl = QLabel(d)
             lbl.setStyleSheet(
                 f"color: {c['text_muted']}; font-size: 11px; font-weight: bold;"
@@ -166,10 +233,10 @@ class KalenderView(QWidget):
             tooltip_parts = []
             for tr in tgl_tracker.get(day, []):
                 tooltip_parts.append(
-                    f"📌 {tr['nama_beasiswa']} — {fmt_status(tr['status'], self._bhs)}"
+                    t['tracker_label'].format(tr['nama_beasiswa'], fmt_status(tr['status'], self._bhs))
                 )
             for bm in tgl_bookmark.get(day, []):
-                tooltip_parts.append(f"🔖 {bm['nama']} (Bookmark)")
+                tooltip_parts.append(t['bookmark_label'].format(bm['nama']))
             tooltip = "\n".join(tooltip_parts) if tooltip_parts else ""
 
             btn = QPushButton(str(day))
@@ -205,11 +272,11 @@ class KalenderView(QWidget):
         legl.setContentsMargins(12, 4, 12, 0)
         legl.setSpacing(14)
         for txt, clr in [
-            ("● Hari ini",   "#A8C5B0"),
-            ("● > 14 hari",  "#22C55E"),
-            ("● 7–14 hari",  "#F59E0B"),
-            ("● < 7 hari",   "#EF4444"),
-            ("● Expired",    "#9AA0A6"),
+            (f"● {t['today']}",   "#A8C5B0"),
+            (f"● {t['gt_14']}",  "#22C55E"),
+            (f"● {t['7_14']}",  "#F59E0B"),
+            (f"● {t['lt_7']}",   "#EF4444"),
+            (f"● {t['expired']}",    "#9AA0A6"),
         ]:
             lbl = QLabel(txt)
             lbl.setStyleSheet(
@@ -235,7 +302,7 @@ class KalenderView(QWidget):
         rl.setContentsMargins(20, 20, 20, 16)
         rl.setSpacing(12)
 
-        rh = QLabel("Upcoming Events")
+        rh = QLabel(t['upcoming'])
         rh.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
         rh.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         rl.addWidget(rh)
@@ -253,12 +320,12 @@ class KalenderView(QWidget):
         # ─ Tracker events ─
         trackers = ambil_semua_tracker(self._pid) if self._pid else []
         upcoming = sorted(
-            [t for t in trackers if t.get("deadline")],
+            [tr for tr in trackers if tr.get("deadline")],
             key=lambda x: x["deadline"]
         )
 
         if upcoming:
-            sec_lbl = QLabel("📌 Tracker Deadlines")
+            sec_lbl = QLabel(f"📌 {t['tracker_dl']}")
             sec_lbl.setStyleSheet(
                 f"color: {c['text_muted']}; font-size: 9px; "
                 "font-weight: bold; background: transparent;"
@@ -327,19 +394,19 @@ class KalenderView(QWidget):
                         - datetime.now().date()
                     ).days
                     if days_left < 0:
-                        day_txt = "Expired"
+                        day_txt = t['expired']
                         day_clr = "#9AA0A6"
                     elif days_left == 0:
-                        day_txt = "Hari ini!"
+                        day_txt = t['today_excl']
                         day_clr = "#A8C5B0"
                     elif days_left < 7:
-                        day_txt = f"{days_left} hari lagi ⚠"
+                        day_txt = t['days_left_warn'].format(days_left)
                         day_clr = "#EF4444"
                     elif days_left <= 14:
-                        day_txt = f"{days_left} hari lagi"
+                        day_txt = t['days_left'].format(days_left)
                         day_clr = "#F59E0B"
                     else:
-                        day_txt = f"{days_left} hari lagi"
+                        day_txt = t['days_left'].format(days_left)
                         day_clr = "#22C55E"
                 except Exception:
                     day_txt = bea.get("deadline", "")
@@ -398,7 +465,7 @@ class KalenderView(QWidget):
 
             # Tombol "Lihat Semua Bookmark"
             if self._nav:
-                go_btn = QPushButton("Lihat Semua Bookmark >")
+                go_btn = QPushButton(t['see_all_bm'])
                 go_btn.setStyleSheet(
                     "background:#889E91; color:white; border-radius:14px; padding:8px; font-weight:bold; font-size:13px; margin-top:8px;"
                 )
@@ -407,10 +474,7 @@ class KalenderView(QWidget):
                 esl.addWidget(go_btn)
 
         if not upcoming and not bm_with_dl:
-            el = QLabel(
-                "Belum ada event.\n\nBookmark beasiswa atau tambahkan\n"
-                "deadline di Tracker untuk melihat\ndeadline di sini."
-            )
+            el = QLabel(t['no_events'])
             el.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
             el.setAlignment(Qt.AlignmentFlag.AlignCenter)
             esl.addWidget(el)
@@ -434,6 +498,7 @@ class KalenderView(QWidget):
         has_tracker  = bool(tgl_tracker.get(day))
         has_bookmark = bool(tgl_bookmark.get(day))
         warna        = tgl_warna.get(day, "")
+        t = self._t
 
         if not has_tracker and not has_bookmark:
             return
@@ -441,19 +506,18 @@ class KalenderView(QWidget):
         if has_tracker and has_bookmark:
             # Ada keduanya — tanya mau lihat yang mana
             msg = QMessageBox(self)
-            msg.setWindowTitle("Tanggal ini punya 2 jenis deadline")
+            msg.setWindowTitle(t['dual_dl_title'])
             bm_names  = "\n".join(
                 [f"  🔖 {b['nama']}" for b in tgl_bookmark[day]]
             )
             tr_names  = "\n".join(
-                [f"  📌 {t['nama_beasiswa']}" for t in tgl_tracker[day]]
+                [f"  📌 {tr['nama_beasiswa']}" for tr in tgl_tracker[day]]
             )
-            msg.setText(
-                f"Tracker:\n{tr_names}\n\nBookmark Beasiswa:\n{bm_names}"
-            )
-            btn_bm = msg.addButton("Lihat Bookmarks 🔖", QMessageBox.ButtonRole.ActionRole)
-            btn_tr = msg.addButton("Detail Tracker 📌", QMessageBox.ButtonRole.ActionRole)
-            msg.addButton("Tutup", QMessageBox.ButtonRole.RejectRole)
+            msg.setText(t['dual_dl_msg'].format(tr_names, bm_names))
+            
+            btn_bm = msg.addButton(t['see_bm'], QMessageBox.ButtonRole.ActionRole)
+            btn_tr = msg.addButton(t['detail_tr'], QMessageBox.ButtonRole.ActionRole)
+            msg.addButton(t['close'], QMessageBox.ButtonRole.RejectRole)
             msg.exec()
             if msg.clickedButton() == btn_bm:
                 self._go_bookmarks()
@@ -466,12 +530,10 @@ class KalenderView(QWidget):
                 [f"• {b['nama']} — {b['deadline']}" for b in tgl_bookmark[day]]
             )
             box = QMessageBox(self)
-            box.setWindowTitle(f"Bookmark Deadline — {day} {['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'][self._bulan]} {self._tahun}")
-            box.setText(
-                f"Beasiswa yang di-bookmark berdeadline tanggal ini:\n\n{bm_names}"
-            )
-            btn_go = box.addButton("Buka Halaman Bookmark 🔖", QMessageBox.ButtonRole.ActionRole)
-            box.addButton("Tutup", QMessageBox.ButtonRole.RejectRole)
+            box.setWindowTitle(t['bm_dl_title'].format(day, t['months_short'][self._bulan], self._tahun))
+            box.setText(t['bm_dl_msg'].format(bm_names))
+            btn_go = box.addButton(t['go_bm'], QMessageBox.ButtonRole.ActionRole)
+            box.addButton(t['close'], QMessageBox.ButtonRole.RejectRole)
             box.exec()
             if box.clickedButton() == btn_go:
                 self._go_bookmarks()
@@ -488,7 +550,7 @@ class KalenderView(QWidget):
             [f"• {it['nama_beasiswa']} — {fmt_status(it['status'], self._bhs)}"
              for it in items]
         )
-        QMessageBox.information(self, "Deadline Tracker", msg)
+        QMessageBox.information(self, self._t['tr_dl_title'], msg)
 
     def _go_bookmarks(self):
         """Navigasi ke halaman Bookmarks."""
@@ -511,11 +573,11 @@ class KalenderView(QWidget):
 
     def _pick_month_year(self):
         c = palette(self._mode)
+        t = self._t
         from PyQt6.QtWidgets import QDialog, QComboBox, QSpinBox, QGraphicsDropShadowEffect
         from PyQt6.QtGui import QColor
-        import calendar
         dlg = QDialog(self)
-        dlg.setWindowTitle("Select Month & Year")
+        dlg.setWindowTitle(t['sel_month_year'])
         dlg.setFixedSize(280, 180)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -535,7 +597,7 @@ class KalenderView(QWidget):
         
         top_lay = QHBoxLayout()
         top_lay.addStretch(1)
-        title = QLabel("Select Month & Year")
+        title = QLabel(t['sel_month_year'])
         title.setStyleSheet(f"font-weight:bold; color:{c['text_dark']}; font-size:12px; border:none; background:transparent;")
         top_lay.addWidget(title)
         top_lay.addStretch(1)
@@ -550,7 +612,7 @@ class KalenderView(QWidget):
         
         hlay = QHBoxLayout()
         cb_m = QComboBox()
-        for i in range(1, 13): cb_m.addItem(calendar.month_name[i], i)
+        for i in range(1, 13): cb_m.addItem(t['months'][i], i)
         cb_m.setCurrentIndex(self._bulan - 1)
         cb_m.setStyleSheet(f"QComboBox {{ background:{c['input_bg']}; color:{c['text_dark']}; border:1px solid {c['border']}; border-radius:8px; padding:4px 8px; }}")
         
@@ -563,7 +625,7 @@ class KalenderView(QWidget):
         hlay.addWidget(sb_y, 1)
         lay.addLayout(hlay)
         
-        btn_ok = QPushButton("Apply")
+        btn_ok = QPushButton(t['apply'])
         btn_ok.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         btn_ok.setStyleSheet(f"QPushButton {{ background:{c['btn_primary']}; color:{c['text_dark']}; border:none; border-radius:10px; font-weight:bold; padding:8px; }} QPushButton:hover {{ background:{c['btn_primary_hover']}; }}")
         btn_ok.clicked.connect(dlg.accept)

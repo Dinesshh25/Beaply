@@ -18,6 +18,79 @@ from controllers.eksplorasi_controller import (
 )
 from controllers.notifikasi_controller import buat_notifikasi_deadline
 
+TRANSLATIONS = {
+    'id': {
+        'detail_title': 'Detail Beasiswa',
+        'no_desc': 'Tidak ada deskripsi tambahan.',
+        'share': '🔗 Bagikan Link',
+        'copied': '✅ Link Disalin!',
+        'saved': ' Tersimpan',
+        'save': ' Simpan Beasiswa',
+        'visit': 'Kunjungi Website Resmi',
+        'no_link': 'Link Tidak Tersedia',
+        'scholarships': 'Eksplorasi Beasiswa',
+        'search': '🔍 Cari Beasiswa...',
+        'sort': '⇅ Urutkan',
+        'filter': '⚙ Filter',
+        'found': 'Beasiswa Ditemukan',
+        'jenjang': 'Jenjang',
+        'deadline': 'Batas Waktu',
+        'toefl': 'Syarat TOEFL',
+        'ielts': 'Syarat IELTS',
+        'not_required': 'Tidak Wajib',
+        'sort_title': 'Urutkan Beasiswa',
+        'sort_default': 'Bawaan',
+        'sort_dl_asc': 'Batas Waktu ↑',
+        'sort_dl_desc': 'Batas Waktu ↓',
+        'sort_name_asc': 'Nama A→Z',
+        'sort_name_desc': 'Nama Z→A',
+        'filter_title': 'Filter Beasiswa',
+        'filter_jenjang': 'Filter Berdasarkan Jenjang',
+        'filter_score': 'Syarat Skor Tes',
+        'req_toefl': 'Wajib TOEFL',
+        'req_ielts': 'Wajib IELTS',
+        'status': 'Status Beasiswa',
+        'hide_expired': 'Sembunyikan yang Kedaluwarsa',
+        'apply_filter': 'Terapkan Filter',
+        'all': 'Semua',
+    },
+    'en': {
+        'detail_title': 'Scholarship Detail',
+        'no_desc': 'No additional description available.',
+        'share': '🔗 Share Link',
+        'copied': '✅ Link Copied!',
+        'saved': ' Saved',
+        'save': ' Save Scholarship',
+        'visit': 'Visit Official Website',
+        'no_link': 'Link Unavailable',
+        'scholarships': 'Explore Scholarships',
+        'search': '🔍 Search Scholarships...',
+        'sort': '⇅ Sort by',
+        'filter': '⚙ Filters',
+        'found': 'Scholarships Found',
+        'jenjang': 'Degree',
+        'deadline': 'Deadline',
+        'toefl': 'TOEFL Req',
+        'ielts': 'IELTS Req',
+        'not_required': 'Not Required',
+        'sort_title': 'Sort Scholarships',
+        'sort_default': 'Default',
+        'sort_dl_asc': 'Deadline ↑',
+        'sort_dl_desc': 'Deadline ↓',
+        'sort_name_asc': 'Name A→Z',
+        'sort_name_desc': 'Name Z→A',
+        'filter_title': 'Filter Scholarships',
+        'filter_jenjang': 'Filter by Degree',
+        'filter_score': 'Test Score Requirements',
+        'req_toefl': 'Requires TOEFL',
+        'req_ielts': 'Requires IELTS',
+        'status': 'Scholarship Status',
+        'hide_expired': 'Hide Expired',
+        'apply_filter': 'Apply Filters',
+        'all': 'All',
+    }
+}
+
 def create_bookmark_icon(color_str, filled=False):
     pixmap = QPixmap(24, 24)
     pixmap.fill(Qt.GlobalColor.transparent)
@@ -65,14 +138,16 @@ class CardFrame(QFrame):
             pass  # C++ object already deleted — safe to ignore
 
 class DetailDialog(QDialog):
-    def __init__(self, bea, mode, pid, parent=None):
+    def __init__(self, bea, mode, pid, parent=None, bhs="id"):
         super().__init__(parent)
         self.bea = bea
         self.mode = mode
         self.pid = pid
+        self.bhs = bhs
         self._c = palette(mode)
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         
-        self.setWindowTitle("Detail Beasiswa")
+        self.setWindowTitle(self._t['detail_title'])
         self.setFixedSize(500, 560)
         self.setStyleSheet("QDialog { background: transparent; }")
         
@@ -114,20 +189,20 @@ class DetailDialog(QDialog):
         ielts_val = bea.get("syarat_ielts")
         
         try:
-            toefl_show = f"≥ {int(toefl_val)}" if toefl_val and int(toefl_val) > 0 else "Tidak Wajib"
+            toefl_show = f"≥ {int(toefl_val)}" if toefl_val and int(toefl_val) > 0 else self._t['not_required']
         except:
-            toefl_show = "Tidak Wajib"
+            toefl_show = self._t['not_required']
             
         try:
-            ielts_show = f"≥ {float(ielts_val)}" if ielts_val and float(ielts_val) > 0 else "Tidak Wajib"
+            ielts_show = f"≥ {float(ielts_val)}" if ielts_val and float(ielts_val) > 0 else self._t['not_required']
         except:
-            ielts_show = "Tidak Wajib"
+            ielts_show = self._t['not_required']
 
         info = [
-            ("🎓 Jenjang", bea.get("jenjang", "-")),
-            ("⏳ Deadline", bea.get("deadline", "-")),
-            ("📝 Syarat TOEFL", toefl_show),
-            ("📝 Syarat IELTS", ielts_show),
+            (f"🎓 {self._t['jenjang']}", bea.get("jenjang", "-")),
+            (f"⏳ {self._t['deadline']}", bea.get("deadline", "-")),
+            (f"📝 {self._t['toefl']}", toefl_show),
+            (f"📝 {self._t['ielts']}", ielts_show),
         ]
         
         info_lay = QGridLayout()
@@ -154,7 +229,7 @@ class DetailDialog(QDialog):
         desc_l = QVBoxLayout(desc_w)
         desc_l.setContentsMargins(0, 0, 0, 0)
         
-        desc = QLabel(bea.get("deskripsi") or "Tidak ada deskripsi tambahan.")
+        desc = QLabel(bea.get("deskripsi") or self._t['no_desc'])
         desc.setWordWrap(True)
         desc.setFont(QFont(FONT_FAMILY, 11))
         desc.setStyleSheet(f"color: {self._c['text_dark']}; line-height: 1.5;")
@@ -166,10 +241,11 @@ class DetailDialog(QDialog):
         btn_lay = QHBoxLayout()
         btn_lay.setSpacing(12)
         
-        self.btn_share = QPushButton("🔗 Bagikan Link")
+        self.btn_share = QPushButton(self._t['share'])
         self.btn_share.setFixedHeight(40)
         self.btn_share.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.btn_share.setStyleSheet(f"QPushButton {{ background-color: #F1F5F1; color: {self._c['text_dark']}; border-radius: 20px; font-weight: bold; font-size: 12px; }} QPushButton:hover {{ background-color: #E2E8E2; }}")
+        # Fixed: Changed color to #333 to ensure readability on #F1F5F1 background in both light/dark modes
+        self.btn_share.setStyleSheet(f"QPushButton {{ background-color: #F1F5F1; color: #333333; border-radius: 20px; font-weight: bold; font-size: 12px; }} QPushButton:hover {{ background-color: #E2E8E2; }}")
         self.btn_share.clicked.connect(self._share_link)
         btn_lay.addWidget(self.btn_share)
         
@@ -186,7 +262,7 @@ class DetailDialog(QDialog):
         lay.addSpacing(10)
         
         link = bea.get("url", "")
-        self.btn_visit = QPushButton("Kunjungi Website Resmi")
+        self.btn_visit = QPushButton(self._t['visit'])
         self.btn_visit.setFixedHeight(48)
         self.btn_visit.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.btn_visit.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
@@ -195,7 +271,7 @@ class DetailDialog(QDialog):
             self.btn_visit.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(link)))
         else:
             self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: {self._c['btn_pale']}; color: {self._c['text_muted']}; border-radius: 14px; }}")
-            self.btn_visit.setText("Link Tidak Tersedia")
+            self.btn_visit.setText(self._t['no_link'])
             self.btn_visit.setEnabled(False)
             
         lay.addWidget(self.btn_visit)
@@ -215,29 +291,27 @@ class DetailDialog(QDialog):
         link = self.bea.get("url", "") or ""
         if link:
             QApplication.clipboard().setText(link)
-            self.btn_share.setText("✅ Link Disalin!")
-            QTimer.singleShot(2000, lambda: self.btn_share.setText("🔗 Bagikan Link"))
+            self.btn_share.setText(self._t['copied'])
+            QTimer.singleShot(2000, lambda: self.btn_share.setText(self._t['share']))
 
     def _update_bm_btn(self):
         if self.is_bm:
-            self.btn_bm.setText(" Tersimpan")
+            self.btn_bm.setText(self._t['saved'])
             self.btn_bm.setIcon(create_bookmark_icon("#D4917B", True))
             self.btn_bm.setStyleSheet(f"QPushButton {{ background-color: #FCEAE3; color: #D4917B; border-radius: 20px; font-weight: bold; font-size: 12px; text-align: left; padding-left: 20px; }} QPushButton:hover {{ background-color: #F5DED5; }}")
         else:
-            self.btn_bm.setText(" Simpan Beasiswa")
-            self.btn_bm.setIcon(create_bookmark_icon(self._c['text_dark'], False))
-            self.btn_bm.setStyleSheet(f"QPushButton {{ background-color: #F1F5F1; color: {self._c['text_dark']}; border-radius: 20px; font-weight: bold; font-size: 12px; text-align: left; padding-left: 15px; }} QPushButton:hover {{ background-color: #E2E8E2; }}")
+            self.btn_bm.setText(self._t['save'])
+            # Fixed: Changed text color to #333 to ensure readability on #F1F5F1 background in both light/dark modes
+            self.btn_bm.setIcon(create_bookmark_icon("#333333", False))
+            self.btn_bm.setStyleSheet(f"QPushButton {{ background-color: #F1F5F1; color: #333333; border-radius: 20px; font-weight: bold; font-size: 12px; text-align: left; padding-left: 15px; }} QPushButton:hover {{ background-color: #E2E8E2; }}")
 
     def _toggle_bm(self):
         toggle_bookmark_beasiswa(self.pid, self.bea.get("id", 0))
         self.is_bm = not self.is_bm
         self._update_bm_btn()
-        # Flag that parent needs refresh — do NOT call _render_grid() here
-        # because this dialog's parent CardFrame would be deleted mid-event.
         self._bookmark_dirty = True
 
 class EksplorasiView(QWidget):
-    # Emit ketika user menambah/hapus bookmark
     bookmark_changed = pyqtSignal()
 
     def __init__(self, profil_id, bhs="id", mode="light", parent=None):
@@ -245,6 +319,7 @@ class EksplorasiView(QWidget):
         self._pid = profil_id
         self._bhs = bhs
         self._mode = mode
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         self._all = get_semua_beasiswa()
         self._filtered = list(self._all)
         self._sort_mode = "default"
@@ -315,12 +390,13 @@ class EksplorasiView(QWidget):
 
     def _build(self):
         c = palette(self._mode)
+        t = self._t
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(12)
 
         # Title
-        title = QLabel("Scholarships")
+        title = QLabel(t['scholarships'])
         title.setObjectName("title")
         lay.addWidget(title)
 
@@ -331,7 +407,7 @@ class EksplorasiView(QWidget):
         tl.setSpacing(12)
         
         self._search = QLineEdit()
-        self._search.setPlaceholderText("🔍 Search Scholarships...")
+        self._search.setPlaceholderText(t['search'])
         self._search.setFixedHeight(40)
         self._search.setStyleSheet(f"background-color: {c['card']}; border: 1px solid {c['border']}; border-radius: 12px; padding: 0 16px;")
         
@@ -347,14 +423,14 @@ class EksplorasiView(QWidget):
         self._search.textChanged.connect(self._on_search)
         tl.addWidget(self._search, 1)
         
-        sort_btn = QPushButton("\u21C5 Sort by")
+        sort_btn = QPushButton(t['sort'])
         sort_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         sort_btn.setFixedSize(110, 40)
         sort_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         sort_btn.clicked.connect(self._show_sort)
         tl.addWidget(sort_btn)
         
-        filt_btn = QPushButton("\u2699 Filters")
+        filt_btn = QPushButton(t['filter'])
         filt_btn.setStyleSheet(f"background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         filt_btn.setFixedSize(110, 40)
         filt_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -362,8 +438,7 @@ class EksplorasiView(QWidget):
         tl.addWidget(filt_btn)
 
         refresh_btn = QPushButton("\u21BB")
-        refresh_btn.setToolTip("Refresh data beasiswa")
-        refresh_btn.setStyleSheet(f"background: {c['card']}; border: 1px solid {c['border']}; border-radius: 12px; font-size: 16px;")
+        refresh_btn.setStyleSheet(f"background: {c['card']}; color: black; border: 1px solid {c['border']}; border-radius: 12px; font-size: 16px;")
         refresh_btn.setFixedSize(40, 40)
         refresh_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         refresh_btn.clicked.connect(self._refresh_data)
@@ -378,7 +453,7 @@ class EksplorasiView(QWidget):
         line.setFixedHeight(1)
         lay.addWidget(line)
 
-        self._count = QLabel(f"{len(self._filtered)} Scholarships Found")
+        self._count = QLabel(f"{len(self._filtered)} {t['found']}")
         self._count.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         self._count.setStyleSheet(f"color: {c['text_dark']}; margin-top: 4px;")
         lay.addWidget(self._count)
@@ -391,6 +466,7 @@ class EksplorasiView(QWidget):
 
     def _render_grid(self):
         c = palette(self._mode)
+        t = self._t
         w = QWidget()
         grid = QGridLayout(w)
         grid.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -404,7 +480,6 @@ class EksplorasiView(QWidget):
         else:
             card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
 
-        # Batch-load all bookmark IDs once (instead of 1 query per card)
         bm_ids = {b.get("id") for b in get_bookmarks(self._pid)}
 
         for i, bea in enumerate(self._filtered):
@@ -449,14 +524,14 @@ class EksplorasiView(QWidget):
                 p.setWordWrap(True)
                 p.setMinimumWidth(50)
                 cl.addWidget(p)
-            j = QLabel(f"Jenjang: {bea.get('jenjang', '-')}")
+            j = QLabel(f"{t['jenjang']}: {bea.get('jenjang', '-')}")
             j.setStyleSheet(f"color: {c['text_muted']}; font-size: 9px; background: transparent;")
             j.setMinimumWidth(50)
             cl.addWidget(j)
             dl = bea.get("deadline", "")
             if dl:
                 dc = self._deadline_color(dl)
-                dlbl = QLabel(f"Deadline: {dl}")
+                dlbl = QLabel(f"{t['deadline']}: {dl}")
                 dlbl.setStyleSheet(f"color: {dc or c['text_accent']}; font-size: 9px; background: transparent;")
                 dlbl.setMinimumWidth(50)
                 cl.addWidget(dlbl)
@@ -473,10 +548,9 @@ class EksplorasiView(QWidget):
             grid.addWidget(card, row, col)
 
         self._scroll.setWidget(w)
-        self._count.setText(f"{len(self._filtered)} Scholarships Found")
+        self._count.setText(f"{len(self._filtered)} {t['found']}")
 
     def _refresh_data(self):
-        """Reload scholarship data from database."""
         self._all = get_semua_beasiswa()
         self._apply_filters()
         self._render_grid()
@@ -486,29 +560,25 @@ class EksplorasiView(QWidget):
         self._render_grid()
 
     def _show_detail(self, bea):
-        dlg = DetailDialog(bea, self._mode, self._pid, self)
+        dlg = DetailDialog(bea, self._mode, self._pid, self, self._bhs)
         dlg.exec()
-        # Defer refresh to NEXT event loop tick — we are still inside
-        # CardFrame.mousePressEvent; calling _render_grid() now would
-        # delete the CardFrame before super().mousePressEvent() returns.
         if getattr(dlg, '_bookmark_dirty', False):
             QTimer.singleShot(0, self._deferred_refresh)
 
     def _deferred_refresh(self):
-        """Called after the event loop finishes the current mouse event."""
         self.bookmark_changed.emit()
         self._apply_filters()
         self._render_grid()
 
     def _toggle_bm(self, bea):
         toggle_bookmark_beasiswa(self._pid, bea.get("id", 0))
-        # Defer grid rebuild so the current click event finishes first
         QTimer.singleShot(0, self._deferred_refresh)
 
     def _show_sort(self):
         c = palette(self._mode)
+        t = self._t
         dlg = QDialog(self)
-        dlg.setWindowTitle("Sort")
+        dlg.setWindowTitle(t['sort_title'])
         dlg.setFixedSize(300, 310)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -533,7 +603,7 @@ class EksplorasiView(QWidget):
         
         top_lay = QHBoxLayout()
         top_lay.addStretch(1)
-        title = QLabel("Sort Scholarships")
+        title = QLabel(t['sort_title'])
         title.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         top_lay.addWidget(title)
@@ -548,8 +618,8 @@ class EksplorasiView(QWidget):
         
         dl.addLayout(top_lay)
         
-        for label, mode in [("Default","default"),("Deadline ↑","deadline_asc"),
-                            ("Deadline ↓","deadline_desc"),("Name A→Z","name_asc"),("Name Z→A","name_desc")]:
+        for label, mode in [(t['sort_default'],"default"),(t['sort_dl_asc'],"deadline_asc"),
+                            (t['sort_dl_desc'],"deadline_desc"),(t['sort_name_asc'],"name_asc"),(t['sort_name_desc'],"name_desc")]:
             b = QPushButton(label)
             if self._sort_mode == mode:
                 b.setStyleSheet(f"background-color: {c['card']}; color: {c['text_dark']}; border: 2px solid {c['btn_primary']}; border-radius: 12px; font-weight: bold;")
@@ -564,8 +634,9 @@ class EksplorasiView(QWidget):
 
     def _show_filter(self):
         c = palette(self._mode)
+        t = self._t
         dlg = QDialog(self)
-        dlg.setWindowTitle("Filter")
+        dlg.setWindowTitle(t['filter_title'])
         dlg.setFixedSize(340, 500)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -590,7 +661,7 @@ class EksplorasiView(QWidget):
         
         top_lay = QHBoxLayout()
         top_lay.addStretch(1)
-        title = QLabel("Filter Scholarships")
+        title = QLabel(t['filter_title'])
         title.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         top_lay.addWidget(title)
@@ -605,49 +676,51 @@ class EksplorasiView(QWidget):
         
         dl.addLayout(top_lay)
         
-        lbl_j = QLabel("Filter By Jenjang")
+        lbl_j = QLabel(t['filter_jenjang'])
         lbl_j.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 5px;")
         dl.addWidget(lbl_j)
         group = QButtonGroup(dlg)
         
         j_lay = QGridLayout()
         j_lay.setSpacing(10)
-        for idx, j in enumerate(["All","S1","S2","S3","D3","D4"]):
+        for idx, j in enumerate([t['all'],"S1","S2","S3","D3","D4"]):
             rb = QRadioButton(j)
             _rb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
             rb.setStyleSheet(f"QRadioButton {{ color: {c['text_dark']}; background: transparent; }} QRadioButton::indicator {{ width: 14px; height: 14px; border-radius: 7px; border: 2px solid {c['text_muted']}; background: {_rb_bg}; }} QRadioButton::indicator:checked {{ border: 2px solid {c['text_accent']}; background: {c['text_accent']}; }}")
-            if (j == "All" and not self._filter_jenjang) or j == self._filter_jenjang:
+            # In apply filter, we map 'Semua' or 'All' back to "All"
+            val = "All" if j in [TRANSLATIONS['id']['all'], TRANSLATIONS['en']['all']] else j
+            if (val == "All" and not self._filter_jenjang) or val == self._filter_jenjang:
                 rb.setChecked(True)
             group.addButton(rb)
             j_lay.addWidget(rb, idx // 3, idx % 3)
         dl.addLayout(j_lay)
             
-        lbl_t = QLabel("Test Score Requirements")
+        lbl_t = QLabel(t['filter_score'])
         lbl_t.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 10px;")
         dl.addWidget(lbl_t)
         
-        cb_toefl = QCheckBox("Requires TOEFL")
+        cb_toefl = QCheckBox(t['req_toefl'])
         _cb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
         cb_toefl.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_toefl.setChecked(self._filter_toefl)
         dl.addWidget(cb_toefl)
-        cb_ielts = QCheckBox("Requires IELTS")
+        cb_ielts = QCheckBox(t['req_ielts'])
         cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_ielts.setChecked(self._filter_ielts)
         dl.addWidget(cb_ielts)
 
-        lbl_s = QLabel("Status Beasiswa" if self._bhs == "id" else "Scholarship Status")
+        lbl_s = QLabel(t['status'])
         lbl_s.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 10px;")
         dl.addWidget(lbl_s)
 
-        cb_active = QCheckBox("Sembunyikan yang Expired" if self._bhs == "id" else "Hide Expired")
+        cb_active = QCheckBox(t['hide_expired'])
         cb_active.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_active.setChecked(self._filter_only_active)
         dl.addWidget(cb_active)
         
         dl.addStretch()
         
-        btn = QPushButton("Apply Filters")
+        btn = QPushButton(t['apply_filter'])
         btn.setStyleSheet(f"QPushButton {{ background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 14px; font-weight: bold; font-size: 13px; }} QPushButton:hover {{ background: {grad_peach_hover(c)}; }}")
         btn.setFixedHeight(44)
         btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -660,8 +733,9 @@ class EksplorasiView(QWidget):
         
         def apply():
             sel = group.checkedButton()
-            jv = sel.text() if sel else "All"
-            self._filter_jenjang = None if jv == "All" else jv
+            jv = sel.text() if sel else t['all']
+            # Map translated 'All' back to "All" for logic
+            self._filter_jenjang = None if jv in [TRANSLATIONS['id']['all'], TRANSLATIONS['en']['all']] else jv
             self._filter_toefl = cb_toefl.isChecked()
             self._filter_ielts = cb_ielts.isChecked()
             self._filter_only_active = cb_active.isChecked()

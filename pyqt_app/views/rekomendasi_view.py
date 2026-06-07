@@ -17,6 +17,72 @@ from controllers.rekomendasi_controller import (
 from pyqt_app.views.eksplorasi_view import CardFrame, DetailDialog
 
 
+TRANSLATIONS = {
+    'id': {
+        'comp_title': 'Perbandingan Beasiswa',
+        'back': '← Kembali',
+        'comp_fail': 'Gagal memuat data perbandingan.',
+        'winner_msg': '{} lebih cocok untuk profil Anda ({}%)',
+        'tie_msg': 'Keduanya memiliki skor kecocokan yang sama!',
+        'match_ex': 'Sangat Cocok',
+        'match_good': 'Cocok',
+        'match_fair': 'Cukup',
+        'match_poor': 'Kurang Cocok',
+        'sel_title': 'Pilih Dua Beasiswa untuk Dibandingkan',
+        'sel_sub': 'Pilih dua beasiswa yang berbeda dari hasil rekomendasi Anda.',
+        'first_sch': 'Beasiswa Pertama',
+        'sec_sch': 'Beasiswa Kedua',
+        'comp_now': 'Bandingkan Sekarang',
+        'same_sel_title': 'Pilihan Sama',
+        'same_sel_msg': 'Pilih dua beasiswa yang berbeda untuk membandingkan.',
+        'hero_title': 'Temukan Beasiswa\nImpianmu!',
+        'hero_sub': 'Sistem cerdas kami akan menganalisis profil akademikmu\ndan mencocokkannya dengan beasiswa terbaik.',
+        'get_rec': '✨ Dapatkan Rekomendasi',
+        'comp_btn': '🔀 Bandingkan Beasiswa',
+        'empty_msg': 'Belum ada rekomendasi yang ditampilkan.\nKlik tombol \'Dapatkan Rekomendasi\' di atas untuk memulai!',
+        'prof_inc_title': 'Profil Belum Lengkap',
+        'prof_inc_msg': 'Silakan lengkapi data profil Anda di menu Profil terlebih dahulu.',
+        'top_msg': 'Top {} dari {} beasiswa tercocok',
+        'deadline': 'Batas Waktu: {}',
+        'smart_tips': 'Saran Cerdas Untukmu',
+        'based_on': 'Berdasarkan kecocokan #1 Anda: {}',
+        'no_res_title': 'Belum Ada Hasil',
+        'no_res_msg': 'Dapatkan rekomendasi terlebih dahulu, minimal 2 beasiswa diperlukan untuk membandingkan.',
+    },
+    'en': {
+        'comp_title': 'Scholarship Comparison',
+        'back': '← Back',
+        'comp_fail': 'Failed to load comparison data.',
+        'winner_msg': '{} is a better match for your profile ({}%)',
+        'tie_msg': 'Both have the same match score!',
+        'match_ex': 'Excellent Match',
+        'match_good': 'Good Match',
+        'match_fair': 'Fair Match',
+        'match_poor': 'Poor Match',
+        'sel_title': 'Select Two Scholarships to Compare',
+        'sel_sub': 'Select two different scholarships from your recommendations.',
+        'first_sch': 'First Scholarship',
+        'sec_sch': 'Second Scholarship',
+        'comp_now': 'Compare Now',
+        'same_sel_title': 'Same Selection',
+        'same_sel_msg': 'Please select two different scholarships to compare.',
+        'hero_title': 'Find Your Perfect\nMatch!',
+        'hero_sub': 'Our smart system will analyze your academic profile\nand match it with the best scholarships.',
+        'get_rec': '✨ Get Recommendations',
+        'comp_btn': '🔀 Compare Scholarships',
+        'empty_msg': 'No recommendations yet.\nClick \'Get Recommendations\' above to start!',
+        'prof_inc_title': 'Profile Incomplete',
+        'prof_inc_msg': 'Please complete your profile data first.',
+        'top_msg': 'Top {} of {} matched scholarships',
+        'deadline': 'Deadline: {}',
+        'smart_tips': 'Smart Tips For You',
+        'based_on': 'Based on your #1 match: {}',
+        'no_res_title': 'No Results',
+        'no_res_msg': 'Get recommendations first, at least 2 scholarships are required to compare.',
+    }
+}
+
+
 # ─── Helper: horizontal divider ───────────────────────────────────────────────
 def _hdivider(c: dict) -> QFrame:
     line = QFrame()
@@ -29,10 +95,13 @@ def _hdivider(c: dict) -> QFrame:
 class _ComparePanel(QFrame):
     """Side-by-side comparison card for two scholarships."""
 
-    def __init__(self, data: dict, profil: dict, mode: str, back_cb, parent=None):
+    def __init__(self, data: dict, profil: dict, mode: str, back_cb, bhs: str = "id", parent=None):
         super().__init__(parent)
         self._mode = mode
+        self._bhs = bhs
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         c = palette(mode)
+        t = self._t
 
         self.setProperty("frameClass", "card")
         root = QVBoxLayout(self)
@@ -41,7 +110,7 @@ class _ComparePanel(QFrame):
 
         # ── Title row ────────────────────────────────────────────
         title_row = QHBoxLayout()
-        title_lbl = QLabel("Perbandingan Beasiswa")
+        title_lbl = QLabel(t['comp_title'])
         title_lbl.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         title_row.addWidget(title_lbl)
         title_row.addStretch()
@@ -54,7 +123,7 @@ class _ComparePanel(QFrame):
             QPushButton:hover {{ background: {c['bg']}; }}
         """
         
-        back_btn = QPushButton("← Kembali" if profil.get("bhs", "id") == "id" else "← Back")
+        back_btn = QPushButton(t['back'])
         back_btn.setFixedHeight(32)
         back_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         back_btn.setStyleSheet(back_style)
@@ -65,7 +134,7 @@ class _ComparePanel(QFrame):
         root.addSpacing(4)
 
         if not data:
-            root.addWidget(QLabel("Gagal memuat data perbandingan."))
+            root.addWidget(QLabel(t['comp_fail']))
             return
 
         bea_a = data["a"]["beasiswa"]
@@ -75,8 +144,6 @@ class _ComparePanel(QFrame):
         krit_a = data["a"]["kriteria"]
         krit_b = data["b"]["kriteria"]
 
-        # ── Side-by-side Cards ────────────────────────────────────
-        arena_lay = QHBoxLayout()
         # ── Side-by-side Cards ────────────────────────────────────
         arena_lay = QHBoxLayout()
         arena_lay.setSpacing(12)
@@ -102,7 +169,7 @@ class _ComparePanel(QFrame):
         if skor_a != skor_b:
             winner_name = bea_a["nama"] if skor_a > skor_b else bea_b["nama"]
             winner_skor = max(skor_a, skor_b)
-            wl = QLabel(f"{winner_name} lebih cocok untuk profil Anda  ({winner_skor}%)")
+            wl = QLabel(t['winner_msg'].format(winner_name, winner_skor))
             wl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
             wl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             _win_text = c['sidebar_active_tx']
@@ -112,7 +179,7 @@ class _ComparePanel(QFrame):
             )
             root.addWidget(wl)
         else:
-            tie = QLabel("Keduanya memiliki skor kecocokan yang sama!")
+            tie = QLabel(t['tie_msg'])
             tie.setFont(QFont(FONT_FAMILY, 11))
             tie.setAlignment(Qt.AlignmentFlag.AlignCenter)
             tie.setStyleSheet(
@@ -123,14 +190,15 @@ class _ComparePanel(QFrame):
 
     def _get_icon(self, label: str) -> str:
         label = label.lower()
-        if "ipk" in label: return "📖"
+        if "ipk" in label or "gpa" in label: return "📖"
         if "semester" in label: return "🕒"
-        if "jurusan" in label: return "🎓"
-        if "organisasi" in label: return "👥"
-        if "penghasilan" in label or "gaji" in label: return "💰"
+        if "jurusan" in label or "major" in label: return "🎓"
+        if "organisasi" in label or "organization" in label: return "👥"
+        if "penghasilan" in label or "gaji" in label or "income" in label: return "💰"
         return "📌"
 
     def _build_comparison_column(self, bea: dict, skor: int, kriteria: list, grad: str, c: dict) -> QFrame:
+        t = self._t
         f = QFrame()
         f.setStyleSheet(f"""
             QFrame#compCard {{
@@ -164,7 +232,7 @@ class _ComparePanel(QFrame):
         name_lbl.setToolTip(bea.get("nama", ""))
         vl.addWidget(name_lbl)
 
-        match_txt = "Sangat Cocok" if skor >= 80 else ("Cocok" if skor >= 60 else ("Cukup" if skor >= 40 else "Kurang Cocok"))
+        match_txt = t['match_ex'] if skor >= 80 else (t['match_good'] if skor >= 60 else (t['match_fair'] if skor >= 40 else t['match_poor']))
         
         pr_lay = QHBoxLayout()
         pr_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -239,11 +307,6 @@ class _ComparePanel(QFrame):
         vl.addStretch()
         return f
 
-    @staticmethod
-    def _short_name(nama: str) -> str:
-        words = nama.split()
-        return " ".join(words[:3]) + ("…" if len(words) > 3 else "")
-
 
 # ─── Selection panel ──────────────────────────────────────────────────────────
 class _CompareSelectPanel(QFrame):
@@ -257,7 +320,9 @@ class _CompareSelectPanel(QFrame):
         self._hasil = hasil
         self._mode = mode
         self._bhs = bhs
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
         c = palette(mode)
+        t = self._t
 
         self.setProperty("frameClass", "card")
         root = QVBoxLayout(self)
@@ -273,7 +338,7 @@ class _CompareSelectPanel(QFrame):
             }}
             QPushButton:hover {{ background: {c['bg']}; }}
         """
-        cancel_btn = QPushButton("← Kembali" if self._bhs == "id" else "← Back")
+        cancel_btn = QPushButton(t['back'])
         cancel_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         cancel_btn.setStyleSheet(back_style)
         cancel_btn.clicked.connect(cancel_cb)
@@ -283,11 +348,11 @@ class _CompareSelectPanel(QFrame):
         
         root.addSpacing(8)
 
-        t = QLabel("Pilih Dua Beasiswa untuk Dibandingkan" if self._bhs == "id" else "Select Two Scholarships to Compare")
-        t.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
-        root.addWidget(t)
+        tlbl = QLabel(t['sel_title'])
+        tlbl.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
+        root.addWidget(tlbl)
 
-        sub = QLabel("Pilih dua beasiswa yang berbeda dari hasil rekomendasi Anda." if self._bhs == "id" else "Select two different scholarships from your recommendations.")
+        sub = QLabel(t['sel_sub'])
         sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
         root.addWidget(sub)
 
@@ -295,9 +360,8 @@ class _CompareSelectPanel(QFrame):
 
         names = [f"#{i+1}  {item['beasiswa']['nama']}" for i, item in enumerate(hasil)]
 
-        # ── Vertical layout: Dropdown A → VS → Dropdown B ──
         # Beasiswa A
-        lbl_a = QLabel("Beasiswa Pertama" if self._bhs == "id" else "First Scholarship")
+        lbl_a = QLabel(t['first_sch'])
         lbl_a.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         lbl_a.setStyleSheet(f"color: {c['text_dark']};")
         root.addWidget(lbl_a)
@@ -320,7 +384,7 @@ class _CompareSelectPanel(QFrame):
         """)
         root.addWidget(self._combo_a)
 
-        # VS Badge — centered
+        # VS Badge
         vs_row = QHBoxLayout()
         vs_row.addStretch()
         vs_badge = QLabel("VS")
@@ -333,7 +397,7 @@ class _CompareSelectPanel(QFrame):
         root.addLayout(vs_row)
 
         # Beasiswa B
-        lbl_b = QLabel("Beasiswa Kedua" if self._bhs == "id" else "Second Scholarship")
+        lbl_b = QLabel(t['sec_sch'])
         lbl_b.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
         lbl_b.setStyleSheet(f"color: {c['text_dark']};")
         root.addWidget(lbl_b)
@@ -386,7 +450,7 @@ class _CompareSelectPanel(QFrame):
             }}
         """
 
-        compare_btn = QPushButton("Bandingkan Sekarang")
+        compare_btn = QPushButton(t['comp_now'])
         compare_btn.setFixedHeight(40)
         compare_btn.setMinimumWidth(300)
         compare_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -407,12 +471,13 @@ class _CompareSelectPanel(QFrame):
         self._compare_cb = compare_cb
 
     def _on_compare(self):
+        t = self._t
         idx_a = self._combo_a.currentIndex()
         idx_b = self._combo_b.currentIndex()
         if idx_a == idx_b:
             QMessageBox.warning(
-                self, "Pilihan Sama",
-                "Pilih dua beasiswa yang berbeda untuk membandingkan."
+                self, t['same_sel_title'],
+                t['same_sel_msg']
             )
             return
         self._compare_cb(idx_a, idx_b)
@@ -425,6 +490,7 @@ class RekomendasiView(QWidget):
         self._pid = profil_id
         self._bhs = bhs
         self._mode = mode
+        self._t = TRANSLATIONS.get(bhs, TRANSLATIONS['id'])
 
         self._results = None
         self._profil = get_profil_user(self._pid) if self._pid else {}
@@ -447,7 +513,7 @@ class RekomendasiView(QWidget):
         self._scroll.setWidget(widget)
         
     def _show_detail(self, bea_data):
-        dlg = DetailDialog(bea_data, self._mode, self._pid, self)
+        dlg = DetailDialog(bea_data, self._mode, self._pid, self, self._bhs)
         dlg.exec()
 
     def _make_container(self) -> tuple[QWidget, QVBoxLayout]:
@@ -468,6 +534,7 @@ class RekomendasiView(QWidget):
         widget.setGraphicsEffect(shadow)
 
     def _build_hero(self, c, sl):
+        t = self._t
         hdr = QFrame()
         hdr.setObjectName("heroCard")
         self._apply_card_shadow(hdr)
@@ -494,12 +561,12 @@ class RekomendasiView(QWidget):
         text_lay.setContentsMargins(0, 0, 0, 0)
         text_lay.setSpacing(8)
         
-        title = QLabel("Temukan Beasiswa\nImpianmu!" if self._bhs == "id" else "Find Your Perfect\nMatch!")
+        title = QLabel(t['hero_title'])
         title.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
         text_lay.addWidget(title)
         
-        sub = QLabel("Sistem cerdas kami akan menganalisis profil akademikmu\ndan mencocokkannya dengan beasiswa terbaik." if self._bhs == "id" else "Our smart system will analyze your academic profile\nand match it with the best scholarships.")
+        sub = QLabel(t['hero_sub'])
         sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 14px; background: transparent;")
         text_lay.addWidget(sub)
         text_lay.addStretch()
@@ -546,7 +613,7 @@ class RekomendasiView(QWidget):
             }}
         """
         
-        gb = QPushButton("✨ Dapatkan Rekomendasi" if self._bhs == "id" else "✨ Get Recommendations")
+        gb = QPushButton(t['get_rec'])
         gb.setFixedHeight(40)
         gb.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         gb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -554,7 +621,7 @@ class RekomendasiView(QWidget):
         gb.clicked.connect(self._do_calc)
         btn_lay.addWidget(gb)
         
-        cmp_btn = QPushButton("🔀 Bandingkan Beasiswa" if self._bhs == "id" else "🔀 Compare Scholarships")
+        cmp_btn = QPushButton(t['comp_btn'])
         cmp_btn.setFixedHeight(40)
         cmp_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         cmp_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -567,6 +634,7 @@ class RekomendasiView(QWidget):
     # ── Initial (no results yet) ───────────────────────────────────────────────
     def _build_initial(self):
         c = palette(self._mode)
+        t = self._t
         sw, sl = self._make_container()
 
         self._build_hero(c, sl)
@@ -596,7 +664,7 @@ class RekomendasiView(QWidget):
         icon.setStyleSheet("background: transparent;")
         il.addWidget(icon)
         
-        it = QLabel("Belum ada rekomendasi yang ditampilkan.\nKlik tombol 'Dapatkan Rekomendasi' di atas untuk memulai!" if self._bhs == "id" else "No recommendations yet.\nClick 'Get Recommendations' above to start!")
+        it = QLabel(t['empty_msg'])
         it.setStyleSheet(f"color: {c['text_dark']}; font-size: 13px; background: transparent;")
         it.setAlignment(Qt.AlignmentFlag.AlignCenter)
         il.addWidget(it)
@@ -607,11 +675,12 @@ class RekomendasiView(QWidget):
 
     # ── Calculate recommendations ──────────────────────────────────────────────
     def _do_calc(self):
+        t = self._t
         if not self._profil:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setWindowTitle("Profil Belum Lengkap" if self._bhs == "id" else "Profile Incomplete")
-            msg.setText("Silakan lengkapi data profil Anda di menu Profil terlebih dahulu." if self._bhs == "id" else "Please complete your profile data first.")
+            msg.setWindowTitle(t['prof_inc_title'])
+            msg.setText(t['prof_inc_msg'])
             c = palette(self._mode)
             msg.setStyleSheet(f"""
                 QMessageBox {{ background-color: {c['bg']}; }} 
@@ -626,6 +695,7 @@ class RekomendasiView(QWidget):
     # ── Results view ───────────────────────────────────────────────────────────
     def _build_results(self):
         c = palette(self._mode)
+        t = self._t
         sw, sl = self._make_container()
         sl.setSpacing(8)
 
@@ -633,7 +703,7 @@ class RekomendasiView(QWidget):
 
         # Tampilkan top 20 saja (bukan 148)
         top_results = self._results[:20]
-        cnt = QLabel(f"Top {len(top_results)} dari {len(self._results)} beasiswa tercocok" if self._bhs == "id" else f"Top {len(top_results)} of {len(self._results)} matched scholarships")
+        cnt = QLabel(t['top_msg'].format(len(top_results), len(self._results)))
         cnt.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         cnt.setStyleSheet(f"color: {c['text_dark']}; margin-top: 8px; margin-bottom: 4px;")
         sl.addWidget(cnt)
@@ -698,7 +768,7 @@ class RekomendasiView(QWidget):
             if bea.get("jenjang"):
                 sub_parts.append(bea["jenjang"])
             if bea.get("deadline"):
-                sub_parts.append(f"Deadline: {bea['deadline']}")
+                sub_parts.append(t['deadline'].format(bea['deadline']))
             if sub_parts:
                 sub = QLabel(" • ".join(sub_parts))
                 sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 10px; background: transparent;")
@@ -733,14 +803,14 @@ class RekomendasiView(QWidget):
         if self._results:
             top = self._results[0]["beasiswa"]
             saran = get_analisis(self._profil, top)
-            th = QLabel("Smart Tips For You")
+            th = QLabel(t['smart_tips'])
             th.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
             sl.addWidget(th)
             tc = QFrame()
             tc.setProperty("frameClass", "card")
             tcl = QVBoxLayout(tc)
             tcl.setContentsMargins(16, 12, 16, 12)
-            tcl.addWidget(QLabel(f"Based on your #1 match: {top.get('nama', '')}"))
+            tcl.addWidget(QLabel(t['based_on'].format(top.get('nama', ''))))
             st = QLabel(saran)
             st.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
             st.setWordWrap(True)
@@ -752,11 +822,12 @@ class RekomendasiView(QWidget):
 
     # ── Compare: selection panel ───────────────────────────────────────────────
     def _show_compare_select(self):
+        t = self._t
         if not getattr(self, '_results', None) or len(self._results) < 2:
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setWindowTitle("Belum Ada Hasil" if self._bhs == "id" else "No Results")
-            msg.setText("Dapatkan rekomendasi terlebih dahulu, minimal 2 beasiswa diperlukan untuk membandingkan." if self._bhs == "id" else "Get recommendations first, at least 2 scholarships are required to compare.")
+            msg.setWindowTitle(t['no_res_title'])
+            msg.setText(t['no_res_msg'])
             c = palette(self._mode)
             msg.setStyleSheet(f"""
                 QMessageBox {{ background-color: {c['bg']}; }} 
@@ -795,6 +866,7 @@ class RekomendasiView(QWidget):
             profil=self._profil,
             mode=self._mode,
             back_cb=self._build_results,
+            bhs=self._bhs,
         )
         sl.addWidget(panel)
         sl.addStretch()
