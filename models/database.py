@@ -12,8 +12,14 @@ from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
-# Path database — relatif terhadap root proyek
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "beaply.db")
+import sys
+
+# Path database — relatif terhadap root proyek atau executable jika frozen
+if getattr(sys, 'frozen', False):
+    DB_PATH = os.path.join(os.path.dirname(sys.executable), "beaply.db")
+else:
+    DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "beaply.db")
+
 
 
 def get_connection() -> sqlite3.Connection:
