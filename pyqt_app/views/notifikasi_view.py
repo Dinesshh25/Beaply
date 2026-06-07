@@ -10,7 +10,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor
 from datetime import datetime
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette
+from pyqt_app.styles.theme import FONT_FAMILY, palette, grad_green, grad_peach
 from controllers.notifikasi_controller import (
     ambil_riwayat, tandai_dibaca, tandai_semua_dibaca, hapus_notifikasi,
 )
@@ -46,7 +46,7 @@ class NotifikasiView(QWidget):
         tl.setContentsMargins(0, 0, 0, 0)
 
         tab_frame = QFrame()
-        bg_pink = "#FADBD8" if self._mode == "light" else c['bg']
+        bg_pink = c['tab_pill_bg']
         tab_frame.setStyleSheet(f"QFrame {{ background: {bg_pink}; border-radius: 18px; }}")
         tab_frame.setFixedHeight(36)
         tab_lay = QHBoxLayout(tab_frame)
@@ -71,14 +71,14 @@ class NotifikasiView(QWidget):
         tl.addStretch()
 
         mark_btn = QPushButton("✓ Mark All as Read")
-        mark_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
+        mark_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
         mark_btn.setFixedHeight(40)
         mark_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         mark_btn.clicked.connect(self._mark_all)
         tl.addWidget(mark_btn)
 
         clr_btn = QPushButton("🗑 Clear All")
-        clr_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
+        clr_btn.setStyleSheet(f"background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; padding: 0 16px;")
         clr_btn.setFixedHeight(40)
         clr_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         clr_btn.clicked.connect(self._clear_all)
@@ -126,46 +126,65 @@ class NotifikasiView(QWidget):
                 for n in items:
                     unread = not n.get("sudah_dibaca", 0)
                     card = QFrame()
+                    card.setObjectName("notif_card")
                     bg = c['card']
-                    bdr = "2px solid #A8C5B0" if unread else f"1px solid {c['border']}"
-                    card.setStyleSheet(f"QFrame {{ background: {bg}; border-radius: 16px; border: {bdr}; }}")
-                    cl = QVBoxLayout(card)
-                    cl.setContentsMargins(16, 12, 16, 12)
-
-                    title_row = QFrame()
-                    trl = QHBoxLayout(title_row)
-                    trl.setContentsMargins(0,0,0,0)
-                    nt = QLabel(n.get("judul", "Notification"))
-                    fw = QFont.Weight.Bold if unread else QFont.Weight.Normal
-                    nt.setFont(QFont(FONT_FAMILY, 12, fw))
-                    trl.addWidget(nt)
-                    trl.addStretch()
                     if unread:
-                        dot = QFrame()
-                        dot.setFixedSize(8, 8)
-                        dot.setStyleSheet(f"background: {c['text_accent']}; border-radius: 4px;")
-                        trl.addWidget(dot)
-                    cl.addWidget(title_row)
+                        card.setStyleSheet(f"""
+                            QFrame#notif_card {{
+                                background: {bg};
+                                border-radius: 12px;
+                                border-left: 4px solid {c['text_accent']};
+                                border-top: 1px solid {c['border']};
+                                border-right: 1px solid {c['border']};
+                                border-bottom: 1px solid {c['border']};
+                            }}
+                        """)
+                    else:
+                        card.setStyleSheet(f"""
+                            QFrame#notif_card {{
+                                background: {bg};
+                                border-radius: 12px;
+                                border: 1px solid {c['border']};
+                            }}
+                        """)
+                    cl = QVBoxLayout(card)
+                    cl.setContentsMargins(16, 10, 16, 10)
+                    cl.setSpacing(4)
+
+                    title_row = QHBoxLayout()
+                    title_row.setContentsMargins(0, 0, 0, 0)
+                    icon = "🔔" if unread else "📋"
+                    nt = QLabel(f"{icon}  {n.get('judul', 'Notification')}")
+                    fw = QFont.Weight.Bold if unread else QFont.Weight.Normal
+                    nt.setFont(QFont(FONT_FAMILY, 11, fw))
+                    nt.setStyleSheet(f"color: {c['text_dark']}; background: transparent; border: none;")
+                    nt.setWordWrap(True)
+                    title_row.addWidget(nt)
+                    title_row.addStretch()
+                    if unread:
+                        dot = QLabel("●")
+                        dot.setStyleSheet(f"color: {c['text_accent']}; font-size: 10px; background: transparent; border: none;")
+                        title_row.addWidget(dot)
+                    cl.addLayout(title_row)
 
                     msg = QLabel(n.get("pesan", ""))
-                    msg.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
+                    msg.setStyleSheet(f"color: {c['text_muted']}; font-size: 10px; background: transparent; border: none;")
                     msg.setWordWrap(True)
                     cl.addWidget(msg)
 
-                    act_row = QFrame()
-                    arl = QHBoxLayout(act_row)
-                    arl.setContentsMargins(0,0,0,0)
+                    act_row = QHBoxLayout()
+                    act_row.setContentsMargins(0, 0, 0, 0)
                     ts_lbl = QLabel(n.get("dibuat_pada", "")[:16])
-                    ts_lbl.setStyleSheet(f"color: {c['text_muted']}; font-size: 9px;")
-                    arl.addWidget(ts_lbl)
-                    arl.addStretch()
+                    ts_lbl.setStyleSheet(f"color: {c['text_muted']}; font-size: 9px; background: transparent; border: none;")
+                    act_row.addWidget(ts_lbl)
+                    act_row.addStretch()
                     if unread:
                         mr = QPushButton("Mark Read")
                         mr.setStyleSheet(f"background: transparent; color: {c['text_muted']}; border: 1px solid {c['border']}; border-radius: 6px; font-size: 9px; padding: 2px 8px;")
                         mr.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
                         mr.clicked.connect(lambda _, nid=n["id"]: (tandai_dibaca(nid), self._build()))
-                        arl.addWidget(mr)
-                    cl.addWidget(act_row)
+                        act_row.addWidget(mr)
+                    cl.addLayout(act_row)
                     sl.addWidget(card)
             sl.addStretch()
         scroll.setWidget(sw)

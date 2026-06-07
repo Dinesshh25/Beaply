@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor, QColor
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
+from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel, grad_green, grad_peach
 from controllers.rekomendasi_controller import (
     get_profil_user, hitung_rekomendasi, get_analisis, bandingkan_beasiswa,
 )
@@ -36,13 +36,13 @@ class _ComparePanel(QFrame):
 
         self.setProperty("frameClass", "card")
         root = QVBoxLayout(self)
-        root.setContentsMargins(24, 20, 24, 24)
-        root.setSpacing(14)
+        root.setContentsMargins(16, 14, 16, 16)
+        root.setSpacing(8)
 
         # ── Title row ────────────────────────────────────────────
         title_row = QHBoxLayout()
         title_lbl = QLabel("Perbandingan Beasiswa")
-        title_lbl.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
+        title_lbl.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         title_row.addWidget(title_lbl)
         title_row.addStretch()
         
@@ -62,7 +62,7 @@ class _ComparePanel(QFrame):
         title_row.addWidget(back_btn)
         root.addLayout(title_row)
 
-        root.addSpacing(10)
+        root.addSpacing(4)
 
         if not data:
             root.addWidget(QLabel("Gagal memuat data perbandingan."))
@@ -79,20 +79,24 @@ class _ComparePanel(QFrame):
         arena_lay = QHBoxLayout()
         # ── Side-by-side Cards ────────────────────────────────────
         arena_lay = QHBoxLayout()
-        arena_lay.setSpacing(20)
+        arena_lay.setSpacing(12)
 
-        grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF5F5, stop:1 #FFE4D6)"
-        grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #EFFFF4, stop:1 #D4EEDC)"
+        if self._mode == 'dark':
+            grad_a = f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #3D2E28, stop:1 #4A3028)"
+            grad_b = f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2A3D2E, stop:1 #2E3830)"
+        else:
+            grad_a = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFF5F5, stop:1 #FFE4D6)"
+            grad_b = "qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #EFFFF4, stop:1 #D4EEDC)"
 
         card_a = self._build_comparison_column(bea_a, skor_a, krit_a, grad_a, c)
         card_b = self._build_comparison_column(bea_b, skor_b, krit_b, grad_b, c)
 
-        arena_lay.addWidget(card_a)
-        arena_lay.addWidget(card_b)
+        arena_lay.addWidget(card_a, 1)
+        arena_lay.addWidget(card_b, 1)
 
         root.addLayout(arena_lay)
         
-        root.addSpacing(10)
+        root.addSpacing(4)
         
         # ── Winner line ───────────────────────────────────────────
         if skor_a != skor_b:
@@ -101,8 +105,9 @@ class _ComparePanel(QFrame):
             wl = QLabel(f"{winner_name} lebih cocok untuk profil Anda  ({winner_skor}%)")
             wl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
             wl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            _win_text = c['sidebar_active_tx']
             wl.setStyleSheet(
-                f"background: {pastel(3, self._mode)}; color: #2D6A4F; "
+                f"background: {pastel(3, self._mode)}; color: {_win_text}; "
                 f"border-radius: 12px; padding: 12px 16px;"
             )
             root.addWidget(wl)
@@ -145,15 +150,18 @@ class _ComparePanel(QFrame):
         f.setGraphicsEffect(shadow)
 
         vl = QVBoxLayout(f)
-        vl.setContentsMargins(20, 24, 20, 24)
-        vl.setSpacing(12)
+        vl.setContentsMargins(14, 14, 14, 14)
+        vl.setSpacing(6)
 
-        name_lbl = QLabel(bea["nama"])
-        name_lbl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
+        nama = bea.get("nama", "")
+        if len(nama) > 60:
+            nama = nama[:57] + "..."
+        name_lbl = QLabel(nama)
+        name_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
         name_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        name_lbl.setStyleSheet("color: #333333; background: transparent;")
-        name_lbl.setStyleSheet("color: #333333; background: transparent; margin-bottom: 8px;")
+        name_lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent; margin-bottom: 4px;")
         name_lbl.setWordWrap(True)
+        name_lbl.setToolTip(bea.get("nama", ""))
         vl.addWidget(name_lbl)
 
         match_txt = "Sangat Cocok" if skor >= 80 else ("Cocok" if skor >= 60 else ("Cukup" if skor >= 40 else "Kurang Cocok"))
@@ -162,72 +170,67 @@ class _ComparePanel(QFrame):
         pr_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         circle = QFrame()
-        circle.setFixedSize(140, 140)
-        circle.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.6);
-                border: 4px solid rgba(255, 255, 255, 0.9);
-                border-radius: 70px;
-            }
+        circle.setFixedSize(80, 80)
+        _circle_bg = 'rgba(255, 255, 255, 0.6)' if self._mode == 'light' else 'rgba(60, 64, 67, 0.6)'
+        _circle_bd = 'rgba(255, 255, 255, 0.9)' if self._mode == 'light' else 'rgba(80, 84, 87, 0.9)'
+        circle.setStyleSheet(f"""
+            QFrame {{
+                background: {_circle_bg};
+                border: 3px solid {_circle_bd};
+                border-radius: 40px;
+            }}
         """)
-        
-        from PyQt6.QtWidgets import QGraphicsDropShadowEffect
-        from PyQt6.QtGui import QColor
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 15))
-        shadow.setOffset(0, 4)
-        circle.setGraphicsEffect(shadow)
         
         circle_lay = QVBoxLayout(circle)
         circle_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         circle_lay.setContentsMargins(0, 0, 0, 0)
-        circle_lay.setSpacing(2)
+        circle_lay.setSpacing(0)
         
         skor_lbl = QLabel(f"{skor}%")
-        skor_lbl.setFont(QFont(FONT_FAMILY, 34, QFont.Weight.Black))
+        skor_lbl.setFont(QFont(FONT_FAMILY, 20, QFont.Weight.Black))
         skor_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        skor_lbl.setStyleSheet("color: #1A1A1A; background: transparent; border: none;")
+        skor_lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent; border: none;")
         circle_lay.addWidget(skor_lbl)
         
         match_lbl = QLabel(match_txt)
-        match_lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+        match_lbl.setFont(QFont(FONT_FAMILY, 8, QFont.Weight.Bold))
         match_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        match_col = "#2D6A4F" if skor >= 60 else "#D32F2F"
+        match_col = c['sidebar_active_tx'] if skor >= 60 else c['danger']
         match_lbl.setStyleSheet(f"color: {match_col}; background: transparent; border: none;")
         circle_lay.addWidget(match_lbl)
         
         pr_lay.addWidget(circle)
         vl.addLayout(pr_lay)
-        vl.addSpacing(20)
+        vl.addSpacing(6)
 
         for k in kriteria:
             row = QFrame()
-            row.setStyleSheet("""
-                QFrame {
-                    background: rgba(255, 255, 255, 0.45);
+            _row_bg = 'rgba(255, 255, 255, 0.45)' if self._mode == 'light' else 'rgba(60, 64, 67, 0.35)'
+            row.setStyleSheet(f"""
+                QFrame {{
+                    background: {_row_bg};
                     border-radius: 18px;
-                }
+                }}
             """)
             rl = QHBoxLayout(row)
-            rl.setContentsMargins(16, 12, 16, 12)
-            rl.setSpacing(8)
+            rl.setContentsMargins(10, 6, 10, 6)
+            rl.setSpacing(6)
 
             icon = QLabel(self._get_icon(k["label"]))
             icon.setStyleSheet("background: transparent;")
             rl.addWidget(icon)
 
             k_lbl = QLabel(k["label"])
-            k_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
-            k_lbl.setStyleSheet("color: #333333; background: transparent;")
+            k_lbl.setFont(QFont(FONT_FAMILY, 9, QFont.Weight.Bold))
+            k_lbl.setStyleSheet(f"color: {c['text_dark']}; background: transparent;")
             rl.addWidget(k_lbl)
 
             rl.addStretch()
 
             v_val = k["nilai"]
             val_lbl = QLabel(f"{v_val}")
-            val_lbl.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.Bold))
-            val_col = "#222222" if k["lulus"] else "#D32F2F"
+            val_lbl.setFont(QFont(FONT_FAMILY, 9, QFont.Weight.Bold))
+            val_col = c['text_dark'] if k["lulus"] else c['danger']
             val_lbl.setStyleSheet(f"color: {val_col}; background: transparent;")
             rl.addWidget(val_lbl)
 
@@ -258,8 +261,8 @@ class _CompareSelectPanel(QFrame):
 
         self.setProperty("frameClass", "card")
         root = QVBoxLayout(self)
-        root.setContentsMargins(24, 20, 24, 20)
-        root.setSpacing(12)
+        root.setContentsMargins(16, 14, 16, 14)
+        root.setSpacing(8)
 
         # Back button row
         back_row = QHBoxLayout()
@@ -278,137 +281,108 @@ class _CompareSelectPanel(QFrame):
         back_row.addStretch()
         root.addLayout(back_row)
         
-        root.addSpacing(16)
+        root.addSpacing(8)
 
         t = QLabel("Pilih Dua Beasiswa untuk Dibandingkan" if self._bhs == "id" else "Select Two Scholarships to Compare")
-        t.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
+        t.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         root.addWidget(t)
 
         sub = QLabel("Pilih dua beasiswa yang berbeda dari hasil rekomendasi Anda." if self._bhs == "id" else "Select two different scholarships from your recommendations.")
-        sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 13px;")
+        sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
         root.addWidget(sub)
 
-        root.addSpacing(20)
+        root.addSpacing(10)
 
         names = [f"#{i+1}  {item['beasiswa']['nama']}" for i, item in enumerate(hasil)]
 
-        # VS Arena Layout
-        arena_lay = QHBoxLayout()
-        arena_lay.setSpacing(20)
+        # ── Vertical layout: Dropdown A → VS → Dropdown B ──
+        # Beasiswa A
+        lbl_a = QLabel("Beasiswa Pertama" if self._bhs == "id" else "First Scholarship")
+        lbl_a.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+        lbl_a.setStyleSheet(f"color: {c['text_dark']};")
+        root.addWidget(lbl_a)
 
-        # Card A (Pink-orange gradient)
-        card_a = QFrame()
-        card_a.setStyleSheet(f"""
-            QFrame {{ 
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFFFFF, stop:1 #FAD6D0); 
-                border-radius: 20px; padding: 20px; 
-            }}
-        """)
-        
-        shadow_a = QGraphicsDropShadowEffect()
-        shadow_a.setBlurRadius(20)
-        shadow_a.setColor(QColor(0, 0, 0, 15))
-        shadow_a.setOffset(2, 6)
-        card_a.setGraphicsEffect(shadow_a)
-        card_a.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        card_a.setMinimumHeight(180)
-        
-        lay_a = QVBoxLayout(card_a)
-        lay_a.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._combo_a = QComboBox()
         for n in names:
             self._combo_a.addItem(n)
-        self._combo_a.setFixedHeight(46)
+        self._combo_a.setFixedHeight(36)
+        if self._mode == 'dark':
+            _combo_a_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:1 #4A3028)"
+        else:
+            _combo_a_bg = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #FAD6D0)"
         self._combo_a.setStyleSheet(f"""
             QComboBox {{ 
-                background: {c['card']}; border-radius: 23px; border: none; 
-                padding: 0 20px; font-weight: bold; font-size: 13px; color: {c['text_muted']};
+                background: {_combo_a_bg};
+                border-radius: 10px; border: 1px solid {c['border']}; 
+                padding: 0 12px; font-weight: bold; font-size: 11px; color: {c['text_dark']};
             }}
             QComboBox::drop-down {{ border: none; }}
         """)
-        
-        shadow_ca = QGraphicsDropShadowEffect()
-        shadow_ca.setBlurRadius(10)
-        shadow_ca.setColor(QColor(0, 0, 0, 10))
-        shadow_ca.setOffset(0, 3)
-        self._combo_a.setGraphicsEffect(shadow_ca)
-        lay_a.addWidget(self._combo_a)
-        arena_lay.addWidget(card_a)
+        root.addWidget(self._combo_a)
 
-        # VS Badge
+        # VS Badge — centered
+        vs_row = QHBoxLayout()
+        vs_row.addStretch()
         vs_badge = QLabel("VS")
-        vs_badge.setFont(QFont(FONT_FAMILY, 18, QFont.Weight.Black))
+        vs_badge.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Black))
         vs_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        vs_badge.setFixedSize(60, 60)
-        vs_badge.setStyleSheet(f"background: #FFFFFF; color: #E0CACA; border-radius: 30px; border: none;")
-        
-        shadow_vs = QGraphicsDropShadowEffect()
-        shadow_vs.setBlurRadius(25)
-        shadow_vs.setColor(QColor(168, 220, 185, 180)) # Glowing green shadow
-        shadow_vs.setOffset(0, 0)
-        vs_badge.setGraphicsEffect(shadow_vs)
-        arena_lay.addWidget(vs_badge)
+        vs_badge.setFixedSize(36, 36)
+        vs_badge.setStyleSheet(f"background: {c['card']}; color: {c['text_muted']}; border-radius: 18px;")
+        vs_row.addWidget(vs_badge)
+        vs_row.addStretch()
+        root.addLayout(vs_row)
 
-        # Card B (Mint-green gradient)
-        card_b = QFrame()
-        card_b.setStyleSheet(f"""
-            QFrame {{ 
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFFFFF, stop:1 #C8E6D3); 
-                border-radius: 20px; padding: 20px; 
-            }}
-        """)
-        
-        shadow_b = QGraphicsDropShadowEffect()
-        shadow_b.setBlurRadius(20)
-        shadow_b.setColor(QColor(0, 0, 0, 15))
-        shadow_b.setOffset(-2, 6)
-        card_b.setGraphicsEffect(shadow_b)
-        card_b.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        card_b.setMinimumHeight(180)
-        
-        lay_b = QVBoxLayout(card_b)
-        lay_b.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Beasiswa B
+        lbl_b = QLabel("Beasiswa Kedua" if self._bhs == "id" else "Second Scholarship")
+        lbl_b.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+        lbl_b.setStyleSheet(f"color: {c['text_dark']};")
+        root.addWidget(lbl_b)
+
         self._combo_b = QComboBox()
         for n in names:
             self._combo_b.addItem(n)
         if len(names) > 1:
             self._combo_b.setCurrentIndex(1)
-        self._combo_b.setFixedHeight(46)
+        self._combo_b.setFixedHeight(36)
+        if self._mode == 'dark':
+            _combo_b_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:1 #2A3D2E)"
+        else:
+            _combo_b_bg = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:1 #C8E6D3)"
         self._combo_b.setStyleSheet(f"""
             QComboBox {{ 
-                background: {c['card']}; border-radius: 23px; border: none; 
-                padding: 0 20px; font-weight: bold; font-size: 13px; color: {c['text_muted']};
+                background: {_combo_b_bg};
+                border-radius: 10px; border: 1px solid {c['border']}; 
+                padding: 0 12px; font-weight: bold; font-size: 11px; color: {c['text_dark']};
             }}
             QComboBox::drop-down {{ border: none; }}
         """)
-        
-        shadow_cb = QGraphicsDropShadowEffect()
-        shadow_cb.setBlurRadius(10)
-        shadow_cb.setColor(QColor(0, 0, 0, 10))
-        shadow_cb.setOffset(0, 3)
-        self._combo_b.setGraphicsEffect(shadow_cb)
-        lay_b.addWidget(self._combo_b)
-        arena_lay.addWidget(card_b)
-
-        root.addLayout(arena_lay)
-        root.addSpacing(30)
+        root.addWidget(self._combo_b)
+        root.addSpacing(12)
 
         # Action buttons
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
+        if self._mode == 'dark':
+            _cmp_bg = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2E3830, stop:1 #2A3D2E)"
+            _cmp_hvr = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2A3D2E, stop:1 #2E3830)"
+            _cmp_border = c['border']
+        else:
+            _cmp_bg = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B6CCBC, stop:1 #97B79E)"
+            _cmp_hvr = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #97B79E, stop:1 #B6CCBC)"
+            _cmp_border = "#E6EFE8"
         gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #B6CCBC, stop:1 #97B79E);
-                color: white;
-                border: 2px solid #E6EFE8;
+                background: {_cmp_bg};
+                color: {c['text_light']};
+                border: 2px solid {_cmp_border};
                 border-radius: 20px;
                 padding: 0 40px;
                 font-weight: bold;
                 font-size: 14px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #97B79E, stop:1 #B6CCBC);
+                background: {_cmp_hvr};
             }}
         """
 
@@ -499,10 +473,16 @@ class RekomendasiView(QWidget):
         self._apply_card_shadow(hdr)
         hdr.setFixedHeight(170)
         
+        if self._mode == 'dark':
+            _hero_grad = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['card']}, stop:1 #332A28)"
+            _hero_border = c['border']
+        else:
+            _hero_grad = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9)"
+            _hero_border = "#FADED7"
         hdr.setStyleSheet(f"""
             #heroCard {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9);
-                border-radius: 18px; border: 1px solid #FADED7;
+                background: {_hero_grad};
+                border-radius: 18px; border: 1px solid {_hero_border};
             }}
         """)
         
@@ -546,7 +526,7 @@ class RekomendasiView(QWidget):
         
         green_gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5);
+                background: {grad_green(c)};
                 color: {c['text_dark']};
                 border: none;
                 border-radius: 12px;
@@ -557,7 +537,7 @@ class RekomendasiView(QWidget):
         
         pink_gradient_style = f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD);
+                background: {grad_peach(c)};
                 color: {c['text_dark']};
                 border: none;
                 border-radius: 12px;
@@ -594,10 +574,16 @@ class RekomendasiView(QWidget):
         # Empty state
         info = QFrame()
         info.setObjectName("emptyCard")
+        if self._mode == 'dark':
+            _empty_grad = f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c['card']}, stop:1 #332A28)"
+            _empty_border = c['border']
+        else:
+            _empty_grad = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9)"
+            _empty_border = "#FADED7"
         info.setStyleSheet(f"""
             #emptyCard {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFFFFF, stop:1 #FCEAE9);
-                border-radius: 18px; border: 1px solid #FADED7;
+                background: {_empty_grad};
+                border-radius: 18px; border: 1px solid {_empty_border};
             }}
         """)
         self._apply_card_shadow(info)
@@ -645,76 +631,99 @@ class RekomendasiView(QWidget):
 
         self._build_hero(c, sl)
 
-        cnt = QLabel(f"Ditemukan {len(self._results)} kecocokan beasiswa" if self._bhs == "id" else f"Found {len(self._results)} scholarship matches")
-        cnt.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
-        cnt.setStyleSheet(f"color: {c['text_dark']}; margin-top: 10px; margin-bottom: 6px;")
+        # Tampilkan top 20 saja (bukan 148)
+        top_results = self._results[:20]
+        cnt = QLabel(f"Top {len(top_results)} dari {len(self._results)} beasiswa tercocok" if self._bhs == "id" else f"Top {len(top_results)} of {len(self._results)} matched scholarships")
+        cnt.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
+        cnt.setStyleSheet(f"color: {c['text_dark']}; margin-top: 8px; margin-bottom: 4px;")
         sl.addWidget(cnt)
 
-        for i, item in enumerate(self._results):
+        for i, item in enumerate(top_results):
             bea = item["beasiswa"]
             skor = item["skor"]
 
             card = CardFrame(bea)
             card.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             card.clicked.connect(self._show_detail)
+            card.setFixedHeight(70)
             
             # Highlight #1 match
             if i == 0:
                 bg_col = "qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #EAF5EC, stop:1 #DFF0E2)" if self._mode == "light" else c['sidebar_active_bg']
-                card.setStyleSheet(f"QFrame {{ background: {bg_col}; border: none; border-radius: 14px; }}")
+                card.setStyleSheet(f"QFrame {{ background: {bg_col}; border: none; border-radius: 12px; }}")
                 
                 shadow_c1 = QGraphicsDropShadowEffect()
                 shadow_c1.setBlurRadius(15)
-                shadow_c1.setColor(QColor(168, 197, 176, 150)) # soft green glow
+                shadow_c1.setColor(QColor(168, 197, 176, 150))
                 shadow_c1.setOffset(0, 4)
                 card.setGraphicsEffect(shadow_c1)
             else:
                 card.setProperty("frameClass", "card")
                 
             cl = QHBoxLayout(card)
-            cl.setContentsMargins(20, 14, 20, 14)
+            cl.setContentsMargins(16, 8, 16, 8)
 
             left = QFrame()
+            left.setStyleSheet("background: transparent;")
             ll = QVBoxLayout(left)
             ll.setContentsMargins(0, 0, 0, 0)
-            ll.setSpacing(4)
+            ll.setSpacing(2)
 
             title_lay = QHBoxLayout()
-            title_lay.setSpacing(10)
+            title_lay.setSpacing(8)
             
             rk = QLabel(f"#{i+1}")
-            rk_font = 22 if i == 0 else 16
+            rk_font = 16 if i == 0 else 12
             rk.setFont(QFont(FONT_FAMILY, rk_font, QFont.Weight.Black, italic=True))
-            rk.setStyleSheet(f"color: {c['text_accent']};")
+            rk.setStyleSheet(f"color: {c['text_accent']}; background: transparent;")
             title_lay.addWidget(rk)
 
-            n = QLabel(bea["nama"])
-            n.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
+            nama = bea.get("nama", "")
+            if len(nama) > 80:
+                nama = nama[:77] + "..."
+            n = QLabel(nama)
+            n.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
             n.setWordWrap(False)
+            n.setStyleSheet("background: transparent;")
+            n.setToolTip(bea.get("nama", ""))
             title_lay.addWidget(n)
             
             title_lay.addStretch()
             ll.addLayout(title_lay)
 
+            # Subtitle: penyelenggara + jenjang + deadline
+            sub_parts = []
+            if bea.get("penyelenggara"):
+                sub_parts.append(bea["penyelenggara"])
+            if bea.get("jenjang"):
+                sub_parts.append(bea["jenjang"])
+            if bea.get("deadline"):
+                sub_parts.append(f"Deadline: {bea['deadline']}")
+            if sub_parts:
+                sub = QLabel(" • ".join(sub_parts))
+                sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 10px; background: transparent;")
+                ll.addWidget(sub)
+
             cl.addWidget(left)
             cl.addStretch()
 
             right = QFrame()
+            right.setStyleSheet("background: transparent;")
             rl = QVBoxLayout(right)
             rl.setContentsMargins(0, 0, 0, 0)
-            rl.setSpacing(6)
+            rl.setSpacing(0)
             rl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             from pyqt_app.widgets.progress_ring import ProgressRing
             
             if i == 0:
                 badge = QLabel(f"{skor}%")
-                badge.setFixedSize(70, 70)
+                badge.setFixedSize(44, 44)
                 badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                badge.setStyleSheet(f"background: {c['btn_primary']}; color: white; border-radius: 35px; font-weight: 900; font-size: 18px;")
+                badge.setStyleSheet(f"background: {c['btn_primary']}; color: white; border-radius: 22px; font-weight: 900; font-size: 13px;")
                 rl.addWidget(badge, alignment=Qt.AlignmentFlag.AlignCenter)
             else:
-                ring = ProgressRing(skor, 70, 5, bg_color=c['border'], fg_color=c['text_accent'], text_color=c['text_dark'], subtitle="")
+                ring = ProgressRing(skor, 44, 3, bg_color=c['border'], fg_color=c['text_accent'], text_color=c['text_dark'], subtitle="")
                 rl.addWidget(ring, alignment=Qt.AlignmentFlag.AlignCenter)
 
             cl.addWidget(right)
@@ -725,13 +734,13 @@ class RekomendasiView(QWidget):
             top = self._results[0]["beasiswa"]
             saran = get_analisis(self._profil, top)
             th = QLabel("Smart Tips For You")
-            th.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
+            th.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
             sl.addWidget(th)
             tc = QFrame()
             tc.setProperty("frameClass", "card")
             tcl = QVBoxLayout(tc)
-            tcl.setContentsMargins(20, 16, 20, 16)
-            tcl.addWidget(QLabel(f"Based on your #1 match: {top['nama']}"))
+            tcl.setContentsMargins(16, 12, 16, 12)
+            tcl.addWidget(QLabel(f"Based on your #1 match: {top.get('nama', '')}"))
             st = QLabel(saran)
             st.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
             st.setWordWrap(True)

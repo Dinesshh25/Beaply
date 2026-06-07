@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QSize, QUrl, QTimer
 from PyQt6.QtGui import QFont, QCursor, QColor, QPainter, QPainterPath, QPixmap, QBrush, QPen, QIcon, QFontMetrics, QLinearGradient, QDesktopServices
 from datetime import datetime
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel
+from pyqt_app.styles.theme import FONT_FAMILY, palette, pastel, grad_green, grad_peach, grad_peach_hover
 from controllers.eksplorasi_controller import (
     get_semua_beasiswa, get_bookmarks, check_bookmarked, toggle_bookmark_beasiswa,
 )
@@ -59,7 +59,10 @@ class CardFrame(QFrame):
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit(self.bea_data)
-        super().mousePressEvent(event)
+        try:
+            super().mousePressEvent(event)
+        except RuntimeError:
+            pass  # C++ object already deleted — safe to ignore
 
 class DetailDialog(QDialog):
     def __init__(self, bea, mode, pid, parent=None):
@@ -77,7 +80,8 @@ class DetailDialog(QDialog):
         main_lay.setContentsMargins(20, 20, 20, 20)
         
         self.content_frame = QFrame()
-        self.content_frame.setStyleSheet(f"QFrame {{ background-color: rgba(255, 255, 255, 0.85); border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
+        _content_bg = 'rgba(255, 255, 255, 0.85)' if self.mode == 'light' else f'rgba(41, 42, 45, 0.95)'
+        self.content_frame.setStyleSheet(f"QFrame {{ background-color: {_content_bg}; border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
         
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
@@ -106,11 +110,24 @@ class DetailDialog(QDialog):
         line.setFixedHeight(1)
         lay.addWidget(line)
         
+        toefl_val = bea.get("syarat_toefl")
+        ielts_val = bea.get("syarat_ielts")
+        
+        try:
+            toefl_show = f"≥ {int(toefl_val)}" if toefl_val and int(toefl_val) > 0 else "Tidak Wajib"
+        except:
+            toefl_show = "Tidak Wajib"
+            
+        try:
+            ielts_show = f"≥ {float(ielts_val)}" if ielts_val and float(ielts_val) > 0 else "Tidak Wajib"
+        except:
+            ielts_show = "Tidak Wajib"
+
         info = [
             ("🎓 Jenjang", bea.get("jenjang", "-")),
             ("⏳ Deadline", bea.get("deadline", "-")),
-            ("📝 Syarat TOEFL", "Ya" if bea.get("syarat_toefl") else "Tidak Wajib"),
-            ("📝 Syarat IELTS", "Ya" if bea.get("syarat_ielts") else "Tidak Wajib"),
+            ("📝 Syarat TOEFL", toefl_show),
+            ("📝 Syarat IELTS", ielts_show),
         ]
         
         info_lay = QGridLayout()
@@ -174,10 +191,10 @@ class DetailDialog(QDialog):
         self.btn_visit.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.btn_visit.setFont(QFont(FONT_FAMILY, 13, QFont.Weight.Bold))
         if link:
-            self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: #A8C5B0; color: {self._c['text_dark']}; border-radius: 14px; }} QPushButton:hover {{ background-color: #8FB898; }}")
+            self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: {self._c['btn_primary']}; color: {self._c['text_dark']}; border-radius: 14px; }} QPushButton:hover {{ background-color: {self._c['btn_primary_hover']}; }}")
             self.btn_visit.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(link)))
         else:
-            self.btn_visit.setStyleSheet("QPushButton { background-color: #E0E0E0; color: #999999; border-radius: 14px; }")
+            self.btn_visit.setStyleSheet(f"QPushButton {{ background-color: {self._c['btn_pale']}; color: {self._c['text_muted']}; border-radius: 14px; }}")
             self.btn_visit.setText("Link Tidak Tersedia")
             self.btn_visit.setEnabled(False)
             
@@ -188,14 +205,14 @@ class DetailDialog(QDialog):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         grad = QLinearGradient(0, 0, self.width(), self.height())
-        grad.setColorAt(0.0, QColor("#FFE0D0"))
-        grad.setColorAt(1.0, QColor("#D8E0D8"))
+        grad.setColorAt(0.0, QColor(self._c['grad_peach_start']))
+        grad.setColorAt(1.0, QColor(self._c['grad_green_start']))
         painter.fillRect(self.rect(), grad)
         painter.end()
         super().paintEvent(event)
 
     def _share_link(self):
-        link = self.bea.get("url", "")
+        link = self.bea.get("url", "") or ""
         if link:
             QApplication.clipboard().setText(link)
             self.btn_share.setText("✅ Link Disalin!")
@@ -215,11 +232,9 @@ class DetailDialog(QDialog):
         toggle_bookmark_beasiswa(self.pid, self.bea.get("id", 0))
         self.is_bm = not self.is_bm
         self._update_bm_btn()
-        if self.parent() and hasattr(self.parent(), "bookmark_changed"):
-            self.parent().bookmark_changed.emit()
-            if hasattr(self.parent(), "_apply_filters"):
-                self.parent()._apply_filters()
-                self.parent()._render_grid()
+        # Flag that parent needs refresh — do NOT call _render_grid() here
+        # because this dialog's parent CardFrame would be deleted mid-event.
+        self._bookmark_dirty = True
 
 class EksplorasiView(QWidget):
     # Emit ketika user menambah/hapus bookmark
@@ -272,10 +287,16 @@ class EksplorasiView(QWidget):
         if self._filter_jenjang:
             fj = self._filter_jenjang.upper()
             r = [b for b in r if fj in b.get("jenjang","").upper()]
-        if self._filter_toefl:
-            r = [b for b in r if b.get("syarat_toefl")]
-        if self._filter_ielts:
-            r = [b for b in r if b.get("syarat_ielts")]
+        def _to_float(v):
+            try: return float(v) if v is not None else 0.0
+            except: return 0.0
+
+        if self._filter_toefl and self._filter_ielts:
+            r = [b for b in r if _to_float(b.get("syarat_toefl")) > 0 or _to_float(b.get("syarat_ielts")) > 0]
+        elif self._filter_toefl:
+            r = [b for b in r if _to_float(b.get("syarat_toefl")) > 0]
+        elif self._filter_ielts:
+            r = [b for b in r if _to_float(b.get("syarat_ielts")) > 0]
         if self._sort_mode == "deadline_asc":
             r.sort(key=lambda b: b.get("deadline") or "9999")
         elif self._sort_mode == "deadline_desc":
@@ -321,14 +342,14 @@ class EksplorasiView(QWidget):
         tl.addWidget(self._search, 1)
         
         sort_btn = QPushButton("\u21C5 Sort by")
-        sort_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
+        sort_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         sort_btn.setFixedSize(110, 40)
         sort_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         sort_btn.clicked.connect(self._show_sort)
         tl.addWidget(sort_btn)
         
         filt_btn = QPushButton("\u2699 Filters")
-        filt_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
+        filt_btn.setStyleSheet(f"background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         filt_btn.setFixedSize(110, 40)
         filt_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         filt_btn.clicked.connect(self._show_filter)
@@ -371,12 +392,18 @@ class EksplorasiView(QWidget):
         cols = 4
         for col in range(cols):
             grid.setColumnStretch(col, 1)
-        card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
-        
+        if self._mode == 'dark':
+            card_colors = ["#2B302C", "#36322C", "#382928"]
+        else:
+            card_colors = ["#EBEDE0", "#FFF8E5", "#FCEAE6"]
+
+        # Batch-load all bookmark IDs once (instead of 1 query per card)
+        bm_ids = {b.get("id") for b in get_bookmarks(self._pid)}
+
         for i, bea in enumerate(self._filtered):
             row, col = i // cols, i % cols
             bg = card_colors[i % len(card_colors)]
-            is_bm = check_bookmarked(self._pid, bea.get("id", 0))
+            is_bm = bea.get("id", 0) in bm_ids
             dl_clr = self._deadline_color(bea.get("deadline")) if is_bm else None
 
             card = CardFrame(bea)
@@ -449,12 +476,22 @@ class EksplorasiView(QWidget):
     def _show_detail(self, bea):
         dlg = DetailDialog(bea, self._mode, self._pid, self)
         dlg.exec()
+        # Defer refresh to NEXT event loop tick — we are still inside
+        # CardFrame.mousePressEvent; calling _render_grid() now would
+        # delete the CardFrame before super().mousePressEvent() returns.
+        if getattr(dlg, '_bookmark_dirty', False):
+            QTimer.singleShot(0, self._deferred_refresh)
+
+    def _deferred_refresh(self):
+        """Called after the event loop finishes the current mouse event."""
+        self.bookmark_changed.emit()
+        self._apply_filters()
+        self._render_grid()
 
     def _toggle_bm(self, bea):
         toggle_bookmark_beasiswa(self._pid, bea.get("id", 0))
-        self.bookmark_changed.emit()  # beritahu kalender
-        self._apply_filters()
-        self._render_grid()
+        # Defer grid rebuild so the current click event finishes first
+        QTimer.singleShot(0, self._deferred_refresh)
 
     def _show_sort(self):
         c = palette(self._mode)
@@ -469,7 +506,7 @@ class EksplorasiView(QWidget):
         main_lay.setContentsMargins(10, 10, 10, 10)
         
         bg_frame = QFrame()
-        bg_frame.setStyleSheet(f"QFrame {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE0D1, stop:1 #D8E0D8); border-radius: 20px; }}")
+        bg_frame.setStyleSheet(f"QFrame {{ background: {grad_peach(c)}; border-radius: 20px; }}")
         main_lay.addWidget(bg_frame)
         
         shadow = QGraphicsDropShadowEffect()
@@ -503,9 +540,9 @@ class EksplorasiView(QWidget):
                             ("Deadline ↓","deadline_desc"),("Name A→Z","name_asc"),("Name Z→A","name_desc")]:
             b = QPushButton(label)
             if self._sort_mode == mode:
-                b.setStyleSheet(f"background-color: rgba(255,255,255,0.85); color: {c['text_dark']}; border: 2px solid #A8C5B0; border-radius: 12px; font-weight: bold;")
+                b.setStyleSheet(f"background-color: {c['card']}; color: {c['text_dark']}; border: 2px solid {c['btn_primary']}; border-radius: 12px; font-weight: bold;")
             else:
-                b.setStyleSheet(f"background-color: rgba(255,255,255,0.5); color: {c['text_dark']}; border: none; border-radius: 12px;")
+                b.setStyleSheet(f"background-color: {c['btn_pale']}; color: {c['text_dark']}; border: none; border-radius: 12px;")
             b.setFixedHeight(36)
             b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             b.clicked.connect(lambda _, m=mode: (setattr(self,'_sort_mode',m), dlg.accept(),
@@ -526,7 +563,7 @@ class EksplorasiView(QWidget):
         main_lay.setContentsMargins(10, 10, 10, 10)
         
         bg_frame = QFrame()
-        bg_frame.setStyleSheet(f"QFrame {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE0D1, stop:1 #D8E0D8); border-radius: 20px; }}")
+        bg_frame.setStyleSheet(f"QFrame {{ background: {grad_peach(c)}; border-radius: 20px; }}")
         main_lay.addWidget(bg_frame)
         
         shadow = QGraphicsDropShadowEffect()
@@ -565,7 +602,8 @@ class EksplorasiView(QWidget):
         j_lay.setSpacing(10)
         for idx, j in enumerate(["All","S1","S2","S3","D3","D4"]):
             rb = QRadioButton(j)
-            rb.setStyleSheet(f"QRadioButton {{ color: {c['text_dark']}; background: transparent; }} QRadioButton::indicator {{ width: 14px; height: 14px; border-radius: 7px; border: 2px solid #888; background: rgba(255,255,255,0.6); }} QRadioButton::indicator:checked {{ border: 2px solid #D4917B; background: #D4917B; }}")
+            _rb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
+            rb.setStyleSheet(f"QRadioButton {{ color: {c['text_dark']}; background: transparent; }} QRadioButton::indicator {{ width: 14px; height: 14px; border-radius: 7px; border: 2px solid {c['text_muted']}; background: {_rb_bg}; }} QRadioButton::indicator:checked {{ border: 2px solid {c['text_accent']}; background: {c['text_accent']}; }}")
             if (j == "All" and not self._filter_jenjang) or j == self._filter_jenjang:
                 rb.setChecked(True)
             group.addButton(rb)
@@ -577,18 +615,19 @@ class EksplorasiView(QWidget):
         dl.addWidget(lbl_t)
         
         cb_toefl = QCheckBox("Requires TOEFL")
-        cb_toefl.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid #888; background: rgba(255,255,255,0.6); }} QCheckBox::indicator:checked {{ border: 2px solid #A8C5B0; background: #A8C5B0; }}")
+        _cb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
+        cb_toefl.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_toefl.setChecked(self._filter_toefl)
         dl.addWidget(cb_toefl)
         cb_ielts = QCheckBox("Requires IELTS")
-        cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid #888; background: rgba(255,255,255,0.6); }} QCheckBox::indicator:checked {{ border: 2px solid #A8C5B0; background: #A8C5B0; }}")
+        cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_ielts.setChecked(self._filter_ielts)
         dl.addWidget(cb_ielts)
         
         dl.addStretch()
         
         btn = QPushButton("Apply Filters")
-        btn.setStyleSheet(f"QPushButton {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D1, stop:1 #FFBDAD); color: {c['text_dark']}; border: none; border-radius: 14px; font-weight: bold; font-size: 13px; }} QPushButton:hover {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFD0C1, stop:1 #FFA79D); }}")
+        btn.setStyleSheet(f"QPushButton {{ background: {grad_peach(c)}; color: {c['text_dark']}; border: none; border-radius: 14px; font-weight: bold; font-size: 13px; }} QPushButton:hover {{ background: {grad_peach_hover(c)}; }}")
         btn.setFixedHeight(44)
         btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         

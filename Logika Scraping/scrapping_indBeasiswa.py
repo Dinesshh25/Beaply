@@ -17,8 +17,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from normalizer import (
     parse_tanggal_indonesia, extract_deadlines, extract_ipk,
+    extract_toefl, extract_ielts,
     extract_jenjang, extract_lokasi, normalize_beasiswa,
-    is_mahasiswa_only
+    is_mahasiswa_only, is_year_2026_or_later
 )
 
 logging.basicConfig(filename='scraper.log', level=logging.INFO,
@@ -318,6 +319,25 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
                 f"{removed_count} dibuang (SMA/SMK)."
             )
 
+        # Filter tahun: hanya 2026 ke atas
+        filtered_year = []
+        removed_year = 0
+        for entry in filtered:
+            if is_year_2026_or_later(entry):
+                filtered_year.append(entry)
+            else:
+                removed_year += 1
+                if progress_callback:
+                    progress_callback(
+                        f"  ⛔ Dibuang (< 2026): {entry.get('nama_beasiswa', '')[:60]}"
+                    )
+        filtered = filtered_year
+        if progress_callback:
+            progress_callback(
+                f"Setelah filter tahun ≥ 2026: {len(filtered)} beasiswa lolos, "
+                f"{removed_year} dibuang (tahun lama)."
+            )
+
         # Tahap 2: Scrape detail (opsional)
         if scrape_details:
             if progress_callback:
@@ -359,9 +379,48 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
         normalized = []
         for entry in filtered[:max_entries]:
             norm = normalize_beasiswa(entry)
+            norm['sumber_website'] = 'indbeasiswa.com'
             normalized.append(norm)
 
+        # Filter akhir setelah normalisasi (Tahun, Jenjang Mahasiswa, dan TOEFL/IELTS)
+        final_normalized = []
+        removed_year = 0
+        removed_level = 0
+        removed_lang = 0
+        
+        for norm in normalized:
+            # 1. Cek tahun
+            if not is_year_2026_or_later(norm):
+                removed_year += 1
+                if progress_callback:
+                    progress_callback(f"  ⛔ Dibuang akhir (< 2026): {norm.get('nama_beasiswa', '')[:60]}")
+                continue
+            
+            # 2. Cek PT (Mahasiswa)
+            jenjang = norm.get('jenjang', [])
+            full_text = norm.get('nama_beasiswa', '') + ' ' + norm.get('full_text', '')
+            if not is_mahasiswa_only(jenjang, full_text):
+                removed_level += 1
+                if progress_callback:
+                    progress_callback(f"  ⛔ Dibuang akhir (SMA/SMK): {norm.get('nama_beasiswa', '')[:60]}")
+                continue
+            
+            # 3. Cek TOEFL/IELTS
+            if (norm.get('syarat_toefl', 0) > 0) or (norm.get('syarat_ielts', 0.0) > 0.0):
+                final_normalized.append(norm)
+            else:
+                removed_lang += 1
+                if progress_callback:
+                    progress_callback(f"  ⛔ Dibuang akhir (Tanpa TOEFL/IELTS): {norm.get('nama_beasiswa', '')[:60]}")
+        
+        normalized = final_normalized
+
         if progress_callback:
+            if removed_year > 0 or removed_level > 0 or removed_lang > 0:
+                progress_callback(
+                    f"Filter akhir: {len(normalized)} beasiswa lolos. Dibuang: "
+                    f"{removed_year} tahun lama, {removed_level} non-PT, {removed_lang} tanpa TOEFL/IELTS."
+                )
             progress_callback(f"Scraping selesai! Total: {len(normalized)} beasiswa.")
 
         return normalized

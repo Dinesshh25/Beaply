@@ -26,6 +26,7 @@ from controllers.eksplorasi_controller import (
     get_bookmarks as ambil_bookmark_user,
 )
 from controllers.analytics_controller import get_analytics_data
+from pyqt_app.views.eksplorasi_view import DetailDialog
 
 ASSETS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets"))
 
@@ -176,6 +177,14 @@ class DashboardView(QWidget):
         elif self._nav:
             self._nav(target)
 
+    def _on_table_click(self, row, column):
+        if hasattr(self, '_all_bea') and row < len(self._all_bea):
+            bea = self._all_bea[row]
+            if 'nama' in bea and 'nama_beasiswa' not in bea:
+                bea['nama_beasiswa'] = bea['nama']
+            dlg = DetailDialog(bea, self._mode, self._pid, self)
+            dlg.exec()
+
     def _apply_card_shadow(self, widget):
         from PyQt6.QtWidgets import QGraphicsDropShadowEffect
         from PyQt6.QtGui import QColor
@@ -205,10 +214,13 @@ class DashboardView(QWidget):
         greet = QFrame(); greet.setObjectName("greetCard")
         self._apply_card_shadow(greet)
         greet.setFixedHeight(180)
+        if self._mode == 'dark':
+            greet_gradient = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:0.4 #332A28, stop:1 #3D2E2A)"
+        else:
+            greet_gradient = "qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #FFFFFF, stop:0.4 #FDF4F2, stop:1 #FADCD2)"
         greet.setStyleSheet(f"""
             #greetCard {{
-                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
-                    stop:0 #FFFFFF, stop:0.4 #FDF4F2, stop:1 #FADCD2);
+                background: {greet_gradient};
                 border-radius: 18px; border:none;
             }}
         """)
@@ -270,12 +282,28 @@ class DashboardView(QWidget):
         # ━━ STATS ROW ━━
         self._left_scroll = ls
         bc = len(ambil_semua_beasiswa()); bmc = len(ambil_bookmark_user(self._pid))
-        dlc = stats_data.get("total", 0)
+        # Count bookmarked scholarships with upcoming deadlines
+        _today = datetime.date.today()
+        _bm_list = ambil_bookmark_user(self._pid)
+        dlc = 0
+        for _bm in _bm_list:
+            _dl = _bm.get("deadline", "")
+            if _dl:
+                try:
+                    _dl_date = datetime.datetime.strptime(_dl[:10], "%Y-%m-%d").date()
+                    if _dl_date >= _today:
+                        dlc += 1
+                except (ValueError, TypeError):
+                    pass
+        if self._mode == 'dark':
+            stat_bgs = ["#2B302C", "#36322C", "#382928", "#2A3029"]
+        else:
+            stat_bgs = ["#F6F8F3", "#FBF8F2", "#FDF3F1", "#F6F9F3"]
         stats = [
-            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", "#F6F8F3", "eksplorasi"),
-            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  "#FBF8F2", "bookmarks"),
-            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    "#FDF3F1", "kalender"),
-            ("7",      "Smart Tips\nFor You",       "smart.png",       "#F6F9F3", "scroll_faq"),
+            (str(bc),  "Opportunities\nAvailable",  "opportunity.png", stat_bgs[0], "eksplorasi"),
+            (str(bmc), "Bookmarked\nScholarship",   "bookmarked.png",  stat_bgs[1], "bookmarks"),
+            (str(dlc), "Upcoming\nDeadlines",       "deadline.png",    stat_bgs[2], "kalender"),
+            ("7",      "Smart Tips\nFor You",       "smart.png",       stat_bgs[3], "scroll_faq"),
         ]
         sw = QWidget(); sw.setStyleSheet("background:transparent;")
         sl = QHBoxLayout(sw); sl.setContentsMargins(0,0,0,0); sl.setSpacing(10)
@@ -293,7 +321,10 @@ class DashboardView(QWidget):
             icon_wrap.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             icon_wrap.setFixedSize(54, 54)
             icon_wrap.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:27px;")
+            if self._mode == 'dark':
+                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(60,64,67,200), stop:0.6 rgba(60,64,67,100), stop:1 rgba(60,64,67,0)); border-radius:27px;")
+            else:
+                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:27px;")
             ic_path = os.path.join(ASSETS, ic_file)
             if os.path.exists(ic_path):
                 px = QPixmap(ic_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
@@ -327,8 +358,8 @@ class DashboardView(QWidget):
 
         # ━━ SCHOLARSHIPS TABLE ━━
         ll.addWidget(self._header("Scholarships Trending Now", c, "eksplorasi"))
-        all_bea = ambil_semua_beasiswa()[:8]
-        table = QTableWidget(len(all_bea), 5)
+        self._all_bea = ambil_semua_beasiswa()[:8]
+        table = QTableWidget(len(self._all_bea), 5)
         table.setHorizontalHeaderLabels(["Name", "Funding", "Degree", "Country", "Deadline"])
         table.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         table.horizontalHeader().setStretchLastSection(True)
@@ -341,15 +372,17 @@ class DashboardView(QWidget):
         table.setAlternatingRowColors(True)
         table.setShowGrid(False)
         self._apply_card_shadow(table)
-        table.setMinimumHeight(min(len(all_bea) * 44 + 36, 380))
+        table.setMinimumHeight(min(len(self._all_bea) * 44 + 36, 380))
+        alt_bg = '#2F3033' if self._mode == 'dark' else '#FDF9F5'
+        item_border = c['border']
         table.setStyleSheet(f"""
             QTableWidget {{
                 background: {c['card']}; border: none;
                 border-radius: 14px; font-size: 12px; color: {c['text_dark']};
-                alternate-background-color: #FDF9F5;
+                alternate-background-color: {alt_bg};
             }}
             QTableWidget::item {{
-                padding: 8px 6px; border-bottom: 1px solid #F0ECE8;
+                padding: 8px 6px; border-bottom: 1px solid {item_border};
             }}
             QTableWidget::item:selected {{
                 background: {c['btn_pale']}; color: {c['text_dark']};
@@ -357,29 +390,63 @@ class DashboardView(QWidget):
             QHeaderView::section {{
                 background: transparent; color: {c['text_muted']};
                 font-size: 11px; font-weight: bold; padding: 8px 6px;
-                border: none; border-bottom: 2px solid #E8E0D8;
+                border: none; border-bottom: 2px solid {c['border']};
             }}
         """)
-        for i, bea in enumerate(all_bea):
+        for i, bea in enumerate(self._all_bea):
             ni = QTableWidgetItem(bea.get("nama", ""))
             ni.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
             table.setItem(i, 0, ni)
-            table.setItem(i, 1, QTableWidgetItem(bea.get("pendanaan", "-")))
-            table.setItem(i, 2, QTableWidgetItem(bea.get("jenjang", "-")))
-            table.setItem(i, 3, QTableWidgetItem(bea.get("negara", "-")))
-            dl = bea.get("deadline", "-")
-            di = QTableWidgetItem(dl)
-            di.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if dl and dl != "-":
+            
+            # Funding (kategori)
+            kategori_val = bea.get("kategori", "-")
+            if kategori_val:
+                kategori_val = kategori_val.title()
+            else:
+                kategori_val = "-"
+            table.setItem(i, 1, QTableWidgetItem(kategori_val))
+            
+            # Degree (jenjang)
+            jenjang_val = bea.get("jenjang", "-")
+            if jenjang_val and jenjang_val.startswith("["):
+                import json
                 try:
-                    days = (datetime.datetime.strptime(dl, "%Y-%m-%d").date() - datetime.date.today()).days
+                    parsed = json.loads(jenjang_val)
+                    if isinstance(parsed, list):
+                        jenjang_val = ", ".join(parsed)
+                except:
+                    pass
+            elif not jenjang_val:
+                jenjang_val = "-"
+            table.setItem(i, 2, QTableWidgetItem(jenjang_val))
+            
+            # Country (lokasi)
+            lokasi_val = bea.get("lokasi", "-")
+            if not lokasi_val or lokasi_val == "None":
+                if bea.get("kategori") == "internasional":
+                    lokasi_val = "Luar Negeri"
+                else:
+                    lokasi_val = "Dalam Negeri"
+            table.setItem(i, 3, QTableWidgetItem(lokasi_val))
+            
+            # Deadline
+            dl = bea.get("deadline")
+            formatted_dl = fmt_deadline(dl) if dl else "-"
+            di = QTableWidgetItem(formatted_dl)
+            di.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if dl:
+                try:
+                    days = (datetime.datetime.strptime(dl[:10], "%Y-%m-%d").date() - datetime.date.today()).days
                     if days < 0: di.setForeground(QColor("#999"))
                     elif days <= 15: di.setForeground(QColor("#EF4444"))
                     elif days <= 30: di.setForeground(QColor("#F59E0B"))
                     else: di.setForeground(QColor("#22C55E"))
-                except: pass
+                except:
+                    pass
             table.setItem(i, 4, di)
             table.setRowHeight(i, 42)
+        table.cellClicked.connect(self._on_table_click)
+        table.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         ll.addWidget(table)
 
         # ━━ ANALYTICS SECTION ━━
@@ -389,8 +456,6 @@ class DashboardView(QWidget):
         # ━━ INSIGHTS / FAQ ━━
         ll.addWidget(self._header("Insight & FAQ Beasiswa", c))
         ll.addWidget(self._build_insights_section(analytics["insights"], c))
-        ll.addStretch()
-
         # ── RIGHT COLUMN ──
         rs = QScrollArea(); rs.setWidgetResizable(True); rs.setFixedWidth(280)
         rs.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -408,7 +473,7 @@ class DashboardView(QWidget):
         pch.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); pcl.addWidget(pch)
         rrow = QWidget(); rrow.setStyleSheet("background:transparent;")
         rrl = QHBoxLayout(rrow); rrl.setContentsMargins(0,0,0,0); rrl.setSpacing(12)
-        ring = ProgressRing(comp, 80, 7); rrl.addWidget(ring)
+        ring = ProgressRing(comp, 80, 7, bg_color=c['border'], text_color=c['text_dark']); rrl.addWidget(ring)
         dw = QWidget(); dw.setStyleSheet("background:transparent;")
         dwl = QVBoxLayout(dw); dwl.setContentsMargins(0,0,0,0); dwl.setSpacing(3)
         p_done, e_done, c_done = False, False, False
@@ -431,24 +496,46 @@ class DashboardView(QWidget):
         if self._nav: cpb.clicked.connect(lambda: self._nav("profil"))
         pcl.addWidget(cpb); rl.addWidget(pc)
 
-        # ━━ UPCOMING DEADLINES ━━
+        # ━━ UPCOMING DEADLINES (Tracker + Bookmark) ━━
         dc = QFrame(); dc.setObjectName("dlCard")
         self._apply_card_shadow(dc)
         dc.setStyleSheet(f"#dlCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         dcl = QVBoxLayout(dc); dcl.setContentsMargins(18,16,18,16); dcl.setSpacing(6)
-        dcl.addWidget(self._header("Upcoming Deadlines", c))
-        trackers = ambil_semua_tracker(self._pid); shown = 0
-        for tr in trackers[:4]:
-            if not tr.get("deadline"): continue
+        dcl.addWidget(self._header("Upcoming Deadlines", c, "kalender"))
+        # Merge deadlines from tracker AND bookmarks
+        upcoming_items = []
+        trackers = ambil_semua_tracker(self._pid)
+        for tr in trackers:
+            dl = tr.get("deadline")
+            if not dl: continue
+            try:
+                days = (datetime.datetime.strptime(dl, "%Y-%m-%d").date() - datetime.date.today()).days
+                if days >= 0:
+                    upcoming_items.append({"nama": tr["nama_beasiswa"], "deadline": dl, "days": days, "src": "tracker"})
+            except: pass
+        bookmarks = ambil_bookmark_user(self._pid)
+        bm_names_added = {u["nama"] for u in upcoming_items}
+        for bm in bookmarks:
+            dl = bm.get("deadline")
+            nm = bm.get("nama", "")
+            if not dl or nm in bm_names_added: continue
+            try:
+                days = (datetime.datetime.strptime(dl, "%Y-%m-%d").date() - datetime.date.today()).days
+                if days >= 0:
+                    upcoming_items.append({"nama": nm, "deadline": dl, "days": days, "src": "bookmark"})
+            except: pass
+        upcoming_items.sort(key=lambda x: x["days"])
+        shown = 0
+        for item in upcoming_items[:4]:
             tw2 = QWidget(); tw2.setStyleSheet("background:transparent;")
             tw2l = QVBoxLayout(tw2); tw2l.setContentsMargins(0,4,0,4); tw2l.setSpacing(2)
-            tn = QLabel(tr["nama_beasiswa"]); tn.setFont(QFont(FONT_FAMILY,11,QFont.Weight.Bold))
+            icon = "📌" if item["src"] == "tracker" else "🔖"
+            tn = QLabel(f"{icon} {item['nama']}"); tn.setFont(QFont(FONT_FAMILY,11,QFont.Weight.Bold))
+            tn.setWordWrap(True)
             tn.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); tw2l.addWidget(tn)
-            try:
-                days = (datetime.datetime.strptime(tr["deadline"],"%Y-%m-%d").date()-datetime.date.today()).days
-                clr = "#EF4444" if days<=15 else "#F59E0B" if days<=30 else "#22C55E"
-            except: clr = c['text_muted']
-            td = QLabel(f"\U0001f4c5 {fmt_deadline(tr['deadline'])}")
+            days = item["days"]
+            clr = "#EF4444" if days<=7 else "#F59E0B" if days<=14 else "#22C55E"
+            td = QLabel(f"\U0001f4c5 {fmt_deadline(item['deadline'])}")
             td.setStyleSheet(f"color:{clr};font-size:10px;background:transparent;"); tw2l.addWidget(td)
             dcl.addWidget(tw2)
             sep = QFrame(); sep.setFixedHeight(1); sep.setStyleSheet(f"background:{c['border']};")
@@ -512,7 +599,7 @@ class DashboardView(QWidget):
         ccl.addWidget(btn_full)
 
         self._render_cal_grid()
-        rl.addWidget(cc); rl.addStretch()
+        rl.addWidget(cc)
 
     # ═══════════════════════════════════════════════════════════════
     # ANALYTICS SECTION

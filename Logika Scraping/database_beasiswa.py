@@ -261,6 +261,17 @@ def _serialize_entry(entry: dict) -> dict:
     hash_input = f"{entry.get('nama_beasiswa', '')}||{entry.get('penyelenggara', '')}||{entry.get('url_sumber', '')}"
     content_hash = hashlib.sha256(hash_input.encode('utf-8')).hexdigest()
 
+    lokasi_val = str(entry.get('lokasi', '')).strip()
+    penyelenggara_val = str(entry.get('penyelenggara', '')).strip() or "Tidak diketahui"
+    
+    # Klasifikasi kategori: internasional / pemerintah / swasta
+    if "luar negeri" in lokasi_val.lower() or lokasi_val == "Luar Negeri":
+        kategori_val = "internasional"
+    elif any(k in penyelenggara_val.lower() for k in ["pemerintah", "kementerian", "kemendikbud", "baznas", "dinas", "pemprov", "pemkot", "pemkab"]):
+        kategori_val = "pemerintah"
+    else:
+        kategori_val = "swasta"
+
     return {
         'nama':             str(entry.get('nama_beasiswa', '')).strip()[:500],
         'nama_beasiswa':    str(entry.get('nama_beasiswa', '')).strip()[:500], # Keep for dedup tracking
@@ -268,17 +279,22 @@ def _serialize_entry(entry: dict) -> dict:
         'url_sumber':       str(entry.get('url_sumber', '')).strip() or None, # Keep for dedup tracking
         'url_resmi':        str(entry.get('url_resmi', '')).strip() or None,
         'sumber_website':   str(entry.get('sumber_website', '')).strip() or "Internet",
-        'penyelenggara':    str(entry.get('penyelenggara', '')).strip()[:300] or "Tidak diketahui",
-        'kategori':         "swasta",
+        'penyelenggara':    penyelenggara_val[:300],
+        'kategori':         kategori_val,
         'jenjang':          _to_json(jenjang),
         'jurusan':          _to_json(jurusan),
-        'lokasi':           str(entry.get('lokasi', '')).strip()[:200] or None,
+        'lokasi':           lokasi_val[:200] or None,
         'tipe_beasiswa':    str(entry.get('tipe_beasiswa', '')).strip()[:100] or None,
         'deadline':         str(deadline).strip()[:100] if deadline else None,
         'deadline_text':    str(entry.get('deadline_text', '')).strip()[:300] or None,
         'cakupan_beasiswa': str(entry.get('cakupan_beasiswa', '')).strip()[:1000] or None,
         'syarat_utama':     str(entry.get('syarat_utama', '')).strip()[:2000] or None,
         'ipk_minimal':      ipk,
+        'syarat_ipk':       ipk if ipk is not None else 0.0,
+        'syarat_toefl':     int(entry.get('syarat_toefl', 0) or 0),
+        'syarat_ielts':     float(entry.get('syarat_ielts', 0.0) or 0.0),
+        'toefl_minimal':    int(entry.get('syarat_toefl', 0) or 0),
+        'ielts_minimal':    float(entry.get('syarat_ielts', 0.0) or 0.0),
         'kategori_raw':     _to_json(kategori_raw),
         'content_hash':     content_hash,
         'data_json':        json.dumps(entry, ensure_ascii=False, default=str),
@@ -553,6 +569,11 @@ def simpan_beasiswa_batch(
                         cakupan_beasiswa = :cakupan_beasiswa,
                         syarat_utama     = :syarat_utama,
                         ipk_minimal      = :ipk_minimal,
+                        syarat_ipk       = :syarat_ipk,
+                        syarat_toefl     = :syarat_toefl,
+                        syarat_ielts     = :syarat_ielts,
+                        toefl_minimal    = :toefl_minimal,
+                        ielts_minimal    = :ielts_minimal,
                         kategori_raw     = :kategori_raw,
                         data_json        = :data_json,
                         diupdate_pada    = datetime('now','localtime')
@@ -566,12 +587,14 @@ def simpan_beasiswa_batch(
                         nama, url, url_resmi, sumber_website,
                         penyelenggara, kategori, jenjang, jurusan, lokasi, tipe_beasiswa,
                         deadline, deadline_text, cakupan_beasiswa, syarat_utama,
-                        ipk_minimal, kategori_raw, data_json
+                        ipk_minimal, syarat_ipk, syarat_toefl, syarat_ielts, toefl_minimal, ielts_minimal,
+                        kategori_raw, data_json
                     ) VALUES (
                         :nama, :url, :url_resmi, :sumber_website,
                         :penyelenggara, :kategori, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
                         :deadline, :deadline_text, :cakupan_beasiswa, :syarat_utama,
-                        :ipk_minimal, :kategori_raw, :data_json
+                        :ipk_minimal, :syarat_ipk, :syarat_toefl, :syarat_ielts, :toefl_minimal, :ielts_minimal,
+                        :kategori_raw, :data_json
                     )
                 """, row)
                 baru += 1
@@ -737,6 +760,11 @@ def safe_update_beasiswa_batch(
                         cakupan_beasiswa = :cakupan_beasiswa,
                         syarat_utama     = :syarat_utama,
                         ipk_minimal      = :ipk_minimal,
+                        syarat_ipk       = :syarat_ipk,
+                        syarat_toefl     = :syarat_toefl,
+                        syarat_ielts     = :syarat_ielts,
+                        toefl_minimal    = :toefl_minimal,
+                        ielts_minimal    = :ielts_minimal,
                         kategori_raw     = :kategori_raw,
                         content_hash     = :content_hash,
                         data_json        = :data_json,
@@ -790,12 +818,14 @@ def safe_update_beasiswa_batch(
                         nama, url, url_resmi, sumber_website,
                         penyelenggara, kategori, jenjang, jurusan, lokasi, tipe_beasiswa,
                         deadline, deadline_text, cakupan_beasiswa, syarat_utama,
-                        ipk_minimal, kategori_raw, content_hash, data_json
+                        ipk_minimal, syarat_ipk, syarat_toefl, syarat_ielts, toefl_minimal, ielts_minimal,
+                        kategori_raw, content_hash, data_json
                     ) VALUES (
                         :nama, :url, :url_resmi, :sumber_website,
                         :penyelenggara, :kategori, :jenjang, :jurusan, :lokasi, :tipe_beasiswa,
                         :deadline, :deadline_text, :cakupan_beasiswa, :syarat_utama,
-                        :ipk_minimal, :kategori_raw, :content_hash, :data_json
+                        :ipk_minimal, :syarat_ipk, :syarat_toefl, :syarat_ielts, :toefl_minimal, :ielts_minimal,
+                        :kategori_raw, :content_hash, :data_json
                     )
                 """, row)
                 baru += 1
@@ -1002,6 +1032,44 @@ def hapus_beasiswa(beasiswa_id: int) -> tuple[bool, str]:
         return True, "Beasiswa berhasil dihapus."
     except Exception as e:
         return False, str(e)
+
+
+def hapus_beasiswa_expired(progress_callback=None) -> tuple[bool, str, int]:
+    """
+    Hapus beasiswa yang deadline-nya sebelum tahun 2026 dari database.
+    Beasiswa expired (2026 ke atas tapi sudah lewat) TIDAK dihapus
+    agar tetap bisa dianalisis di dashboard.
+    
+    Returns:
+        (sukses, pesan, jumlah_dihapus)
+    """
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Hapus beasiswa dengan deadline sebelum 2026-01-01
+        cur.execute("""
+            DELETE FROM beasiswa
+            WHERE deadline IS NOT NULL
+              AND deadline != ''
+              AND deadline < '2026-01-01'
+        """)
+        count_old = cur.rowcount
+
+        if progress_callback:
+            progress_callback(f"  Dihapus {count_old} beasiswa dengan deadline sebelum 2026")
+
+        conn.commit()
+        conn.close()
+
+        msg = f"Berhasil menghapus {count_old} beasiswa pra-2026."
+        return True, msg, count_old
+
+    except Exception as e:
+        logger.error(f"Error hapus beasiswa pra-2026: {e}")
+        if progress_callback:
+            progress_callback(f"  ⚠ Error: {e}")
+        return False, str(e), 0
 
 
 def hapus_semua_by_sumber(sumber_website: str) -> tuple[bool, str, int]:

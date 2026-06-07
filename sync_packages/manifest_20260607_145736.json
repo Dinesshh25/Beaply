@@ -1,0 +1,23 @@
+{
+  "manifest_version": "1.0",
+  "created_at": "2026-06-07 14:57:36",
+  "package_id": "20260607_145736",
+  "package_path": "/home/hasan_nashrullah/PJBL_Beaply/Beaply/sync_packages/sync_package_20260607_145736.json",
+  "package_metadata": {
+    "package_id": "20260607_145736",
+    "timestamp": "2026-06-07 14:57:36",
+    "sumber_website": "beasiswa.id",
+    "total_beasiswa": 1,
+    "data_checksum": "14658798f368bd189b79fde692b311090349dfad6a1a9a895dd2b1ee6820f2e9",
+    "format_version": "1.0",
+    "description": "Sync package berisi 1 beasiswa dari beasiswa.id"
+  },
+  "sync_destinations": [],
+  "sync_status": {
+    "total_destinations": 0,
+    "synced": 0,
+    "pending": 0,
+    "failed": 0
+  },
+  "sync_history": []
+}

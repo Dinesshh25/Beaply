@@ -10,7 +10,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QCursor, QColor
 from datetime import datetime
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette
+from pyqt_app.styles.theme import FONT_FAMILY, palette, grad_green, grad_peach, grad_mixed
 from controllers.eksplorasi_controller import get_bookmarks, toggle_bookmark_beasiswa
 from pyqt_app.views.eksplorasi_view import CardFrame, DetailDialog
 
@@ -65,7 +65,7 @@ class BookmarksView(QWidget):
         hl.addWidget(self._bold_label(f"{len(bm_list)} Bookmarks", 15))
         
         sort_btn = QPushButton("\u21C5 Sort by")
-        sort_btn.setStyleSheet(f"background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #D8E0D8, stop:1 #D5EBD5); color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
+        sort_btn.setStyleSheet(f"background: {grad_green(c)}; color: {c['text_dark']}; border: none; border-radius: 12px; font-weight: bold; font-size: 13px;")
         sort_btn.setFixedSize(110, 40)
         sort_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         sort_btn.clicked.connect(self._show_sort)
@@ -73,8 +73,8 @@ class BookmarksView(QWidget):
         clr = QPushButton("🗑 Clear All")
         clr.setStyleSheet(f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFF0EA, stop:1 #FFD0C0);
-                color: #333333;
+                background: {grad_peach(c)};
+                color: {c['text_dark']};
                 border: none;
                 border-radius: 14px;
                 padding: 6px 16px;
@@ -82,7 +82,7 @@ class BookmarksView(QWidget):
                 font-size: 12px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFE0D5, stop:1 #FFC2AF);
+                background: {c['card']};
             }}
         """)
         
@@ -245,7 +245,7 @@ class BookmarksView(QWidget):
         main_lay.setContentsMargins(10, 10, 10, 10)
         
         bg_frame = QFrame()
-        bg_frame.setStyleSheet(f"QFrame {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFE0D1, stop:1 #D8E0D8); border-radius: 20px; }}")
+        bg_frame.setStyleSheet(f"QFrame {{ background: {grad_mixed(c)}; border-radius: 20px; }}")
         main_lay.addWidget(bg_frame)
         
         shadow = QGraphicsDropShadowEffect()
@@ -279,9 +279,9 @@ class BookmarksView(QWidget):
                             ("Deadline ↓","deadline_desc"),("Name A→Z","name_asc"),("Name Z→A","name_desc")]:
             b = QPushButton(label)
             if self._sort_mode == mode:
-                b.setStyleSheet(f"background-color: rgba(255,255,255,0.85); color: {c['text_dark']}; border: 2px solid #A8C5B0; border-radius: 12px; font-weight: bold;")
+                b.setStyleSheet(f"background-color: {c['card']}; color: {c['text_dark']}; border: 2px solid {c['btn_primary']}; border-radius: 12px; font-weight: bold;")
             else:
-                b.setStyleSheet(f"background-color: rgba(255,255,255,0.5); color: {c['text_dark']}; border: none; border-radius: 12px;")
+                b.setStyleSheet(f"background-color: {c['btn_pale']}; color: {c['text_dark']}; border: none; border-radius: 12px;")
             b.setFixedHeight(36)
             b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             b.clicked.connect(lambda _, m=mode: (setattr(self,'_sort_mode',m), dlg.accept(), self._build()))
