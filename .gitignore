@@ -32,5 +32,13 @@ dist/
 build/
 *.egg-info/
 
+# Sync packages (generated)
+sync_packages/
+
+# Debug / temp files
+debug_view*.png
+tempCodeRunnerFile.py
+*_backup.json
+
 # Misc
 *.log
