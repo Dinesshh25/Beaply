@@ -20,11 +20,15 @@ Feature:
 - Automatic sync package generation
 - Database backup untuk disaster recovery
 """
-
 import sys
 import os
 import time
 
+if sys.platform.startswith('win'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
 # Tambahkan folder ini ke path agar import bekerja
 sys.path.insert(0, os.path.dirname(__file__))
 

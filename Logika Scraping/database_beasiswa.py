@@ -85,6 +85,8 @@ def init_beasiswa_db():
             syarat_utama      TEXT     DEFAULT NULL,
             ipk_minimal       REAL     DEFAULT NULL,
             kategori_raw      TEXT     DEFAULT NULL,    -- JSON array dari website
+            toefl_minimal     INTEGER  DEFAULT 0,
+            ielts_minimal     REAL     DEFAULT 0.0,
 
             -- Deduplication & integrity
             content_hash      TEXT     DEFAULT NULL,    -- SHA256 hash dari content untuk detect duplikasi
@@ -186,6 +188,8 @@ def init_beasiswa_db():
         "ALTER TABLE beasiswa ADD COLUMN deadline        TEXT DEFAULT NULL",
         "ALTER TABLE beasiswa ADD COLUMN content_hash    TEXT DEFAULT NULL",
         "ALTER TABLE beasiswa ADD COLUMN data_json       TEXT DEFAULT NULL",
+        "ALTER TABLE beasiswa ADD COLUMN toefl_minimal   INTEGER DEFAULT 0",
+        "ALTER TABLE beasiswa ADD COLUMN ielts_minimal   REAL DEFAULT 0.0",
     ]
     for sql in migrasi_kolom:
         try:
@@ -808,11 +812,25 @@ def safe_update_beasiswa_batch(
                     conn=conn
                 )
 
-                if progress_callback and i % 20 == 0:
-                    progress_callback(f"  ⏭️  Skip duplikat: {row['nama_beasiswa'][:50]}")
-
             else:
                 # INSERT baru
+                from normalizer import is_deadline_active
+                if not is_deadline_active(entry):
+                    dedup_stats['skipped'] += 1
+                    record_dedup_log(
+                        sumber_website=sumber_website,
+                        status_duplikasi='EXPIRED_NEW_ENTRY',
+                        beasiswa_id_new=None,
+                        beasiswa_id_existing=None,
+                        nama_beasiswa=row.get('nama_beasiswa'),
+                        url_sumber_baru=url,
+                        hash_baru=hash_val,
+                        action_taken='SKIP',
+                        sesi_scraping_id=sesi_id,
+                        conn=conn
+                    )
+                    continue
+
                 cur.execute("""
                     INSERT INTO beasiswa (
                         nama, url, url_resmi, sumber_website,
@@ -842,7 +860,6 @@ def safe_update_beasiswa_batch(
                     conn=conn
                 )
 
-            # Progress report
             if progress_callback and i % 10 == 0:
                 progress_callback(
                     f"  Proses data... [{i}/{len(entries)}] "

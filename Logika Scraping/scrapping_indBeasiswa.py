@@ -19,7 +19,7 @@ from normalizer import (
     parse_tanggal_indonesia, extract_deadlines, extract_ipk,
     extract_toefl, extract_ielts,
     extract_jenjang, extract_lokasi, normalize_beasiswa,
-    is_mahasiswa_only, is_year_2026_or_later
+    is_mahasiswa_only, is_year_2026_or_later, is_deadline_active
 )
 
 logging.basicConfig(filename='scraper.log', level=logging.INFO,
@@ -30,11 +30,11 @@ SOURCES = {
     'indbeasiswa_listing': 'https://indbeasiswa.com/daftar-beasiswa-2026-beasiswa-2027/',
     'indbeasiswa_s1': 'https://indbeasiswa.com/beasiswa-s1/',
     'indbeasiswa_s2': 'https://indbeasiswa.com/beasiswa-s2/',
+    'indbeasiswa_s3': 'https://indbeasiswa.com/beasiswa-s3/',
+    'indbeasiswa_diploma': 'https://indbeasiswa.com/beasiswa-diploma/',
 }
-
-
 def create_driver():
-    """Buat instance Chrome driver headless."""
+    """Buat instance Chrome driver headless dengan optimasi performa."""
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--log-level=3")
@@ -46,9 +46,9 @@ def create_driver():
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     )
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_options.add_experimental_option("prefs", prefs)
     return webdriver.Chrome(options=chrome_options)
-
-
 def scrape_listing_page(driver, url, progress_callback=None):
     """
     Scrape halaman listing utama daftar beasiswa 2026-2027.
@@ -58,7 +58,7 @@ def scrape_listing_page(driver, url, progress_callback=None):
         progress_callback("Mengakses halaman listing beasiswa...")
 
     driver.get(url)
-    time.sleep(3)
+    time.sleep(1)
 
     beasiswa_list = []
 
@@ -103,6 +103,56 @@ def scrape_listing_page(driver, url, progress_callback=None):
 
     if progress_callback:
         progress_callback(f"Total {len(beasiswa_list)} beasiswa ditemukan dari listing.")
+
+    return beasiswa_list
+
+
+def scrape_category_page(driver, url, progress_callback=None):
+    """
+    Scrape list beasiswa dari halaman kategori (seperti beasiswa-s1, beasiswa-s2).
+    Mengambil URL dan judul beasiswa dari daftar artikel.
+    """
+    if progress_callback:
+        progress_callback(f"Mengakses halaman kategori: {url}...")
+
+    driver.get(url)
+    time.sleep(1)
+
+    beasiswa_list = []
+
+    try:
+        # Cari semua link judul artikel
+        # Selector umum: h2.entry-title a, h2.td-module-title a, .td-module-title a, h2 a
+        elements = driver.find_elements(By.CSS_SELECTOR, "h2.entry-title a, h2.td-module-title a, .td-module-title a, h2 a")
+        
+        seen_urls = set()
+        for el in elements:
+            try:
+                href = el.get_attribute("href")
+                title = el.text.strip()
+                
+                if href and title and href not in seen_urls:
+                    # Pastikan ini link artikel beasiswa, bukan link kategori / author
+                    if '/category/' in href or '/author/' in href or href == 'https://indbeasiswa.com/':
+                        continue
+                    title_lower = title.lower()
+                    if 'easiswa' in title_lower or 'program' in title_lower or 'fellowship' in title_lower or 'kuliah' in title_lower:
+                        seen_urls.add(href)
+                        beasiswa_list.append({
+                            'nama_beasiswa': title,
+                            'url_sumber': href,
+                            'full_text': title,  # Fallback text awal
+                        })
+            except Exception:
+                continue
+
+    except Exception as e:
+        logging.error(f"Error scraping category page {url}: {e}")
+        if progress_callback:
+            progress_callback(f"Error pada halaman kategori: {str(e)[:100]}")
+
+    if progress_callback:
+        progress_callback(f"Menemukan {len(beasiswa_list)} beasiswa dari halaman kategori.")
 
     return beasiswa_list
 
@@ -202,7 +252,7 @@ def scrape_detail_page(driver, url, progress_callback=None):
     """
     try:
         driver.get(url)
-        time.sleep(2)
+        time.sleep(0.5)
 
         detail = {
             'full_text': '',
@@ -279,10 +329,9 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
 
         driver = create_driver()
         all_entries = []
-
-        # Tahap 1: Scrape halaman listing utama
+        # Tahap 1: Scrape halaman listing utama & kategori lainnya
         if progress_callback:
-            progress_callback("Tahap 1: Scraping halaman listing...")
+            progress_callback("Tahap 1: Scraping halaman listing utama...")
 
         listing_data = scrape_listing_page(
             driver,
@@ -291,12 +340,29 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
         )
         all_entries.extend(listing_data)
 
+        # Scrape halaman kategori lainnya
+        for key, url in SOURCES.items():
+            if key != 'indbeasiswa_listing' and url:
+                if cancelled_check and cancelled_check():
+                    return []
+                cat_data = scrape_category_page(driver, url, progress_callback)
+                all_entries.extend(cat_data)
+
+        # Deduplicate all_entries by URL
+        seen_urls = set()
+        dedup_entries = []
+        for entry in all_entries:
+            url = entry.get('url_sumber')
+            if url and url not in seen_urls:
+                seen_urls.add(url)
+                dedup_entries.append(entry)
+        all_entries = dedup_entries
+
         if cancelled_check and cancelled_check():
             return []
 
         if progress_callback:
-            progress_callback(f"Tahap 1 selesai: {len(all_entries)} beasiswa ditemukan.")
-
+            progress_callback(f"Tahap 1 selesai: {len(all_entries)} beasiswa unik ditemukan.")
         # Filter: hanya beasiswa untuk mahasiswa (D3/D4/S1/S2/S3)
         # Beasiswa khusus SMA/SMK sederajat ke bawah akan dibuang
         filtered = []
@@ -370,7 +436,7 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
                     if detail.get('full_text'):
                         entry['full_text'] = detail['full_text']
 
-                time.sleep(1)  # Respect rate limit
+                time.sleep(0.3)  # Respect rate limit
 
         # Tahap 3: Normalize semua data
         if progress_callback:
@@ -389,7 +455,7 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
         removed_lang = 0
         
         for norm in normalized:
-            # 1. Cek tahun
+            # 1. Cek tahun (2026 ke atas)
             if not is_year_2026_or_later(norm):
                 removed_year += 1
                 if progress_callback:
@@ -405,21 +471,16 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
                     progress_callback(f"  ⛔ Dibuang akhir (SMA/SMK): {norm.get('nama_beasiswa', '')[:60]}")
                 continue
             
-            # 3. Cek TOEFL/IELTS
-            if (norm.get('syarat_toefl', 0) > 0) or (norm.get('syarat_ielts', 0.0) > 0.0):
-                final_normalized.append(norm)
-            else:
-                removed_lang += 1
-                if progress_callback:
-                    progress_callback(f"  ⛔ Dibuang akhir (Tanpa TOEFL/IELTS): {norm.get('nama_beasiswa', '')[:60]}")
+            # 3. Loloskan beasiswa (tidak membatasi harus ada TOEFL/IELTS)
+            final_normalized.append(norm)
         
         normalized = final_normalized
 
         if progress_callback:
-            if removed_year > 0 or removed_level > 0 or removed_lang > 0:
+            if removed_year > 0 or removed_level > 0:
                 progress_callback(
                     f"Filter akhir: {len(normalized)} beasiswa lolos. Dibuang: "
-                    f"{removed_year} tahun lama, {removed_level} non-PT, {removed_lang} tanpa TOEFL/IELTS."
+                    f"{removed_year} tahun lama, {removed_level} non-PT."
                 )
             progress_callback(f"Scraping selesai! Total: {len(normalized)} beasiswa.")
 
@@ -434,12 +495,16 @@ def jalankan_scraper_beasiswa(progress_callback=None, scrape_details=True,
     finally:
         if driver:
             driver.quit()
-
-
 if __name__ == '__main__':
+    import sys
+    if sys.platform.startswith('win'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except AttributeError:
+            pass
+
     def print_progress(msg):
         print(f"[PROGRESS] {msg}")
-
     hasil = jalankan_scraper_beasiswa(
         progress_callback=print_progress,
         scrape_details=False,
