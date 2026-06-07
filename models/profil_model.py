@@ -66,6 +66,7 @@ def init_profil_db():
     migrations = [
         "ALTER TABLE profil ADD COLUMN aktif_organisasi INTEGER DEFAULT 0",
         "ALTER TABLE profil ADD COLUMN avatar TEXT",
+        "ALTER TABLE profil ADD COLUMN penghasilan_ortu INTEGER DEFAULT 0",
     ]
     for sql in migrations:
         try:

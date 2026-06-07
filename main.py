@@ -296,6 +296,15 @@ class BeaplyMainWindow(QMainWindow):
     }
 
     def _navigate(self, key: str):
+        # Keep rekomendasi page alive if it already has results
+        if key == "rekomendasi" and key in self._pages:
+            page = self._pages[key]
+            if getattr(page, '_results', None):
+                self._content_stack.setCurrentWidget(page)
+                title_key = self.TITLES.get(key, key)
+                self._topbar.set_title(_t(title_key, self._bhs))
+                self._sidebar.set_active(key)
+                return
         # Rebuild page with fresh data each time
         self._build_page(key)
         self._content_stack.setCurrentWidget(self._pages[key])

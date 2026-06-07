@@ -75,9 +75,9 @@ DAFTAR_FAQ = [
         "jawaban": "Fitur rekomendasi mencocokkan profil Anda dengan database beasiswa dan memberikan skor kecocokan untuk setiap beasiswa."
     },
     {
-        "pertanyaan": "Apa itu Beaply Pro?",
-        "jawaban": "Beaply Pro adalah fitur premium yang membuka akses semua skor rekomendasi beasiswa dan fitur-fitur advanced lainnya."
-    },
+        "pertanyaan": "Bagaimana cara kerja fitur Pencarian Cerdas?",
+        "jawaban": "Fitur pencarian cerdas mencocokkan profil Anda dengan database beasiswa dan memberikan skor kecocokan untuk setiap beasiswa."
+    }
 ]
 
 

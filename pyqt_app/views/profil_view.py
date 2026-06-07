@@ -212,7 +212,11 @@ class ProfilView(QWidget):
                            (_t("lb_jenjang", self._bhs), profil.get("jenjang")),
                            (_t("lb_semester", self._bhs), profil.get("semester")),
                            (_t("lb_ip", self._bhs), f"{profil.get('ip', 0):.2f}"),
-                           (_t("lb_kip", self._bhs), _t("v_ya", self._bhs) if profil.get("status_kip") else _t("v_tidak", self._bhs))]:
+                           (_t("lb_kip", self._bhs), _t("v_ya", self._bhs) if profil.get("status_kip") else _t("v_tidak", self._bhs)),
+                           ("Aktif Organisasi" if self._bhs == "id" else "Active in Organization",
+                            _t("v_ya", self._bhs) if profil.get("aktif_organisasi") else _t("v_tidak", self._bhs)),
+                           ("Penghasilan Orang Tua" if self._bhs == "id" else "Parent Income",
+                            f"Rp {profil.get('penghasilan_ortu', 0):,.0f}".replace(',', '.') if profil.get('penghasilan_ortu') else ("Belum diisi" if self._bhs == "id" else "Not filled"))]:
             self._info_row(a_lay, label, val, c)
         sl.addWidget(a_card)
 
@@ -388,6 +392,53 @@ class ProfilView(QWidget):
         self._jlpt_cb.setFixedWidth(200)
         cl.addWidget(self._jlpt_cb)
         sl.addWidget(card)
+
+        # ── Additional Info: KIP, Organisasi, Penghasilan ──
+        sl.addSpacing(16)
+        sl.addWidget(self._bold("Informasi Tambahan" if self._bhs == "id" else "Additional Info", 13))
+
+        # Status KIP
+        card_kip = QFrame()
+        card_kip.setProperty("frameClass", "card")
+        cl_kip = QHBoxLayout(card_kip)
+        cl_kip.setContentsMargins(16, 10, 16, 10)
+        cl_kip.addWidget(self._bold("Penerima KIP" if self._bhs == "id" else "KIP Recipient", 11))
+        self._kip_cb = QComboBox()
+        self._kip_cb.addItems(["Tidak", "Ya"])
+        self._kip_cb.setCurrentIndex(1 if profil.get("status_kip") else 0)
+        self._kip_cb.setFixedWidth(200)
+        cl_kip.addWidget(self._kip_cb)
+        sl.addWidget(card_kip)
+
+        # Aktif Organisasi
+        card_org = QFrame()
+        card_org.setProperty("frameClass", "card")
+        cl_org = QHBoxLayout(card_org)
+        cl_org.setContentsMargins(16, 10, 16, 10)
+        cl_org.addWidget(self._bold("Aktif Organisasi" if self._bhs == "id" else "Active in Organization", 11))
+        self._org_cb = QComboBox()
+        self._org_cb.addItems(["Tidak", "Ya"])
+        self._org_cb.setCurrentIndex(1 if profil.get("aktif_organisasi") else 0)
+        self._org_cb.setFixedWidth(200)
+        cl_org.addWidget(self._org_cb)
+        sl.addWidget(card_org)
+
+        # Penghasilan Orang Tua
+        card_peng = QFrame()
+        card_peng.setProperty("frameClass", "card")
+        cl_peng = QHBoxLayout(card_peng)
+        cl_peng.setContentsMargins(16, 10, 16, 10)
+        cl_peng.addWidget(self._bold("Penghasilan Ortu (Rp)" if self._bhs == "id" else "Parent Income (Rp)", 11))
+        self._peng_entry = QLineEdit()
+        self._peng_entry.setFixedWidth(200)
+        self._peng_entry.setMinimumHeight(46)
+        self._peng_entry.setPlaceholderText("contoh: 5000000")
+        peng_val = profil.get("penghasilan_ortu", 0)
+        if peng_val and peng_val > 0:
+            self._peng_entry.setText(str(peng_val))
+        cl_peng.addWidget(self._peng_entry)
+        sl.addWidget(card_peng)
+
         sl.addStretch()
         scroll.setWidget(sw)
         wl.addWidget(scroll)
@@ -409,10 +460,15 @@ class ProfilView(QWidget):
             val = entry.text().strip()
             data_baru[key] = val
             
-        # Add default for status_kip and aktif_organisasi as they might not be in the form
+        # Add KIP, organisasi, penghasilan from the new combo/entry fields
         profil = tampil_profil(self._pid)
-        data_baru["status_kip"] = profil.get("status_kip", 0)
-        data_baru["aktif_organisasi"] = profil.get("aktif_organisasi", 0)
+        data_baru["status_kip"] = 1 if self._kip_cb.currentIndex() == 1 else 0
+        data_baru["aktif_organisasi"] = 1 if self._org_cb.currentIndex() == 1 else 0
+        peng_text = self._peng_entry.text().strip()
+        try:
+            data_baru["penghasilan_ortu"] = int(peng_text) if peng_text else 0
+        except ValueError:
+            data_baru["penghasilan_ortu"] = 0
 
         # Optional fields
         for key, entry in self._opt_entries.items():

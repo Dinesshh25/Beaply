@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QCursor
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette
+from pyqt_app.styles.theme import FONT_FAMILY, palette, grad_peach
 from controllers.bantuan_controller import get_faq_list, submit_feedback
 
 
@@ -95,12 +95,20 @@ class BantuanView(QWidget):
 
         sb = QPushButton("Submit Report")
         sb.setFixedHeight(38)
-        sb.setStyleSheet(f"""
-            QPushButton {{ background: #F6D6D0; color: {c['text_dark']};
-                           border: none; border-radius: 10px;
-                           font-weight: bold; font-size: 13px; }}
-            QPushButton:hover {{ background: #F0C0B8; }}
-        """)
+        if self._mode == 'dark':
+            sb.setStyleSheet(f"""
+                QPushButton {{ background: {c['btn_primary']}; color: #1A1A1A;
+                               border: none; border-radius: 10px;
+                               font-weight: bold; font-size: 13px; }}
+                QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
+            """)
+        else:
+            sb.setStyleSheet(f"""
+                QPushButton {{ background: #F6D6D0; color: {c['text_dark']};
+                               border: none; border-radius: 10px;
+                               font-weight: bold; font-size: 13px; }}
+                QPushButton:hover {{ background: #F0C0B8; }}
+            """)
         sb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         sb.clicked.connect(self._submit)
         rl.addWidget(sb)
