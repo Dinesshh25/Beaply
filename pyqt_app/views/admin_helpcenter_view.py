@@ -9,14 +9,126 @@ Admin can reply to user feedback, and the reply is sent as a notification.
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QComboBox, QMessageBox,
-    QDialog, QTextEdit, QLineEdit
+    QDialog, QTextEdit, QLineEdit, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QCursor
+from PyQt6.QtGui import QFont, QCursor, QColor, QPainter, QLinearGradient
 from datetime import datetime
 
-from pyqt_app.styles.theme import FONT_FAMILY, palette
+from pyqt_app.styles.theme import FONT_FAMILY, palette, grad_green
 from controllers.admin_controller import get_all_feedback, delete_feedback
+
+def show_custom_msgbox(parent, title, text, c, icon=QMessageBox.Icon.Information, is_question=False):
+    msg = QMessageBox(parent)
+    msg.setWindowTitle(title)
+    msg.setText(text)
+    msg.setIcon(icon)
+    if is_question:
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+    msg.setStyleSheet(f"QMessageBox {{ background-color: {c['card']}; }} QLabel {{ color: {c['text_dark']}; }} QPushButton {{ background: {c['btn_pale']}; color: {c['text_dark']}; border-radius: 4px; padding: 4px 12px; min-width: 60px; }}")
+    return msg.exec()
+
+class ReplyFeedbackDialog(QDialog):
+    def __init__(self, fb, mode, parent=None):
+        super().__init__(parent)
+        self.fb = fb
+        self.mode = mode
+        self._c = palette(mode)
+        
+        self.setWindowTitle("Reply to Feedback")
+        self.setFixedSize(520, 420)
+        self.setStyleSheet("QDialog { background: transparent; }")
+        
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(20, 20, 20, 20)
+        
+        self.content_frame = QFrame()
+        _content_bg = 'rgba(255, 255, 255, 0.85)' if self.mode == 'light' else f'rgba(41, 42, 45, 0.95)'
+        self.content_frame.setStyleSheet(f"QFrame {{ background-color: {_content_bg}; border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
+        
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setOffset(0, 4)
+        self.content_frame.setGraphicsEffect(shadow)
+        
+        dl = QVBoxLayout(self.content_frame)
+        dl.setContentsMargins(24, 20, 24, 20)
+        dl.setSpacing(10)
+        
+        title = QLabel("Reply to User Feedback")
+        title.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
+        dl.addWidget(title)
+        
+        def _lbl(text):
+            l = QLabel(text)
+            l.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+            return l
+            
+        dl.addWidget(_lbl("Category:"))
+        cat_lbl = QLabel(fb.get("kategori", "N/A"))
+        cat_lbl.setStyleSheet(f"font-size: 12px; padding: 4px;")
+        dl.addWidget(cat_lbl)
+        
+        dl.addWidget(_lbl("User:"))
+        user_lbl = QLabel(str(fb.get("id_user", "N/A")))
+        user_lbl.setStyleSheet(f"font-size: 12px; padding: 4px;")
+        dl.addWidget(user_lbl)
+        
+        dl.addWidget(_lbl("Message:"))
+        msg_lbl = QLabel(fb.get("pesan", ""))
+        msg_lbl.setWordWrap(True)
+        msg_lbl.setStyleSheet(
+            f"font-size: 12px; "
+            f"background: {self._c['input_bg']}; border-radius: 8px; padding: 10px;"
+        )
+        dl.addWidget(msg_lbl)
+        
+        dl.addWidget(_lbl("Your Reply:"))
+        self.reply_box = QTextEdit()
+        self.reply_box.setFixedHeight(100)
+        self.reply_box.setPlaceholderText("Type your reply here...")
+        self.reply_box.setStyleSheet(f"""
+            QTextEdit {{
+                background: {self._c['input_bg']};
+                color: {self._c['text_dark']};
+                border: none; border-radius: 10px;
+                padding: 10px; font-size: 12px;
+            }}
+            QTextEdit:focus {{ border: 2px solid {self._c['btn_primary']}; }}
+        """)
+        if fb.get("admin_reply"):
+            self.reply_box.setPlainText(fb["admin_reply"])
+        dl.addWidget(self.reply_box)
+        
+        dl.addStretch()
+        
+        send_btn = QPushButton("📤 Send Reply & Notify User")
+        send_btn.setFixedHeight(42)
+        send_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {self._c['btn_primary']};
+                color: {self._c['text_dark']};
+                border: none; border-radius: 10px;
+                font-weight: bold; font-size: 13px;
+            }}
+            QPushButton:hover {{ background: {self._c['btn_primary_hover']}; }}
+        """)
+        send_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        send_btn.clicked.connect(self.accept)
+        dl.addWidget(send_btn)
+        
+        main_lay.addWidget(self.content_frame)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        grad = QLinearGradient(0, 0, self.width(), self.height())
+        grad.setColorAt(0.0, QColor(self._c.get('grad_peach_start', '#F7D0B7')))
+        grad.setColorAt(1.0, QColor(self._c.get('grad_green_start', '#D6EAD8')))
+        painter.fillRect(self.rect(), grad)
+        painter.end()
+        super().paintEvent(event)
 
 
 class AdminHelpCenterView(QWidget):
@@ -75,16 +187,30 @@ class AdminHelpCenterView(QWidget):
         self._cat_cb.addItems(["Select Category", "Bug Report", "Suggestion", "Question", "Other"])
         self._cat_cb.setFixedHeight(36)
         self._cat_cb.setFixedWidth(200)
+        self._cat_cb.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self._cat_cb.setStyleSheet(f"""
             QComboBox {{
-                background: {c['card']};
-                border: 1px solid {c['border']};
+                background: {grad_green(c)};
+                color: {c['text_dark']};
+                border: none;
                 border-radius: 10px;
-                padding: 6px 12px;
+                padding: 6px 16px;
                 font-size: 12px;
+                font-weight: bold;
+            }}
+            QComboBox:hover {{
+                background: {c['btn_pale']};
             }}
             QComboBox::drop-down {{
                 border: none; width: 30px;
+            }}
+            QComboBox QAbstractItemView {{
+                background: {c['card']};
+                color: {c['text_dark']};
+                border: 1px solid {c['border']};
+                selection-background-color: {c['btn_primary']};
+                selection-color: {c['text_dark']};
+                outline: none;
             }}
         """)
         self._cat_cb.currentTextChanged.connect(self._on_cat_change)
@@ -172,8 +298,12 @@ class AdminHelpCenterView(QWidget):
 
     def _make_feedback_card(self, fb: dict, c: dict) -> QFrame:
         has_reply = bool(fb.get("admin_reply"))
-        border_color = "#D6EAD8" if has_reply else "#E8DDD4"
-        bg_color = "#F5FAF6" if has_reply else "#FBF7F4"
+        if self._mode == "dark":
+            border_color = "#2D6B3E" if has_reply else "#6B5A40"
+            bg_color = "#1E2A22" if has_reply else "#2A241E"
+        else:
+            border_color = "#D6EAD8" if has_reply else "#E8DDD4"
+            bg_color = "#F5FAF6" if has_reply else "#FBF7F4"
 
         card = QFrame()
         card.setStyleSheet(f"""
@@ -277,98 +407,26 @@ class AdminHelpCenterView(QWidget):
 
     def _reply_feedback(self, fb):
         """Open reply dialog for a feedback entry."""
-        c = palette(self._mode)
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Reply to Feedback")
-        dlg.setMinimumSize(520, 420)
-        dl = QVBoxLayout(dlg)
-        dl.setContentsMargins(24, 20, 24, 20)
-        dl.setSpacing(10)
-
-        title = QLabel("Reply to User Feedback")
-        title.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
-        dl.addWidget(title)
-
-        # Show original message
-        dl.addWidget(self._dlg_label("Category:", c))
-        cat_lbl = QLabel(fb.get("kategori", "N/A"))
-        cat_lbl.setStyleSheet(f"color: {c['text_dark']}; font-size: 12px; padding: 4px;")
-        dl.addWidget(cat_lbl)
-
-        dl.addWidget(self._dlg_label("User:", c))
-        user_lbl = QLabel(str(fb.get("id_user", "N/A")))
-        user_lbl.setStyleSheet(f"color: {c['text_dark']}; font-size: 12px; padding: 4px;")
-        dl.addWidget(user_lbl)
-
-        dl.addWidget(self._dlg_label("Message:", c))
-        msg_lbl = QLabel(fb.get("pesan", ""))
-        msg_lbl.setWordWrap(True)
-        msg_lbl.setStyleSheet(
-            f"color: {c['text_dark']}; font-size: 12px; "
-            f"background: {c['input_bg']}; border-radius: 8px; padding: 10px;"
-        )
-        dl.addWidget(msg_lbl)
-
-        dl.addWidget(self._dlg_label("Your Reply:", c))
-        reply_box = QTextEdit()
-        reply_box.setFixedHeight(100)
-        reply_box.setPlaceholderText("Type your reply here...")
-        reply_box.setStyleSheet(f"""
-            QTextEdit {{
-                background: {c['input_bg']};
-                border: none; border-radius: 10px;
-                padding: 10px; font-size: 12px;
-            }}
-            QTextEdit:focus {{ border: 2px solid {c['btn_primary']}; }}
-        """)
-        # Pre-fill with existing reply if any
-        if fb.get("admin_reply"):
-            reply_box.setPlainText(fb["admin_reply"])
-        dl.addWidget(reply_box)
-
-        dl.addStretch()
-
-        send_btn = QPushButton("📤 Send Reply & Notify User")
-        send_btn.setFixedHeight(42)
-        send_btn.setStyleSheet(f"""
-            QPushButton {{
-                background: {c['btn_primary']};
-                color: {c['text_dark']};
-                border: none; border-radius: 10px;
-                font-weight: bold; font-size: 13px;
-            }}
-            QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
-        """)
-        send_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-        def do_send():
-            reply_text = reply_box.toPlainText().strip()
+        dlg = ReplyFeedbackDialog(fb, self._mode, self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            reply_text = dlg.reply_box.toPlainText().strip()
+            c = palette(self._mode)
             if not reply_text:
-                QMessageBox.warning(dlg, "Warning", "Reply cannot be empty!")
+                show_custom_msgbox(self, "Warning", "Reply cannot be empty!", c, QMessageBox.Icon.Warning)
                 return
 
-            # Save reply to feedback JSON
             from controllers.admin_controller import reply_to_feedback
             ok, msg = reply_to_feedback(fb.get("_index", -1), reply_text)
             if not ok:
-                QMessageBox.critical(dlg, "Error", msg)
+                show_custom_msgbox(self, "Error", msg, c, QMessageBox.Icon.Critical)
                 return
 
-            # Send notification to user
             user_id = fb.get("id_user")
             if user_id and str(user_id) != "Guest":
                 self._send_reply_notification(user_id, fb.get("kategori", "Feedback"), reply_text)
 
-            QMessageBox.information(dlg, "Success",
-                "Reply sent successfully!\n"
-                "The user will see it in their notifications."
-            )
-            dlg.accept()
+            show_custom_msgbox(self, "Success", "Reply sent successfully!\nThe user will see it in their notifications.", c, QMessageBox.Icon.Information)
             self._rebuild()
-
-        send_btn.clicked.connect(do_send)
-        dl.addWidget(send_btn)
-        dlg.exec()
 
     def _send_reply_notification(self, user_id, kategori, reply_text):
         """Send notification to the user who submitted feedback."""
@@ -415,13 +473,14 @@ class AdminHelpCenterView(QWidget):
         return l
 
     def _del_feedback(self, idx):
-        r = QMessageBox.question(self, "Delete", "Delete this feedback?")
+        c = palette(self._mode)
+        r = show_custom_msgbox(self, "Delete", "Delete this feedback?", c, QMessageBox.Icon.Question, True)
         if r == QMessageBox.StandardButton.Yes:
             ok, msg = delete_feedback(idx)
             if ok:
                 self._rebuild()
             else:
-                QMessageBox.critical(self, "Error", msg)
+                show_custom_msgbox(self, "Error", msg, c, QMessageBox.Icon.Critical)
 
     def _show_detail(self, fb):
         msg = f"Category: {fb.get('kategori', 'N/A')}\n"

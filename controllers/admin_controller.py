@@ -85,6 +85,21 @@ def delete_user(user_id: str) -> tuple[bool, str]:
         return False, str(e)
 
 
+def update_user(user_id: str, nama_lengkap: str, email: str) -> tuple[bool, str]:
+    """Update user and profile data."""
+    try:
+        conn = get_connection()
+        # Update users table
+        conn.execute("UPDATE users SET nama_lengkap = ?, email = ? WHERE id = ?", (nama_lengkap, email, user_id))
+        # Update profil table
+        conn.execute("UPDATE profil SET nama = ?, email = ? WHERE user_id = ?", (nama_lengkap, email, user_id))
+        conn.commit()
+        conn.close()
+        return True, "User updated successfully."
+    except Exception as e:
+        return False, str(e)
+
+
 def get_user_count() -> int:
     """Get total user count."""
     conn = get_connection()

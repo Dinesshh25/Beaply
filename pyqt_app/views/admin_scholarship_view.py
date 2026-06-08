@@ -8,15 +8,25 @@ Bottom: Publish to Users + Auto Scrap buttons.
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QPushButton, QScrollArea, QMessageBox, QDialog, QLineEdit,
-    QProgressBar
+    QProgressBar, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QFont, QCursor
+from PyQt6.QtGui import QFont, QCursor, QColor, QPainter, QLinearGradient
 import os
 import sys
 
 from pyqt_app.styles.theme import FONT_FAMILY, palette
 from controllers.admin_controller import get_all_beasiswa_admin, delete_beasiswa
+
+def show_custom_msgbox(parent, title, text, c, icon=QMessageBox.Icon.Information, is_question=False):
+    msg = QMessageBox(parent)
+    msg.setWindowTitle(title)
+    msg.setText(text)
+    msg.setIcon(icon)
+    if is_question:
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+    msg.setStyleSheet(f"QMessageBox {{ background-color: {c['card']}; }} QLabel {{ color: {c['text_dark']}; }} QPushButton {{ background: {c['btn_pale']}; color: {c['text_dark']}; border-radius: 4px; padding: 4px 12px; min-width: 60px; }}")
+    return msg.exec()
 from models.database import get_connection
 
 
@@ -63,6 +73,98 @@ def _is_perguruan_tinggi(jenjang_str: str) -> bool:
     # Fallback: comma/slash separated
     parts = [p.strip().upper() for p in s.replace("/", ",").split(",")]
     return any(p in JENJANG_PT for p in parts)
+
+
+class EditScholarshipDialog(QDialog):
+    def __init__(self, bea, mode, parent=None):
+        super().__init__(parent)
+        self.bea = bea
+        self.mode = mode
+        self._c = palette(mode)
+        
+        self.setWindowTitle("Edit Scholarship")
+        self.setFixedSize(560, 480)
+        self.setStyleSheet("QDialog { background: transparent; }")
+        
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(20, 20, 20, 20)
+        
+        self.content_frame = QFrame()
+        _content_bg = 'rgba(255, 255, 255, 0.85)' if self.mode == 'light' else f'rgba(41, 42, 45, 0.95)'
+        self.content_frame.setStyleSheet(f"QFrame {{ background-color: {_content_bg}; border-radius: 20px; }} QLabel {{ background: transparent; color: {self._c['text_dark']}; }}")
+        
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setOffset(0, 4)
+        self.content_frame.setGraphicsEffect(shadow)
+        
+        dl = QVBoxLayout(self.content_frame)
+        dl.setContentsMargins(28, 24, 28, 24)
+        dl.setSpacing(8)
+        
+        title = QLabel("Edit Scholarship")
+        title.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
+        dl.addWidget(title)
+        dl.addSpacing(4)
+        
+        self.fields = {}
+        for label, key, val in [
+            ("Name", "nama", bea.get("nama", "")),
+            ("Organizer", "penyelenggara", bea.get("penyelenggara", "")),
+            ("Degree", "jenjang", bea.get("jenjang", "")),
+            ("Deadline", "deadline", bea.get("deadline", "")),
+            ("URL", "url", bea.get("url", "")),
+        ]:
+            lbl = QLabel(label)
+            lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
+            dl.addWidget(lbl)
+            inp = QLineEdit(str(val) if val else "")
+            inp.setFixedHeight(38)
+            inp.setStyleSheet(f"""
+                QLineEdit {{
+                    padding: 8px 14px;
+                    font-size: 13px;
+                    background: {self._c['input_bg']};
+                    color: {self._c['text_dark']};
+                    border: none;
+                    border-radius: 10px;
+                }}
+                QLineEdit:focus {{
+                    border: 2px solid {self._c['btn_primary']};
+                }}
+            """)
+            dl.addWidget(inp)
+            self.fields[key] = inp
+            
+        dl.addStretch()
+        
+        save = QPushButton("Save Changes")
+        save.setFixedHeight(40)
+        save.setStyleSheet(f"""
+            QPushButton {{
+                background: {self._c['btn_primary']};
+                color: {self._c['text_dark']};
+                border: none; border-radius: 10px;
+                font-weight: bold; font-size: 13px;
+            }}
+            QPushButton:hover {{ background: {self._c['btn_primary_hover']}; }}
+        """)
+        save.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        save.clicked.connect(self.accept)
+        dl.addWidget(save)
+        
+        main_lay.addWidget(self.content_frame)
+        
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        grad = QLinearGradient(0, 0, self.width(), self.height())
+        grad.setColorAt(0.0, QColor(self._c.get('grad_peach_start', '#F7D0B7')))
+        grad.setColorAt(1.0, QColor(self._c.get('grad_green_start', '#D6EAD8')))
+        painter.fillRect(self.rect(), grad)
+        painter.end()
+        super().paintEvent(event)
 
 
 class AdminScholarshipView(QWidget):
@@ -193,8 +295,12 @@ class AdminScholarshipView(QWidget):
     # ── Card builder ─────────────────────────────────────────
     def _make_card(self, bea: dict, c: dict) -> QFrame:
         is_pt = _is_perguruan_tinggi(bea.get("jenjang", ""))
-        border_color = "#D6EAD8" if is_pt else "#F5D0D0"
-        bg_color = "#F5FAF6" if is_pt else "#FFF5F5"
+        if self._mode == "dark":
+            border_color = "#2D6B3E" if is_pt else "#6B2D2D"
+            bg_color = "#1E2A22" if is_pt else "#2A1E1E"
+        else:
+            border_color = "#D6EAD8" if is_pt else "#F5D0D0"
+            bg_color = "#F5FAF6" if is_pt else "#FFF5F5"
 
         card = QFrame()
         card.setStyleSheet(f"""
@@ -284,18 +390,17 @@ class AdminScholarshipView(QWidget):
         """Remove all non-PT (non perguruan tinggi) scholarships from database."""
         beasiswa_list = get_all_beasiswa_admin()
         non_pt = [b for b in beasiswa_list if not _is_perguruan_tinggi(b.get("jenjang", ""))]
+        c = palette(self._mode)
 
         if not non_pt:
-            QMessageBox.information(self, "Info", "All scholarships are already PT-level!")
+            show_custom_msgbox(self, "Info", "All scholarships are already PT-level!", c, QMessageBox.Icon.Information)
             return
 
-        r = QMessageBox.question(
-            self, "Publish to Users",
-            f"This will DELETE {len(non_pt)} non-perguruan-tinggi scholarships "
-            f"(SMA, etc.) from the database.\n\n"
-            f"Users will only see D3/D4/S1/S2/S3 scholarships.\n\n"
-            f"Continue?"
-        )
+        text = (f"This will DELETE {len(non_pt)} non-perguruan-tinggi scholarships "
+                f"(SMA, etc.) from the database.\n\n"
+                f"Users will only see D3/D4/S1/S2/S3 scholarships.\n\n"
+                f"Continue?")
+        r = show_custom_msgbox(self, "Publish to Users", text, c, QMessageBox.Icon.Question, True)
         if r != QMessageBox.StandardButton.Yes:
             return
 
@@ -307,14 +412,12 @@ class AdminScholarshipView(QWidget):
                 deleted += 1
             conn.commit()
             conn.close()
-            QMessageBox.information(
-                self, "Success",
-                f"✅ Removed {deleted} non-PT scholarships.\n"
-                f"Users will now see only perguruan tinggi scholarships."
-            )
+            success_msg = (f"✅ Removed {deleted} non-PT scholarships.\n"
+                           f"Users will now see only perguruan tinggi scholarships.")
+            show_custom_msgbox(self, "Success", success_msg, c, QMessageBox.Icon.Information)
             self._rebuild()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed: {e}")
+            show_custom_msgbox(self, "Error", f"Failed: {e}", c, QMessageBox.Icon.Critical)
 
     def _start_scraping(self):
         self.scrap_btn.setEnabled(False)
@@ -322,10 +425,9 @@ class AdminScholarshipView(QWidget):
         self.status_label.setText("⏳ Sedang mengambil data (Est. 10-15 menit). Mohon tunggu...")
         self.status_label.show()
 
-        QMessageBox.information(
-            self, "Info", 
-            "Auto scraping started in the background.\nPlease check the terminal for detailed progress."
-        )
+        c = palette(self._mode)
+        show_custom_msgbox(self, "Info", "Auto scraping started in the background.\nPlease check the terminal for detailed progress.", c, QMessageBox.Icon.Information)
+        
         self.worker = ScrapWorker()
         self.worker.finished_signal.connect(self._on_scrap_finished)
         self.worker.error_signal.connect(self._on_scrap_error)
@@ -337,12 +439,9 @@ class AdminScholarshipView(QWidget):
             self.scrap_btn.setText("🔄 Auto Scrap")
         if hasattr(self, 'status_label'):
             self.status_label.hide()
-        QMessageBox.information(
-            self, "Success",
-            "Auto scraping completed and database updated!\n\n"
-            "Click 'Publish to Users' to remove non-PT scholarships\n"
-            "so users only see D3/D4/S1/S2/S3 beasiswa."
-        )
+        c = palette(self._mode)
+        msg = "Auto scraping completed and database updated!\n\nClick 'Publish to Users' to remove non-PT scholarships\nso users only see D3/D4/S1/S2/S3 beasiswa."
+        show_custom_msgbox(self, "Success", msg, c, QMessageBox.Icon.Information)
         self._rebuild()
 
     def _on_scrap_error(self, err):
@@ -351,97 +450,38 @@ class AdminScholarshipView(QWidget):
             self.scrap_btn.setText("🔄 Auto Scrap")
         if hasattr(self, 'status_label'):
             self.status_label.hide()
-        QMessageBox.critical(self, "Error", f"Auto scraping failed:\n{err}")
+        c = palette(self._mode)
+        show_custom_msgbox(self, "Error", f"Auto scraping failed:\n{err}", c, QMessageBox.Icon.Critical)
 
     def _delete_beasiswa(self, bea_id):
-        r = QMessageBox.question(
-            self, "Delete",
-            "Are you sure you want to delete this scholarship?")
+        c = palette(self._mode)
+        r = show_custom_msgbox(self, "Delete", "Are you sure you want to delete this scholarship?", c, QMessageBox.Icon.Question, True)
         if r == QMessageBox.StandardButton.Yes:
             ok, msg = delete_beasiswa(bea_id)
             if ok:
-                QMessageBox.information(self, "Success", msg)
+                show_custom_msgbox(self, "Success", msg, c, QMessageBox.Icon.Information)
                 self._rebuild()
             else:
-                QMessageBox.critical(self, "Error", msg)
+                show_custom_msgbox(self, "Error", msg, c, QMessageBox.Icon.Critical)
 
     def _edit_beasiswa(self, bea: dict):
         """Open edit dialog for a scholarship."""
-        c = palette(self._mode)
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Edit Scholarship")
-        dlg.setMinimumSize(560, 480)
-        dl = QVBoxLayout(dlg)
-        dl.setContentsMargins(28, 24, 28, 24)
-        dl.setSpacing(8)
-
-        title = QLabel("Edit Scholarship")
-        title.setFont(QFont(FONT_FAMILY, 15, QFont.Weight.Bold))
-        dl.addWidget(title)
-        dl.addSpacing(4)
-
-        fields = {}
-        for label, key, val in [
-            ("Name", "nama", bea.get("nama", "")),
-            ("Organizer", "penyelenggara", bea.get("penyelenggara", "")),
-            ("Degree", "jenjang", bea.get("jenjang", "")),
-            ("Deadline", "deadline", bea.get("deadline", "")),
-            ("URL", "url", bea.get("url", "")),
-        ]:
-            lbl = QLabel(label)
-            lbl.setFont(QFont(FONT_FAMILY, 11, QFont.Weight.Bold))
-            dl.addWidget(lbl)
-            inp = QLineEdit(str(val) if val else "")
-            inp.setFixedHeight(38)
-            inp.setStyleSheet(f"""
-                QLineEdit {{
-                    padding: 8px 14px;
-                    font-size: 13px;
-                    background: {c['input_bg']};
-                    border: none;
-                    border-radius: 10px;
-                }}
-                QLineEdit:focus {{
-                    border: 2px solid {c['btn_primary']};
-                }}
-            """)
-            dl.addWidget(inp)
-            fields[key] = inp
-
-        dl.addStretch()
-
-        save = QPushButton("Save Changes")
-        save.setFixedHeight(40)
-        save.setStyleSheet(f"""
-            QPushButton {{
-                background: {c['btn_primary']};
-                color: {c['text_dark']};
-                border: none; border-radius: 10px;
-                font-weight: bold; font-size: 13px;
-            }}
-            QPushButton:hover {{ background: {c['btn_primary_hover']}; }}
-        """)
-        save.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-        def do_save():
+        dlg = EditScholarshipDialog(bea, self._mode, self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            c = palette(self._mode)
             try:
                 conn = get_connection()
-                updates = {k: e.text().strip() for k, e in fields.items()}
+                updates = {k: e.text().strip() for k, e in dlg.fields.items()}
                 set_clause = ", ".join(f"{k} = ?" for k in updates)
                 vals = list(updates.values()) + [bea["id"]]
                 conn.execute(
                     f"UPDATE beasiswa SET {set_clause} WHERE id = ?", vals)
                 conn.commit()
                 conn.close()
-                QMessageBox.information(dlg, "Success", "Scholarship updated!")
-                dlg.accept()
+                show_custom_msgbox(self, "Success", "Scholarship updated!", c, QMessageBox.Icon.Information)
                 self._rebuild()
             except Exception as e:
-                QMessageBox.critical(dlg, "Error", str(e))
-
-        save.clicked.connect(do_save)
-        dl.addWidget(save)
-        dlg.exec()
+                show_custom_msgbox(self, "Error", str(e), c, QMessageBox.Icon.Critical)
 
     # ── Rebuild ──────────────────────────────────────────────
     def _rebuild(self):
