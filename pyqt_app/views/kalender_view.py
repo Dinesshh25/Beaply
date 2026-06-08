@@ -311,7 +311,9 @@ class KalenderView(QWidget):
         esc.setWidgetResizable(True)
         esc.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         esc.setStyleSheet("background: transparent; border: none;")
+        esc.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         esw  = QWidget()
+        esw.setFixedWidth(244)
         esw.setStyleSheet("background: transparent;")
         esl  = QVBoxLayout(esw)
         esl.setContentsMargins(0, 0, 0, 0)
@@ -333,6 +335,7 @@ class KalenderView(QWidget):
             esl.addWidget(sec_lbl)
             for tr in upcoming[:6]:
                 ev  = QFrame()
+                ev.setFixedWidth(244)
                 ev.setStyleSheet(
                     f"QFrame {{ background: {c['card']}; border-radius: 10px; border: none; }}"
                 )
@@ -355,6 +358,7 @@ class KalenderView(QWidget):
                 evl.addWidget(en)
                 dl_hlay = QHBoxLayout()
                 ed  = QLabel(f"📅 {tr.get('deadline', '')}")
+                ed.setWordWrap(True)
                 ed.setStyleSheet(
                     f"color: {c['text_muted']}; font-size: 10px; background: transparent;"
                 )
@@ -413,6 +417,7 @@ class KalenderView(QWidget):
                     day_clr = c["text_muted"]
 
                 bm_card = QFrame()
+                bm_card.setFixedWidth(244)
                 bm_card.setStyleSheet(
                     f"QFrame {{ background: {bg}; border-radius: 10px; border: none; }}"
                 )
@@ -439,6 +444,7 @@ class KalenderView(QWidget):
 
                 dl_hlay = QHBoxLayout()
                 bm_dl = QLabel(f"📅 {bea.get('deadline', '')}")
+                bm_dl.setWordWrap(True)
                 bm_dl.setStyleSheet(
                     f"color: {c['text_muted']}; font-size: 10px; background: transparent;"
                 )
@@ -466,6 +472,7 @@ class KalenderView(QWidget):
             # Tombol "Lihat Semua Bookmark"
             if self._nav:
                 go_btn = QPushButton(t['see_all_bm'])
+                go_btn.setFixedWidth(244)
                 go_btn.setStyleSheet(
                     "background:#889E91; color:white; border-radius:14px; padding:8px; font-weight:bold; font-size:13px; margin-top:8px;"
                 )

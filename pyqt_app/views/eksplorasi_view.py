@@ -53,6 +53,10 @@ TRANSLATIONS = {
         'hide_expired': 'Sembunyikan yang Kedaluwarsa',
         'apply_filter': 'Terapkan Filter',
         'all': 'Semua',
+        'filter_scope': 'Cakupan Wilayah',
+        'scope_all': 'Semua',
+        'scope_domestic': 'Dalam Negeri (Nasional)',
+        'scope_international': 'Luar Negeri (Internasional)',
     },
     'en': {
         'detail_title': 'Scholarship Detail',
@@ -88,6 +92,10 @@ TRANSLATIONS = {
         'hide_expired': 'Hide Expired',
         'apply_filter': 'Apply Filters',
         'all': 'All',
+        'filter_scope': 'Scholarship Scope',
+        'scope_all': 'All',
+        'scope_domestic': 'National (Domestic)',
+        'scope_international': 'International (Overseas)',
     }
 }
 
@@ -327,6 +335,7 @@ class EksplorasiView(QWidget):
         self._filter_toefl = False
         self._filter_ielts = False
         self._filter_only_active = True
+        self._filter_lokasi = "All"
         self._apply_filters()
         self._check_deadlines()
         self._build()
@@ -378,6 +387,13 @@ class EksplorasiView(QWidget):
         if self._filter_only_active:
             today_str = datetime.now().strftime('%Y-%m-%d')
             r = [b for b in r if not b.get("deadline") or b.get("deadline") >= today_str]
+
+        if hasattr(self, '_filter_lokasi') and self._filter_lokasi and self._filter_lokasi != "All":
+            if self._filter_lokasi == "Luar Negeri":
+                r = [b for b in r if b.get("kategori") == "internasional" or str(b.get("lokasi")).strip() == "Luar Negeri" or str(b.get("tipe_beasiswa")).strip() == "Luar Negeri"]
+            elif self._filter_lokasi == "Dalam Negeri":
+                r = [b for b in r if b.get("kategori") != "internasional" and str(b.get("lokasi")).strip() != "Luar Negeri" and str(b.get("tipe_beasiswa")).strip() != "Luar Negeri"]
+
         if self._sort_mode == "deadline_asc":
             r.sort(key=lambda b: b.get("deadline") or "9999")
         elif self._sort_mode == "deadline_desc":
@@ -637,7 +653,7 @@ class EksplorasiView(QWidget):
         t = self._t
         dlg = QDialog(self)
         dlg.setWindowTitle(t['filter_title'])
-        dlg.setFixedSize(340, 500)
+        dlg.setFixedSize(340, 600)
         dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
         dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         dlg.setStyleSheet("QDialog { background: transparent; }")
@@ -676,6 +692,7 @@ class EksplorasiView(QWidget):
         
         dl.addLayout(top_lay)
         
+        # Filter Jenjang
         lbl_j = QLabel(t['filter_jenjang'])
         lbl_j.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 5px;")
         dl.addWidget(lbl_j)
@@ -694,7 +711,34 @@ class EksplorasiView(QWidget):
             group.addButton(rb)
             j_lay.addWidget(rb, idx // 3, idx % 3)
         dl.addLayout(j_lay)
+
+        # Filter Scope (International / Domestic)
+        lbl_scope = QLabel(t['filter_scope'])
+        lbl_scope.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 10px;")
+        dl.addWidget(lbl_scope)
+        group_scope = QButtonGroup(dlg)
+        
+        scope_lay = QVBoxLayout()
+        scope_lay.setSpacing(6)
+        
+        scopes = [
+            (t['scope_all'], "All"),
+            (t['scope_domestic'], "Dalam Negeri"),
+            (t['scope_international'], "Luar Negeri")
+        ]
+        
+        _rb_bg = 'rgba(255,255,255,0.6)' if self._mode == 'light' else 'rgba(60,64,67,0.6)'
+        for label, val in scopes:
+            rb = QRadioButton(label)
+            rb.setStyleSheet(f"QRadioButton {{ color: {c['text_dark']}; background: transparent; }} QRadioButton::indicator {{ width: 14px; height: 14px; border-radius: 7px; border: 2px solid {c['text_muted']}; background: {_rb_bg}; }} QRadioButton::indicator:checked {{ border: 2px solid {c['text_accent']}; background: {c['text_accent']}; }}")
+            if val == self._filter_lokasi:
+                rb.setChecked(True)
+            group_scope.addButton(rb)
+            rb.setProperty("scope_val", val)
+            scope_lay.addWidget(rb)
+        dl.addLayout(scope_lay)
             
+        # Filter Skor
         lbl_t = QLabel(t['filter_score'])
         lbl_t.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 10px;")
         dl.addWidget(lbl_t)
@@ -708,11 +752,12 @@ class EksplorasiView(QWidget):
         cb_ielts.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_ielts.setChecked(self._filter_ielts)
         dl.addWidget(cb_ielts)
-
+ 
+        # Filter Status
         lbl_s = QLabel(t['status'])
         lbl_s.setStyleSheet(f"color: {c['text_dark']}; font-weight: bold; background: transparent; margin-top: 10px;")
         dl.addWidget(lbl_s)
-
+ 
         cb_active = QCheckBox(t['hide_expired'])
         cb_active.setStyleSheet(f"QCheckBox {{ color: {c['text_dark']}; background: transparent; }} QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 2px solid {c['text_muted']}; background: {_cb_bg}; }} QCheckBox::indicator:checked {{ border: 2px solid {c['btn_primary']}; background: {c['btn_primary']}; }}")
         cb_active.setChecked(self._filter_only_active)
@@ -736,6 +781,11 @@ class EksplorasiView(QWidget):
             jv = sel.text() if sel else t['all']
             # Map translated 'All' back to "All" for logic
             self._filter_jenjang = None if jv in [TRANSLATIONS['id']['all'], TRANSLATIONS['en']['all']] else jv
+            
+            # Get selected scope
+            sel_scope = group_scope.checkedButton()
+            self._filter_lokasi = sel_scope.property("scope_val") if sel_scope else "All"
+
             self._filter_toefl = cb_toefl.isChecked()
             self._filter_ielts = cb_ielts.isChecked()
             self._filter_only_active = cb_active.isChecked()
