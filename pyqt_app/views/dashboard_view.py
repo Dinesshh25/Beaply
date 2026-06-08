@@ -154,7 +154,8 @@ class DashboardView(QWidget):
         w = QWidget(); w.setStyleSheet("background:transparent;")
         h = QHBoxLayout(w); h.setContentsMargins(0,0,0,0)
         l = QLabel(text); l.setFont(QFont(FONT_FAMILY, 14, QFont.Weight.Bold))
-        l.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); h.addWidget(l)
+        l.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        l.setWordWrap(True); h.addWidget(l)
         h.addStretch()
         if target and self._nav:
             b = QPushButton(t['see_all']); b.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -303,6 +304,7 @@ class DashboardView(QWidget):
         # ── LEFT ──
         ls = QScrollArea(); ls.setWidgetResizable(True)
         ls.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        ls.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         lw = QWidget(); lw.setStyleSheet("background:transparent;")
         ll = QVBoxLayout(lw); ll.setContentsMargins(0,0,4,0); ll.setSpacing(16)
         ls.setWidget(lw); ml.addWidget(ls, 7)
@@ -341,6 +343,7 @@ class DashboardView(QWidget):
         g2 = QLabel(t['find_next'])
         g2.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        g2.setWordWrap(True)
         g2.setMinimumHeight(42); tl.addWidget(g2)
         
         grad_str = t['life_changing'] if self._bhs == 'en' else t['life_changing']
@@ -357,6 +360,7 @@ class DashboardView(QWidget):
         g2b = QLabel(b_text)
         g2b.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2b.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        g2b.setWordWrap(True)
         g2b.setMinimumHeight(42); tl.addWidget(g2b)
         tl.addSpacing(6)
         g3 = QLabel(t['explore_desc'])
@@ -461,8 +465,9 @@ class DashboardView(QWidget):
         table.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
         table.horizontalHeader().setStretchLastSection(True)
         table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        for i in range(1, 5):
-            table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
+        for i in range(1, 4):
+            table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
+        table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
         table.verticalHeader().setVisible(False)
         table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -553,8 +558,9 @@ class DashboardView(QWidget):
         ll.addWidget(self._header(t['insight_faq'], c))
         ll.addWidget(self._build_insights_section(analytics["insights"], c))
         # ── RIGHT COLUMN ──
-        rs = QScrollArea(); rs.setWidgetResizable(True); rs.setFixedWidth(280)
+        rs = QScrollArea(); rs.setWidgetResizable(True); rs.setMinimumWidth(280); rs.setMaximumWidth(340)
         rs.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        rs.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         rw = QWidget(); rw.setStyleSheet("background:transparent;")
         rl = QVBoxLayout(rw); rl.setContentsMargins(0,0,0,0); rl.setSpacing(14)
         rs.setWidget(rw); ml.addWidget(rs, 3)
@@ -566,7 +572,8 @@ class DashboardView(QWidget):
         pc.setStyleSheet(f"#pcCard{{background:{c['card']};border:1px solid {c['border']};border-radius:16px;}}")
         pcl = QVBoxLayout(pc); pcl.setContentsMargins(18,16,18,16); pcl.setSpacing(8)
         pch = QLabel(t['prof_comp']); pch.setFont(QFont(FONT_FAMILY,13,QFont.Weight.Bold))
-        pch.setStyleSheet(f"color:{c['text_dark']};background:transparent;"); pcl.addWidget(pch)
+        pch.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        pch.setWordWrap(True); pcl.addWidget(pch)
         rrow = QWidget(); rrow.setStyleSheet("background:transparent;")
         rrl = QHBoxLayout(rrow); rrl.setContentsMargins(0,0,0,0); rrl.setSpacing(12)
         ring = ProgressRing(comp, 80, 7, bg_color=c['border'], text_color=c['text_dark']); rrl.addWidget(ring)
@@ -584,6 +591,7 @@ class DashboardView(QWidget):
             ic = "\u2705" if done else "\u2B1C"
             cl = QLabel(f"{ic}  {label}")
             cl.setStyleSheet(f"color:{c['text_dark'] if done else c['text_muted']};font-size:12px;background:transparent;")
+            cl.setWordWrap(True)
             dwl.addWidget(cl)
         rrl.addWidget(dw); pcl.addWidget(rrow)
         cpb = QPushButton(t['comp_prof_btn']); cpb.setObjectName("cpBtn")
