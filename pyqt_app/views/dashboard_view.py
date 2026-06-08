@@ -341,6 +341,7 @@ class DashboardView(QWidget):
         g2 = QLabel(t['find_next'])
         g2.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        g2.setWordWrap(True)
         g2.setMinimumHeight(42); tl.addWidget(g2)
         
         grad_str = t['life_changing'] if self._bhs == 'en' else t['life_changing']
@@ -357,24 +358,28 @@ class DashboardView(QWidget):
         g2b = QLabel(b_text)
         g2b.setFont(QFont(FONT_FAMILY, 24, QFont.Weight.Bold))
         g2b.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
+        g2b.setWordWrap(True)
         g2b.setMinimumHeight(42); tl.addWidget(g2b)
         tl.addSpacing(6)
         g3 = QLabel(t['explore_desc'])
-        g3.setStyleSheet(f"color:{c['text_dark']};font-size:12px;background:transparent;"); tl.addWidget(g3)
+        g3.setStyleSheet(f"color:{c['text_dark']};font-size:12px;background:transparent;")
+        g3.setWordWrap(True)
+        tl.addWidget(g3)
         tl.addStretch()
-        greet_lay.addWidget(text_w, 3)
+        greet_lay.addWidget(text_w, 1)
 
         # Illustration side
         img_path = os.path.join(ASSETS, "graduation_cap.png")
         if os.path.exists(img_path):
             img_lbl = QLabel()
-            px = QPixmap(img_path).scaled(270, 270,
+            px = QPixmap(img_path).scaled(140, 140,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation)
             img_lbl.setPixmap(px)
             img_lbl.setStyleSheet("background:transparent;")
             img_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            greet_lay.addWidget(img_lbl, 1)
+            img_lbl.setFixedWidth(140)
+            greet_lay.addWidget(img_lbl)
 
         ll.addWidget(greet)
 
@@ -405,7 +410,7 @@ class DashboardView(QWidget):
             ("7",      t['smart_tips'],  "smart.png",       stat_bgs[3], "scroll_faq"),
         ]
         sw = QWidget(); sw.setStyleSheet("background:transparent;")
-        sl = QHBoxLayout(sw); sl.setContentsMargins(0,0,0,0); sl.setSpacing(10)
+        sl = QHBoxLayout(sw); sl.setContentsMargins(0,0,0,0); sl.setSpacing(8)
         for i,(v,lb,ic_file,bg,nav_target) in enumerate(stats):
             f = QPushButton(); f.setObjectName(f"st{i}"); f.setFixedHeight(88)
             f.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
@@ -413,23 +418,23 @@ class DashboardView(QWidget):
             self._apply_card_shadow(f)
             f.clicked.connect(lambda _, tgt=nav_target: self._handle_stats_click(tgt))
             fl = QHBoxLayout(f)
-            fl.setContentsMargins(14,10,10,10); fl.setSpacing(10)
+            fl.setContentsMargins(10, 8, 8, 8); fl.setSpacing(8)
 
             # Icon with white circular shadow (glow)
             icon_wrap = QLabel()
             icon_wrap.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            icon_wrap.setFixedSize(54, 54)
+            icon_wrap.setFixedSize(40, 40)
             icon_wrap.setAlignment(Qt.AlignmentFlag.AlignCenter)
             if self._mode == 'dark':
-                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(60,64,67,200), stop:0.6 rgba(60,64,67,100), stop:1 rgba(60,64,67,0)); border-radius:27px;")
+                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(60,64,67,200), stop:0.6 rgba(60,64,67,100), stop:1 rgba(60,64,67,0)); border-radius:20px;")
             else:
-                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:27px;")
+                icon_wrap.setStyleSheet("background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255,255,255,255), stop:0.6 rgba(255,255,255,150), stop:1 rgba(255,255,255,0)); border-radius:20px;")
             ic_path = os.path.join(ASSETS, ic_file)
             if os.path.exists(ic_path):
-                px = QPixmap(ic_path).scaled(42, 42, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                px = QPixmap(ic_path).scaled(30, 30, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 icon_wrap.setPixmap(px)
             icon_shadow = QGraphicsDropShadowEffect()
-            icon_shadow.setBlurRadius(25)
+            icon_shadow.setBlurRadius(20)
             icon_shadow.setXOffset(0)
             icon_shadow.setYOffset(0)
             icon_shadow.setColor(QColor(255, 255, 255, 200))
@@ -440,13 +445,14 @@ class DashboardView(QWidget):
             right_w = QWidget(); right_w.setStyleSheet("background:transparent;")
             right_w.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             right_l = QVBoxLayout(right_w); right_l.setContentsMargins(0,0,0,0); right_l.setSpacing(0)
-            vl = QLabel(v); vl.setFont(QFont(FONT_FAMILY, 22, QFont.Weight.Bold))
+            vl = QLabel(v); vl.setFont(QFont(FONT_FAMILY, 20, QFont.Weight.Bold))
             vl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             vl.setStyleSheet(f"color:{c['text_dark']};background:transparent;")
             right_l.addWidget(vl)
             ll2 = QLabel(lb)
             ll2.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            ll2.setFont(QFont(FONT_FAMILY, 10, QFont.Weight.DemiBold))
+            ll2.setWordWrap(True)
+            ll2.setFont(QFont(FONT_FAMILY, 9, QFont.Weight.DemiBold))
             ll2.setStyleSheet(f"color:{c['text_muted']};background:transparent;")
             right_l.addWidget(ll2)
             fl.addWidget(right_w, 1)
