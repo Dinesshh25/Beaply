@@ -220,6 +220,36 @@ def extract_deadlines(teks: str) -> str | None:
 
 # ─── Fungsi Ekstraksi ─────────────────────────────────────────────────────────
 
+def clean_full_text(text: str) -> str:
+    """
+    Membersihkan teks dari bagian promosi, tombol bagikan, dan referensi "Baca Juga" 
+    yang berada di akhir artikel agar tidak mengotori ekstraksi data.
+    """
+    if not text:
+        return ""
+    
+    # Cari pola pemisah artikel terkait (case-insensitive)
+    patterns = [
+        r'\bbaca\s+(?:juga|:)\b',
+        r'\bbaca\s+menarik\s+lainnya\b',
+        r'\bread\s+also\b',
+        r'\bbagikan\s+ini:\b',
+        r'\bshare\s+this:\b',
+        r'\bikuti\s+kami\s+di\b'
+    ]
+    
+    # Gabungkan pola menjadi regex tunggal
+    combined_pattern = '|'.join(patterns)
+    
+    # Cari posisi kemunculan pertama dari salah satu pola tersebut
+    match = re.search(combined_pattern, text, re.IGNORECASE)
+    if match:
+        # Potong teks sampai sebelum pola tersebut ditemukan
+        return text[:match.start()].strip()
+        
+    return text.strip()
+
+
 def extract_ipk(teks: str) -> float | None:
     """
     Ekstrak nilai IPK minimal dari teks.
@@ -227,6 +257,7 @@ def extract_ipk(teks: str) -> float | None:
     """
     if not teks:
         return None
+    teks = clean_full_text(teks)
     patterns = [
         r'[Ii][Pp][Kk]\s*(?:minimal?|minimum|min\.?|≥|>=|di\s*atas)?\s*:?\s*(\d+[.,]\d+)',
         r'[Gg][Pp][Aa]\s*(?:of\s*)?(?:at\s*least|minimum|min\.?|\d+\.?\d*)\s*:?\s*(\d+[.,]\d+)',
@@ -250,6 +281,7 @@ def extract_toefl(teks: str) -> int:
     """
     if not teks:
         return 0
+    teks = clean_full_text(teks)
     patterns = [
         r'toefl\s*(?:itp|pbt|ibt)?\s*(?:minimal?|minimum|score|skor|of|≥|>=)?\s*:?\s*(\d{3})',
         r'(\d{3})\s*(?:score|skor|points)?\s*(?:minimal?|minimum)?\s*toefl',
@@ -276,6 +308,7 @@ def extract_ielts(teks: str) -> float:
     """
     if not teks:
         return 0.0
+    teks = clean_full_text(teks)
     patterns = [
         r'ielts\s*(?:minimal?|minimum|score|skor|of|≥|>=)?\s*:?\s*(\d[.,]\d)',
         r'(\d[.,]\d)\s*(?:score|skor|points)?\s*(?:minimal?|minimum)?\s*ielts',
@@ -300,6 +333,7 @@ def extract_jenjang(teks: str) -> list[str]:
     """
     if not teks:
         return []
+    teks = clean_full_text(teks)
     found = []
     for jenjang, patterns in JENJANG_PATTERNS.items():
         for pat in patterns:
@@ -316,11 +350,17 @@ def extract_lokasi(teks: str) -> str:
     """
     if not teks:
         return ''
+    teks = clean_full_text(teks)
     teks_lower = teks.lower()
     for lokasi, keywords in LOKASI_KEYWORDS.items():
         for kw in keywords:
-            if kw in teks_lower:
-                return lokasi
+            if len(kw) <= 3:
+                # Gunakan word boundary untuk keyword sangat pendek (seperti uk, usa)
+                if re.search(rf'\b{re.escape(kw)}\b', teks_lower):
+                    return lokasi
+            else:
+                if kw in teks_lower:
+                    return lokasi
     return ''
 
 
@@ -443,7 +483,7 @@ def normalize_beasiswa(entry: dict) -> dict:
     norm['kategori_raw'] = kat
 
     # ── Full text ─────────────────────────────────────────────────────
-    norm['full_text'] = str(norm.get('full_text') or norm.get('excerpt') or '').strip()
+    norm['full_text'] = clean_full_text(str(norm.get('full_text') or norm.get('excerpt') or '')).strip()
 
     return norm
 
