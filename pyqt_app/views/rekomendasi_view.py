@@ -172,6 +172,7 @@ class _ComparePanel(QFrame):
             wl = QLabel(t['winner_msg'].format(winner_name, winner_skor))
             wl.setFont(QFont(FONT_FAMILY, 12, QFont.Weight.Bold))
             wl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            wl.setWordWrap(True)
             _win_text = c['sidebar_active_tx']
             wl.setStyleSheet(
                 f"background: {pastel(3, self._mode)}; color: {_win_text}; "
@@ -182,6 +183,7 @@ class _ComparePanel(QFrame):
             tie = QLabel(t['tie_msg'])
             tie.setFont(QFont(FONT_FAMILY, 11))
             tie.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            tie.setWordWrap(True)
             tie.setStyleSheet(
                 f"background: {pastel(1, self._mode)}; color: {c['text_dark']}; "
                 f"border-radius: 10px; padding: 10px 16px;"
@@ -354,6 +356,7 @@ class _CompareSelectPanel(QFrame):
 
         sub = QLabel(t['sel_sub'])
         sub.setStyleSheet(f"color: {c['text_muted']}; font-size: 11px;")
+        sub.setWordWrap(True)
         root.addWidget(sub)
 
         root.addSpacing(10)
@@ -370,6 +373,8 @@ class _CompareSelectPanel(QFrame):
         for n in names:
             self._combo_a.addItem(n)
         self._combo_a.setFixedHeight(36)
+        self._combo_a.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        self._combo_a.setMinimumWidth(200)
         if self._mode == 'dark':
             _combo_a_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:1 #4A3028)"
         else:
@@ -408,6 +413,8 @@ class _CompareSelectPanel(QFrame):
         if len(names) > 1:
             self._combo_b.setCurrentIndex(1)
         self._combo_b.setFixedHeight(36)
+        self._combo_b.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        self._combo_b.setMinimumWidth(200)
         if self._mode == 'dark':
             _combo_b_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {c['card']}, stop:1 #2A3D2E)"
         else:
@@ -503,6 +510,7 @@ class RekomendasiView(QWidget):
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
         self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self._root_lay.addWidget(self._scroll)
 
         self._build_initial()
