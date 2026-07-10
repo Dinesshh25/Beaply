@@ -1,16 +1,53 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('C:\\Users\\asus\\OneDrive\\Documents\\Univ\\Materi & Tugas sem 2\\P1\\Beaply\\assets', 'assets'), ('C:\\Users\\asus\\OneDrive\\Documents\\Univ\\Materi & Tugas sem 2\\P1\\Beaply\\data\\beasiswa.json', 'data')]
+# Use relative paths for portability
+project_root = os.path.abspath('.')
+
+datas = [
+    (os.path.join(project_root, 'assets'), 'assets'),
+    (os.path.join(project_root, 'data', 'beasiswa.json'), 'data'),
+]
 binaries = []
-hiddenimports = []
+hiddenimports = [
+    'controllers',
+    'controllers.admin_controller',
+    'controllers.analytics_controller',
+    'controllers.auth_controller',
+    'controllers.bantuan_controller',
+    'controllers.eksplorasi_controller',
+    'controllers.notifikasi_controller',
+    'controllers.profil_controller',
+    'controllers.rekomendasi_controller',
+    'controllers.tracker_controller',
+    'models',
+    'models.auth_model',
+    'models.auth_utils',
+    'models.beasiswa_model',
+    'models.database',
+    'models.email_service',
+    'models.feedback_model',
+    'models.notifikasi_model',
+    'models.profil_model',
+    'models.rekomendasi_model',
+    'models.tracker_model',
+    'models.validators',
+    'pyqt_app',
+    'pyqt_app.views',
+    'pyqt_app.widgets',
+    'pyqt_app.styles',
+    'pyqt_app.utils',
+    'database',
+]
+
 tmp_ret = collect_all('selenium')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
-    ['C:\\Users\\asus\\OneDrive\\Documents\\Univ\\Materi & Tugas sem 2\\P1\\Beaply\\main.py'],
-    pathex=[],
+    [os.path.join(project_root, 'main.py')],
+    pathex=[project_root],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,

@@ -120,12 +120,20 @@ def get_all_beasiswa_admin() -> list[dict]:
 
 
 def delete_beasiswa(beasiswa_id: int) -> tuple[bool, str]:
-    """Delete a scholarship."""
+    """Delete a scholarship and related bookmarks."""
     try:
         conn = get_connection()
+        # Hapus bookmark terkait terlebih dahulu
+        conn.execute("DELETE FROM bookmark_beasiswa WHERE beasiswa_id = ?", (beasiswa_id,))
         conn.execute("DELETE FROM beasiswa WHERE id = ?", (beasiswa_id,))
         conn.commit()
         conn.close()
+        # Refresh cache rekomendasi agar data tetap sinkron
+        try:
+            from models.rekomendasi_model import refresh_cache
+            refresh_cache()
+        except Exception:
+            pass
         return True, "Scholarship deleted successfully."
     except Exception as e:
         return False, str(e)

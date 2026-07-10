@@ -408,10 +408,17 @@ class AdminScholarshipView(QWidget):
             conn = get_connection()
             deleted = 0
             for b in non_pt:
+                conn.execute("DELETE FROM bookmark_beasiswa WHERE beasiswa_id = ?", (b["id"],))
                 conn.execute("DELETE FROM beasiswa WHERE id = ?", (b["id"],))
                 deleted += 1
             conn.commit()
             conn.close()
+            # Refresh cache rekomendasi
+            try:
+                from models.rekomendasi_model import refresh_cache
+                refresh_cache()
+            except Exception:
+                pass
             success_msg = (f"✅ Removed {deleted} non-PT scholarships.\n"
                            f"Users will now see only perguruan tinggi scholarships.")
             show_custom_msgbox(self, "Success", success_msg, c, QMessageBox.Icon.Information)

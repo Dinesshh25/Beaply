@@ -27,6 +27,7 @@ from controllers.eksplorasi_controller import (
     get_semua_beasiswa as ambil_semua_beasiswa,
     get_bookmarks as ambil_bookmark_user,
 )
+from controllers.rekomendasi_controller import hitung_rekomendasi, get_profil_user
 from controllers.analytics_controller import get_analytics_data
 from pyqt_app.views.eksplorasi_view import DetailDialog
 
@@ -461,9 +462,15 @@ class DashboardView(QWidget):
             sl.addWidget(f)
         ll.addWidget(sw)
 
-        # ━━ SCHOLARSHIPS TABLE ━━
+        # ━━ SCHOLARSHIPS TABLE (Personalized Top 8) ━━
         ll.addWidget(self._header(t['trending'], c, "eksplorasi"))
-        self._all_bea = ambil_semua_beasiswa()[:8]
+        # Top 8 dari rekomendasi berdasarkan profil user
+        _profil_user = get_profil_user(self._pid)
+        _rekomendasi = hitung_rekomendasi(_profil_user)
+        self._all_bea = [r["beasiswa"] for r in _rekomendasi[:8]]
+        # Fallback jika rekomendasi kosong (profil belum lengkap)
+        if not self._all_bea:
+            self._all_bea = ambil_semua_beasiswa()[:8]
         table = QTableWidget(len(self._all_bea), 5)
         table.setHorizontalHeaderLabels([t['tbl_name'], t['tbl_fund'], t['tbl_deg'], t['tbl_loc'], t['tbl_dl']])
         table.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
