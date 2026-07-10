@@ -86,6 +86,20 @@ def init_auth_db():
     """)
 
     conn.commit()
+
+    # ── Migration: tambah kolom baru ke tabel lama ────────────
+    migrations = [
+        "ALTER TABLE users ADD COLUMN google_id TEXT DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN apple_id TEXT DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN auth_provider TEXT NOT NULL DEFAULT 'local'",
+    ]
+    for sql in migrations:
+        try:
+            conn.execute(sql)
+            conn.commit()
+        except Exception:
+            pass  # Kolom sudah ada — skip
+
     conn.close()
 
 
